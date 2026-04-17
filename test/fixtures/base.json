@@ -1,0 +1,40 @@
+[
+  {
+    "id": "proj_learning",
+    "title": "Learning Project",
+    "projectId": "learning_project",
+    "contexts": ["learning"],
+    "children": [
+      {
+        "id": "task_review_notes",
+        "title": "Review notes",
+        "priority": 4,
+        "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+        "duration": 20,
+        "energyRequired": "medium",
+        "status": "pending"
+      }
+    ]
+  },
+  {
+    "id": "task_garden_cleanup",
+    "title": "Garden cleanup",
+    "priority": 3,
+    "priorityUpdatedAt": "2026-04-08T10:00:00Z",
+    "duration": 30,
+    "energyRequired": "high",
+    "contexts": ["garden"],
+    "status": "pending"
+  },
+  {
+    "id": "task_utility_bill",
+    "title": "Utility bill",
+    "priority": 1,
+    "priorityUpdatedAt": "2026-04-12T10:00:00Z",
+    "dueDate": "2026-04-18T10:00:00Z",
+    "duration": 10,
+    "energyRequired": "low",
+    "contexts": ["bureaucracy"],
+    "status": "pending"
+  }
+]

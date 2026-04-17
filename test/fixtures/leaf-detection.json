@@ -1,0 +1,39 @@
+[
+  {
+    "id": "task_no_children_field",
+    "title": "No children field",
+    "priority": 5,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 15,
+    "energyRequired": "medium",
+    "contexts": ["learning"],
+    "status": "pending"
+  },
+  {
+    "id": "task_empty_children",
+    "title": "Empty children array",
+    "priority": 6,
+    "priorityUpdatedAt": "2026-04-09T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["learning"],
+    "status": "pending",
+    "children": []
+  },
+  {
+    "id": "project_parent",
+    "title": "Parent task",
+    "children": [
+      {
+        "id": "task_child_leaf",
+        "title": "Child leaf",
+        "priority": 4,
+        "priorityUpdatedAt": "2026-04-08T10:00:00Z",
+        "duration": 20,
+        "energyRequired": "low",
+        "contexts": ["learning"],
+        "status": "pending"
+      }
+    ]
+  }
+]

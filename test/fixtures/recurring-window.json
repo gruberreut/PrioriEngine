@@ -1,0 +1,36 @@
+[
+  {
+    "id": "task_weekly_recent",
+    "title": "Weekly recurring task",
+    "priority": 10,
+    "priorityUpdatedAt": "2026-04-01T10:00:00Z",
+    "recurrence": "weekly",
+    "duration": 20,
+    "energyRequired": "low",
+    "contexts": ["home"],
+    "status": "pending",
+    "lastSuggestedAt": "2026-04-15T12:00:00Z"
+  },
+  {
+    "id": "task_non_recurring_recent",
+    "title": "Non recurring recent task",
+    "priority": 6,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "low",
+    "contexts": ["home"],
+    "status": "pending",
+    "lastSuggestedAt": "2026-04-16T18:00:00Z"
+  },
+  {
+    "id": "task_non_recurring_old",
+    "title": "Non recurring old suggestion",
+    "priority": 6,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "low",
+    "contexts": ["home"],
+    "status": "pending",
+    "lastSuggestedAt": "2026-04-10T18:00:00Z"
+  }
+]

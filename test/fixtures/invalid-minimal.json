@@ -1,0 +1,22 @@
+[
+  {
+    "id": "task_bad_due",
+    "title": "Priority one without due date",
+    "priority": 1,
+    "priorityUpdatedAt": "2026-04-12T10:00:00Z",
+    "duration": 10,
+    "energyRequired": "low",
+    "contexts": ["home"],
+    "status": "pending"
+  },
+  {
+    "id": "task_ok",
+    "title": "Valid task",
+    "priority": 5,
+    "priorityUpdatedAt": "2026-04-12T10:00:00Z",
+    "duration": 15,
+    "energyRequired": "medium",
+    "contexts": ["home"],
+    "status": "pending"
+  }
+]

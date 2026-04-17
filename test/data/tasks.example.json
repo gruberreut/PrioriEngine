@@ -1,0 +1,65 @@
+[
+  {
+    "id": "project_garden",
+    "title": "Garden Cleanup",
+    "projectId": "garden_maintenance",
+    "contexts": ["garden"],
+    "energyRequired": "medium",
+    "children": [
+      {
+        "id": "task_water_plants",
+        "title": "Water plants",
+        "priority": 4,
+        "priorityUpdatedAt": "2026-04-15T10:00:00Z",
+        "dueDate": null,
+        "duration": 10,
+        "energyRequired": "low",
+        "contexts": ["garden"],
+        "status": "pending",
+        "createdAt": "2026-04-01T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_trim_roses",
+        "title": "Trim roses",
+        "priority": 5,
+        "priorityUpdatedAt": "2026-04-12T10:00:00Z",
+        "dueDate": null,
+        "duration": 25,
+        "energyRequired": "high",
+        "contexts": ["garden"],
+        "status": "pending",
+        "createdAt": "2026-04-02T09:00:00Z",
+        "lastSuggestedAt": null
+      }
+    ]
+  },
+  {
+    "id": "task_practice_french",
+    "title": "Practice French",
+    "priority": 6,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "dueDate": null,
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["learning", "home"],
+    "projectId": "language",
+    "status": "pending",
+    "createdAt": "2026-04-03T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_pay_bill",
+    "title": "Pay utility bill",
+    "priority": 1,
+    "priorityUpdatedAt": "2026-04-14T10:00:00Z",
+    "dueDate": "2026-04-20T18:00:00Z",
+    "duration": 15,
+    "energyRequired": "low",
+    "contexts": ["bureaucracy", "computer"],
+    "projectId": "home_admin",
+    "status": "pending",
+    "createdAt": "2026-04-05T09:00:00Z",
+    "lastSuggestedAt": null
+  }
+]

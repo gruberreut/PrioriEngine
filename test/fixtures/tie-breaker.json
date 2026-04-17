@@ -1,0 +1,32 @@
+[
+  {
+    "id": "task_c",
+    "title": "Task C",
+    "priority": 5,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["home"],
+    "status": "pending"
+  },
+  {
+    "id": "task_b",
+    "title": "Task B",
+    "priority": 5,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["home"],
+    "status": "pending"
+  },
+  {
+    "id": "task_a",
+    "title": "Task A",
+    "priority": 5,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["home"],
+    "status": "pending"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "name": "priori-engine",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Priori Engine MVP CLI task ranking engine",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "rank": "tsx src/cli.ts",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.2"
+  }
+}

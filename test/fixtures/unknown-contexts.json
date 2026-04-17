@@ -1,0 +1,22 @@
+[
+  {
+    "id": "task_unlisted_context",
+    "title": "Niche task",
+    "priority": 4,
+    "priorityUpdatedAt": "2026-04-11T10:00:00Z",
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["my-custom-context"],
+    "status": "pending"
+  },
+  {
+    "id": "task_standard_context",
+    "title": "Home task",
+    "priority": 6,
+    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+    "duration": 10,
+    "energyRequired": "low",
+    "contexts": ["home"],
+    "status": "pending"
+  }
+]
