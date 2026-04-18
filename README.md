@@ -1,8 +1,11 @@
-# Priori Engine
+# Priori
 
-Priori Engine is a deterministic task-ranking engine that recommends the most relevant tasks for the current moment.
+Monorepo for the Priori task-ranking system: **`packages/engine`** (deterministic ranking + CLI), future **`apps/api`** (HTTP API), and **`apps/web`** (React UI).
 
-It evaluates leaf tasks from a nested JSON task tree and ranks them using weighted scoring based on:
+## Engine (`packages/engine`)
+
+The engine evaluates leaf tasks from a nested JSON task tree and ranks them using weighted scoring based on:
+
 - priority
 - urgency aging (`priorityUpdatedAt`)
 - context matching
@@ -11,36 +14,48 @@ It evaluates leaf tasks from a nested JSON task tree and ranks them using weight
 - project flow bonus
 - recent suggestion penalty
 
-The engine is designed for local experimentation and explainable output. It returns top-N tasks (default `3`) and can print score breakdowns with `--explain`.
+It is designed for local experimentation and explainable output. It returns top-N tasks (default `3`) and can print score breakdowns with `--explain`.
 
-## Run locally
+### Run locally
 
-Install dependencies:
+From the repository root:
 
 ```bash
 npm install
 ```
 
-Run ranking (defaults to `test/data/tasks.example.json`):
+Run ranking (defaults to `packages/engine/test/data/tasks.example.json`):
 
 ```bash
 npm run rank -- --context garden --available-time 20 --energy medium --explain
 ```
 
 Useful flags:
+
 - `--tasks <path>`: input JSON file path
 - `--limit <n>`: number of tasks to return (default `3`)
 - `--now <iso-date>`: fixed runtime timestamp for reproducible tests
 - `--last-completed-project <id>`: enables project flow bonus
 
-## Test
+### Test
 
 ```bash
 npm test
 ```
 
-Coverage (instrumented engine sources under `src/`, excluding type-only `src/types.ts` and the thin entry `src/cli.ts`):
+Coverage (instrumented engine sources under `packages/engine/src/`, excluding type-only `types.ts` and the thin entry `cli.ts`):
 
 ```bash
 npm run test:coverage
 ```
+
+## Layout
+
+| Path | Role |
+|------|------|
+| `packages/engine` | Ranking engine, CLI, engine tests |
+| `apps/api` | HTTP API (planned) |
+| `apps/web` | Browser UI (planned) |
+| `documentation/` | Design and product docs |
+
+See [documentation/FRONTEND_BACKEND_TECHNICAL_DESIGN.md](documentation/FRONTEND_BACKEND_TECHNICAL_DESIGN.md) for boundaries between projects.
