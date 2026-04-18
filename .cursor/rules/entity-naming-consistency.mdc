@@ -1,0 +1,14 @@
+---
+description: Keep entity names aligned across DB, API, and frontend; separate human-facing labels from identifiers
+alwaysApply: true
+---
+
+# Entity naming consistency
+
+- **Single vocabulary:** Use one set of entity names end to end—**database** (tables, columns, migrations), **server** (models, routes, services, DTOs), and **frontend** (types, stores, components, hooks keyed to entities). Names should reflect the same concepts and **purpose**, not diverge per layer.
+
+- **Stable identifiers:** Treat entity and domain names as **stable identifiers** in code. Prefer renaming in one coordinated pass if the domain language changes, rather than tolerating drift (e.g. `task` in the API and `item` in UI code for the same thing).
+
+- **Display vs. code:** **User-visible strings** (titles, buttons, empty states) may differ from code names. Centralize those in **labels, copy maps, or i18n** so marketing or wording can change without renaming types, routes, or components.
+
+- **When adding features:** New entities get **consistent naming from the first migration/schema through types and UI**; do not introduce parallel synonyms in different layers.
