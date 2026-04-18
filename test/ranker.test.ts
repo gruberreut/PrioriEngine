@@ -101,6 +101,34 @@ describe("Priori Engine ranker", () => {
     expect(output).toContain("Try adding new tasks or changing context.");
   });
 
+  it("returns in-progress blocking mode when an active task exists", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "in-progress-block.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams({ context: "computer" }));
+
+    expect(result.mode).toBe("in_progress_block");
+    expect(result.top).toEqual([]);
+    expect(result.inProgressTask?.id).toBe("task_active_session");
+    expect(
+      result.exclusions.some((e) => e.reason === "in_progress_blocked")
+    ).toBe(true);
+  });
+
+  it("prints in-progress guidance instead of recommendations", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "in-progress-block.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams());
+    const output = formatRankOutput(result, false);
+
+    expect(output).toContain("Task in progress:");
+    expect(output).toContain("Choose next action: done | snooze | edit | dismiss");
+    expect(output).toContain("Ranking paused until in-progress task is resolved.");
+  });
+
   it("fixture files are valid JSON (best-effort parsing contract)", async () => {
     const fixtures = [
       "base.json",
@@ -109,6 +137,7 @@ describe("Priori Engine ranker", () => {
       "leaf-detection.json",
       "recurring-window.json",
       "tie-breaker.json",
+      "in-progress-block.json",
     ];
 
     for (const file of fixtures) {

@@ -127,6 +127,22 @@ export function rankTasks(
 ): RankResult {
   const runtimeContext = params.context?.trim().toLowerCase();
   const allExclusions = [...exclusions];
+  const inProgressTask = tasks.find((task) => task.status === "in_progress");
+
+  if (inProgressTask) {
+    allExclusions.push({
+      taskId: inProgressTask.id,
+      reason: "in_progress_blocked",
+      detail:
+        "An in-progress task is active. Resolve it before requesting new recommendations.",
+    });
+    return {
+      mode: "in_progress_block",
+      top: [],
+      exclusions: allExclusions,
+      inProgressTask,
+    };
+  }
 
   const filtered = tasks.filter((task) => {
     if (!runtimeContext) return true;
@@ -147,5 +163,5 @@ export function rankTasks(
     .sort(compareRankedTasks)
     .slice(0, params.limit);
 
-  return { top: ranked, exclusions: allExclusions };
+  return { mode: "recommendations", top: ranked, exclusions: allExclusions };
 }

@@ -38,3 +38,9 @@ Useful flags:
 ```bash
 npm test
 ```
+
+Coverage (instrumented engine sources under `src/`, excluding type-only `src/types.ts` and the thin entry `src/cli.ts`):
+
+```bash
+npm run test:coverage
+```

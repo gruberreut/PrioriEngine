@@ -1,0 +1,14 @@
+---
+description: Production code is the source of truth; tests must not drive code changes for their own sake
+alwaysApply: true
+---
+
+# Testing integrity
+
+- **Source of truth:** Application and engine code (`src/` and any non-test paths) defines correct behavior. Tests document and verify that behavior; they do not define it.
+
+- **Forbidden:** Changing production code **only** to make tests pass (e.g. weakening behavior, adding dummy exports, or “fixing” the implementation to match an incorrect test expectation).
+
+- **When tests fail:** Prefer fixing **tests**, **fixtures**, or **test setup** so they match the intended product behavior. If a test cannot pass without changing production code, **stop**, explain the conflict, and cite the **specific files and code** (or behavior) that block a passing test without a product change.
+
+- **Legitimate code changes:** Refactors or behavior changes are allowed when they follow product/engine requirements, independent of tests. Tests are updated afterward to match.

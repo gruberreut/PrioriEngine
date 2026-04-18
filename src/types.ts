@@ -1,5 +1,5 @@
 export type EnergyLevel = "low" | "medium" | "high";
-export type TaskStatus = "pending" | "completed";
+export type TaskStatus = "pending" | "in_progress" | "completed";
 
 export interface RawTask {
   id?: string;
@@ -81,6 +81,7 @@ export interface RankedTask {
 export type ExclusionReason =
   | "context_mismatch"
   | "completed"
+  | "in_progress_blocked"
   | "non_leaf"
   | "invalid";
 
@@ -91,6 +92,8 @@ export interface ExclusionRecord {
 }
 
 export interface RankResult {
+  mode: "recommendations" | "in_progress_block";
   top: RankedTask[];
   exclusions: ExclusionRecord[];
+  inProgressTask?: NormalizedTask;
 }

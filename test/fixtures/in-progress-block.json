@@ -1,0 +1,30 @@
+[
+  {
+    "id": "task_active_session",
+    "title": "Finish draft design doc",
+    "priority": 3,
+    "priorityUpdatedAt": "2026-04-17T10:00:00Z",
+    "dueDate": null,
+    "duration": 25,
+    "energyRequired": "medium",
+    "contexts": ["computer"],
+    "projectId": "docs",
+    "status": "in_progress",
+    "createdAt": "2026-04-10T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_other_pending",
+    "title": "Review backlog",
+    "priority": 4,
+    "priorityUpdatedAt": "2026-04-14T10:00:00Z",
+    "dueDate": null,
+    "duration": 15,
+    "energyRequired": "low",
+    "contexts": ["computer"],
+    "projectId": "planning",
+    "status": "pending",
+    "createdAt": "2026-04-11T09:00:00Z",
+    "lastSuggestedAt": null
+  }
+]

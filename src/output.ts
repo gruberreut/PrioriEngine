@@ -5,6 +5,24 @@ function formatScore(value: number): string {
 }
 
 export function formatRankOutput(result: RankResult, explain: boolean): string {
+  if (result.mode === "in_progress_block" && result.inProgressTask) {
+    const lines = [
+      `Task in progress: ${result.inProgressTask.title}`,
+      "Choose next action: done | snooze | edit | dismiss",
+      "Ranking paused until in-progress task is resolved.",
+    ];
+
+    if (explain && result.exclusions.length > 0) {
+      lines.push("");
+      lines.push("Exclusions:");
+      for (const exclusion of result.exclusions) {
+        lines.push(`- ${exclusion.taskId}: ${exclusion.reason} (${exclusion.detail})`);
+      }
+    }
+
+    return lines.join("\n");
+  }
+
   if (result.top.length === 0) {
     return [
       "No eligible tasks found.",

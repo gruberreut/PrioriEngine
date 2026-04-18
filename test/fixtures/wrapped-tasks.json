@@ -1,0 +1,17 @@
+{
+  "tasks": [
+    {
+      "id": "task_wrapped_leaf",
+      "title": "Wrapped format leaf",
+      "priority": 5,
+      "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+      "dueDate": null,
+      "duration": 15,
+      "energyRequired": "low",
+      "contexts": ["home"],
+      "status": "pending",
+      "createdAt": "2026-04-01T09:00:00Z",
+      "lastSuggestedAt": null
+    }
+  ]
+}
