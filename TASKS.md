@@ -64,88 +64,82 @@ One component at a time. Each must be reviewed in local Storybook before the nex
 Reference: `documentation/TESTING_PAGE_COMPONENTS.md`, `guidelines/COMPONENT_BEST_PRACTICES.md`
 
 **Setup (do once before first component):**
-- [ ] Install Storybook in `apps/web`: `@storybook/react-vite`
+- [x] Install Storybook in `apps/web`: `@storybook/react-vite`
 - [ ] Create `apps/web/test/storyFixtures.ts` with fixture data derived from `packages/engine/test/data/tasks.example.json`
 
 ---
 
-### 5.1 `Select` ← start here
+### 5.1 `Select` ✓
 
-Base dropdown primitive. All dropdown styling lives here.
+Base dropdown primitive. Supports optional `placeholder` prop which renders a leading option and maps its selection to `undefined`.
 
-- [ ] Implement `Select` component with props: `options`, `value`, `onChange`, `label`, `disabled`
-- [ ] Write stories: Default, Disabled, Single option, Long labels
-- [ ] Review in Storybook — **approve before proceeding**
-
----
-
-### 5.2 `ContextSelect`
-
-Wraps `Select`. Prepends an "All" option; maps `undefined` to no context filter.
-
-- [ ] Implement `ContextSelect`
-- [ ] Write stories: With contexts, Empty list (All only)
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `Select` component with props: `options`, `value`, `onChange`, `label`, `placeholder`, `disabled`
+- [x] Write stories: Default, WithPlaceholder
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 5.3 `AvailableTimeSelect`
+### 5.1b `Checkbox` ✓ _(added)_
 
-Wraps `Select`. Fixed options: 10, 15, 30, 60 min.
+Base checkbox primitive with optional label. Lives in `src/components/` alongside `Select`.
 
-- [ ] Implement `AvailableTimeSelect`
-- [ ] Write stories: Each option selected
-- [ ] Review in Storybook — **approve before proceeding**
-
----
-
-### 5.4 `EnergySelect`
-
-Wraps `Select`. Fixed options: low, medium, high.
-
-- [ ] Implement `EnergySelect`
-- [ ] Write stories: Low, Medium, High selected
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `Checkbox` with props: `checked`, `onChange`, `label` (optional), `disabled`
+- [x] Write stories: Off, On, NoLabel, Disabled (interactive — stories use local state)
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 5.5 `ExplainToggle`
+### ~~5.2 `ContextSelect`~~ _(removed)_
 
-Toggle switch for score breakdown visibility.
-
-- [ ] Implement `ExplainToggle`
-- [ ] Write stories: Off, On
-- [ ] Review in Storybook — **approve before proceeding**
+Inlined into `ParamsForm`. Thin wrapper added no value as a standalone component.
 
 ---
 
-### 5.6 `ParamsForm`
+### ~~5.3 `AvailableTimeSelect`~~ _(removed)_
 
-Composes the four controls above. Renders a submit button internally. Emits `onSubmit` with typed `RankParams`.
-
-- [ ] Implement `ParamsForm`
-- [ ] Write stories: Default (idle), Loading, No contexts
-- [ ] Review in Storybook — **approve before proceeding**
+Inlined into `ParamsForm`. Fixed options with no logic; not worth a separate file.
 
 ---
 
-### 5.7 `ScoreBreakdown`
+### ~~5.4 `EnergySelect`~~ _(removed)_
+
+Inlined into `ParamsForm`. Same reasoning as `AvailableTimeSelect`.
+
+---
+
+### ~~5.5 `ExplainToggle`~~ _(replaced by `Checkbox`)_
+
+Inlined into `ParamsForm` using the `Checkbox` base primitive.
+
+---
+
+### 5.6 `ParamsForm` ✓
+
+Composes context, available time, and energy selects (inlined) plus `Checkbox` for explain. Emits `onSubmit` with typed `RankParams`.
+
+- [x] Implement `ParamsForm`
+- [x] Write stories: Default (idle), Loading, No contexts
+- [x] Review in Storybook — **approved**
+
+---
+
+### 5.7 `ScoreBreakdown` ✓
 
 Score detail panel rendered inside a task card when explain is on.
 
-- [ ] Implement `ScoreBreakdown`
-- [ ] Write stories: All positive, With penalties, Zero flow bonus
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `ScoreBreakdown`
+- [x] Write stories: All positive, With penalties, Zero flow bonus
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 5.8 `TaskCard`
+### 5.8 `TaskCard` ✓
 
 Single ranked task. Conditionally renders `ScoreBreakdown`.
 
-- [ ] Implement `TaskCard`
-- [ ] Write stories: Explain off, Explain on, Long title
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `TaskCard`
+- [x] Write stories: Explain off, Explain on, Long title
+- [x] Review in Storybook — **approved**
 
 ---
 
