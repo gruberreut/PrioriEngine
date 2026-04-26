@@ -71,6 +71,29 @@ Mid-level. Owns state or fetch logic but is not a full page. Use sparingly — m
 
 ---
 
+## Directory Structure
+
+```
+src/
+  components/          # base primitives — domain-agnostic, candidates for reuse anywhere
+    Select/
+      Select.tsx
+      Select.stories.tsx
+  features/
+    <page-name>/       # one directory per feature page (e.g. ranking/)
+      ComponentName/
+        ComponentName.tsx
+        ComponentName.stories.tsx
+```
+
+- Each component lives in its own directory named after it.
+- Stories and assets sit inside that same directory, not in a separate top-level folder.
+- Base primitives go in `src/components/`. They must be domain-agnostic.
+- Feature-specific components go under `src/features/<page-name>/`. The feature is the page, not the component.
+- If a feature component proves reusable across pages, move it to `src/components/` at that point.
+
+---
+
 ## Storybook
 
 - Every presentational component has a story file.
@@ -81,6 +104,8 @@ Mid-level. Owns state or fetch logic but is not a full page. Use sparingly — m
 
 ---
 
-## Additions
+## Accessibility
 
-Add new practices here as they are established during implementation.
+- All components must pass Storybook's a11y addon checks at **critical** and **serious** severity before being considered done.
+- Every interactive element must have an accessible name — use `htmlFor`/`id` to associate labels with inputs, or `aria-label` where no visible label exists.
+- Do not leave a11y violations as "to fix later". Address them in the same session the component is built.

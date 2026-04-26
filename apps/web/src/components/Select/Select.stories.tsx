@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Select } from "../components/Select";
+import { Select } from "./Select";
 
 const contextOptions = [
   { label: "Garden", value: "garden" },
@@ -24,5 +24,14 @@ export const Default: StoryObj<typeof Select> = {
     label: "Context",
     options: contextOptions,
     value: "garden",
+  },
+};
+
+export const WithPlaceholder: StoryObj<typeof Select> = {
+  args: {
+    label: "Context",
+    options: contextOptions,
+    value: undefined,
+    placeholder: "All",
   },
 };

@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 export interface SelectOption {
   label: string;
   value: string;
@@ -5,21 +7,24 @@ export interface SelectOption {
 
 export interface SelectProps {
   options: SelectOption[];
-  value: string;
-  onChange: (value: string) => void;
+  value: string | undefined;
+  onChange: (value: string | undefined) => void;
   label: string;
+  placeholder?: string;
   disabled?: boolean;
 }
 
-export function Select({ options, value, onChange, label, disabled = false }: SelectProps) {
+export function Select({ options, value, onChange, label, placeholder, disabled = false }: SelectProps) {
+  const id = useId();
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-      <label style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+      <label htmlFor={id} style={{ fontSize: "14px", fontWeight: 500, color: "#374151" }}>
         {label}
       </label>
       <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
+        id={id}
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
         disabled={disabled}
         style={{
           padding: "8px 12px",
@@ -33,6 +38,7 @@ export function Select({ options, value, onChange, label, disabled = false }: Se
           minWidth: "160px",
         }}
       >
+        {placeholder !== undefined && <option value="">{placeholder}</option>}
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
