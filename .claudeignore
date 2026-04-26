@@ -1,0 +1,15 @@
+# Dependencies
+node_modules/
+
+# Compiled output
+dist/
+*.js.map
+
+# Test coverage reports
+coverage/
+
+# Lock files
+package-lock.json
+
+# Logs
+*.log
