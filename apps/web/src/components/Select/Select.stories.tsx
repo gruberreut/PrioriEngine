@@ -10,7 +10,7 @@ const contextOptions = [
 ];
 
 const meta: Meta<typeof Select> = {
-  title: "Select",
+  title: "Atomic/Select",
   component: Select,
   argTypes: {
     onChange: { action: "onChange" },

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { EnergyIcon } from "./EnergyIcon";
 
 const meta: Meta<typeof EnergyIcon> = {
-  title: "Components/EnergyIcon",
+  title: "Features/Ranking/EnergyIcon",
   component: EnergyIcon,
   argTypes: {
     level: { control: "select", options: ["low", "medium", "high"] },

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Select } from "../../../components/Select/Select";
 import { Checkbox } from "../../../components/Checkbox/Checkbox";
-import { EnergyPicker, type EnergyLevel } from "../../../components/EnergyPicker/EnergyPicker";
+import { EnergyPicker, type EnergyLevel } from "../EnergyPicker/EnergyPicker";
 import styles from "./ParamsForm.module.css";
 
 export type { EnergyLevel };

@@ -5,7 +5,7 @@ import { EnergyPicker } from "./EnergyPicker";
 import type { EnergyLevel } from "./EnergyPicker";
 
 const meta: Meta<typeof EnergyPicker> = {
-  title: "Components/EnergyPicker",
+  title: "Features/Ranking/EnergyPicker",
   component: EnergyPicker,
   args: {
     label: "Energy",
