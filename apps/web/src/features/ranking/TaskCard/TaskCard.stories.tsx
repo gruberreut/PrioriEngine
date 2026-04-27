@@ -41,3 +41,7 @@ export const LongTitle: StoryObj<typeof TaskCard> = {
     breakdown,
   },
 };
+
+export const Flat: StoryObj<typeof TaskCard> = {
+  args: { task, breakdown, flavor: "flat" },
+};

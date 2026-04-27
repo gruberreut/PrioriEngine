@@ -1,4 +1,5 @@
 import { useId } from "react";
+import styles from "./Checkbox.module.css";
 
 export interface CheckboxProps {
   checked: boolean;
@@ -10,19 +11,19 @@ export interface CheckboxProps {
 export function Checkbox({ checked, onChange, label, disabled = false }: CheckboxProps) {
   const id = useId();
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+    <div className={styles.container}>
       <input
         type="checkbox"
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
         disabled={disabled}
-        style={{ cursor: disabled ? "not-allowed" : "pointer" }}
+        className={styles.input}
       />
       {label !== undefined && (
         <label
           htmlFor={id}
-          style={{ fontSize: "14px", fontWeight: 500, color: disabled ? "#9CA3AF" : "#374151", cursor: disabled ? "not-allowed" : "pointer" }}
+          className={disabled ? styles.labelDisabled : styles.label}
         >
           {label}
         </label>

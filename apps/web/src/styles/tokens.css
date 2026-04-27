@@ -1,0 +1,33 @@
+:root {
+  /* Colors — text */
+  --color-text-strong: #111827;
+  --color-text-body: #374151;
+  --color-text-muted: #6B7280;
+  --color-text-disabled: #9CA3AF;
+
+  /* Colors — border */
+  --color-border: #E5E7EB;
+  --color-border-input: #D1D5DB;
+
+  /* Colors — background */
+  --color-bg-page: #FFFFFF;
+  --color-bg-disabled: #F9FAFB;
+
+  /* Colors — semantic */
+  --color-primary: #4F46E5;
+  --color-primary-tint: #EEF2FF;
+  --color-primary-disabled: #9CA3AF;
+  --color-success: #10B981;
+  --color-error: #EF4444;
+  --color-text-on-primary: #FFFFFF;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+
+  /* Border radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+}

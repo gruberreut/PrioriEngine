@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Select } from "../../../components/Select/Select";
 import { Checkbox } from "../../../components/Checkbox/Checkbox";
+import { EnergyPicker, type EnergyLevel } from "../../../components/EnergyPicker/EnergyPicker";
+import styles from "./ParamsForm.module.css";
 
-export type EnergyLevel = "low" | "medium" | "high";
+export type { EnergyLevel };
 
 export interface RankParams {
   context: string | undefined;
@@ -24,11 +26,6 @@ const AVAILABLE_TIME_OPTIONS = [
   { label: "60 min", value: "60" },
 ];
 
-const ENERGY_OPTIONS = [
-  { label: "Low", value: "low" },
-  { label: "Medium", value: "medium" },
-  { label: "High", value: "high" },
-];
 
 export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormProps) {
   const [context, setContext] = useState<string | undefined>(undefined);
@@ -44,7 +41,7 @@ export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormPr
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+    <form onSubmit={handleSubmit} className={styles.form}>
       <Select
         label="Context"
         options={contextOptions}
@@ -60,11 +57,10 @@ export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormPr
         onChange={(val) => setAvailableTime(val !== undefined ? Number(val) : 30)}
         disabled={loading}
       />
-      <Select
+      <EnergyPicker
         label="Energy"
-        options={ENERGY_OPTIONS}
         value={energy}
-        onChange={(val) => setEnergy((val ?? "medium") as EnergyLevel)}
+        onChange={setEnergy}
         disabled={loading}
       />
       <Checkbox
@@ -73,20 +69,7 @@ export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormPr
         onChange={setExplain}
         disabled={loading}
       />
-      <button
-        type="submit"
-        disabled={loading}
-        style={{
-          padding: "8px 16px",
-          fontSize: "14px",
-          fontWeight: 500,
-          backgroundColor: loading ? "#9CA3AF" : "#4F46E5",
-          color: "#FFFFFF",
-          border: "none",
-          borderRadius: "6px",
-          cursor: loading ? "not-allowed" : "pointer",
-        }}
-      >
+      <button type="submit" disabled={loading} className={styles.button}>
         {loading ? "Ranking…" : "Rank"}
       </button>
     </form>

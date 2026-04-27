@@ -1,0 +1,52 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.value {
+  font-variant-numeric: tabular-nums;
+}
+
+.valuePositive {
+  color: var(--color-success);
+}
+
+.valueNegative {
+  color: var(--color-error);
+}
+
+.valueNeutral {
+  color: var(--color-text-disabled);
+}
+
+.totalRow {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-1);
+  margin-top: 2px;
+}
+
+.totalValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.reasons {
+  margin: var(--space-1) 0 0;
+  padding: 0 0 0 var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}

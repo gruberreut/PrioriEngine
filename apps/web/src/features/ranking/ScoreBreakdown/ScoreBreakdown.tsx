@@ -1,3 +1,5 @@
+import styles from "./ScoreBreakdown.module.css";
+
 export interface ScoreBreakdownData {
   priorityScore: number;
   urgencyScore: number;
@@ -24,25 +26,25 @@ const ROWS: { label: string; key: keyof Omit<ScoreBreakdownData, "totalScore" | 
 
 export function ScoreBreakdown({ breakdown }: ScoreBreakdownProps) {
   return (
-    <div style={{ fontSize: "13px", color: "#6B7280", display: "flex", flexDirection: "column", gap: "4px" }}>
+    <div className={styles.container}>
       {ROWS.map(({ label, key }) => {
         const value = breakdown[key];
-        const isNegative = value < 0;
+        const valueClass = value < 0 ? styles.valueNegative : value > 0 ? styles.valuePositive : styles.valueNeutral;
         return (
-          <div key={key} style={{ display: "flex", justifyContent: "space-between", gap: "16px" }}>
+          <div key={key} className={styles.row}>
             <span>{label}</span>
-            <span style={{ color: isNegative ? "#EF4444" : value > 0 ? "#10B981" : "#9CA3AF", fontVariantNumeric: "tabular-nums" }}>
+            <span className={`${styles.value} ${valueClass}`}>
               {value > 0 ? "+" : ""}{value.toFixed(2)}
             </span>
           </div>
         );
       })}
-      <div style={{ display: "flex", justifyContent: "space-between", gap: "16px", fontWeight: 600, color: "#111827", borderTop: "1px solid #E5E7EB", paddingTop: "4px", marginTop: "2px" }}>
+      <div className={styles.totalRow}>
         <span>Total</span>
-        <span style={{ fontVariantNumeric: "tabular-nums" }}>{breakdown.totalScore.toFixed(2)}</span>
+        <span className={styles.totalValue}>{breakdown.totalScore.toFixed(2)}</span>
       </div>
       {breakdown.reasons.length > 0 && (
-        <ul style={{ margin: "4px 0 0", padding: "0 0 0 16px", display: "flex", flexDirection: "column", gap: "2px" }}>
+        <ul className={styles.reasons}>
           {breakdown.reasons.map((reason, i) => (
             <li key={i}>{reason}</li>
           ))}
