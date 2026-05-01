@@ -9,6 +9,13 @@ const contextOptions = [
   { label: "Computer", value: "computer" },
 ];
 
+const defaultArgs = {
+  label: "Context",
+  options: contextOptions,
+  value: "garden" as string | undefined,
+  disabled: false,
+};
+
 const meta: Meta<typeof Select> = {
   title: "Atomic/Select",
   component: Select,
@@ -20,18 +27,9 @@ const meta: Meta<typeof Select> = {
 export default meta;
 
 export const Default: StoryObj<typeof Select> = {
-  args: {
-    label: "Context",
-    options: contextOptions,
-    value: "garden",
-  },
+  args: defaultArgs,
 };
 
 export const WithPlaceholder: StoryObj<typeof Select> = {
-  args: {
-    label: "Context",
-    options: contextOptions,
-    value: undefined,
-    placeholder: "All",
-  },
+  args: { ...defaultArgs, value: undefined, placeholder: "All" },
 };

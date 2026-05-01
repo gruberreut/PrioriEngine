@@ -1,14 +1,18 @@
 import { useArgs } from "storybook/preview-api";
 import { fn } from "storybook/test";
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { EnergyPicker } from "./EnergyPicker";
-import type { EnergyLevel } from "./EnergyPicker";
+import { EnergyPicker, type EnergyLevel } from "./EnergyPicker";
+
+const defaultArgs = {
+  value: "medium" as EnergyLevel,
+  label: "Energy",
+  disabled: false,
+};
 
 const meta: Meta<typeof EnergyPicker> = {
   title: "Features/Ranking/EnergyPicker",
   component: EnergyPicker,
   args: {
-    label: "Energy",
     onChange: fn(),
   },
 };
@@ -32,21 +36,21 @@ const render: Story["render"] = (args) => {
 };
 
 export const Default: Story = {
-  args: { value: "medium" },
+  args: defaultArgs,
   render,
 };
 
 export const LowSelected: Story = {
-  args: { value: "low" },
+  args: { ...defaultArgs, value: "low" },
   render,
 };
 
 export const HighSelected: Story = {
-  args: { value: "high" },
+  args: { ...defaultArgs, value: "high" },
   render,
 };
 
 export const Disabled: Story = {
-  args: { value: "medium", disabled: true },
+  args: { ...defaultArgs, disabled: true },
   render,
 };

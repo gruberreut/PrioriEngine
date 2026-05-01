@@ -1,5 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { EnergyIcon } from "./EnergyIcon";
+import { EnergyIcon, type EnergyLevel } from "./EnergyIcon";
+
+const defaultArgs = {
+  level: "medium" as EnergyLevel,
+  size: 16,
+};
 
 const meta: Meta<typeof EnergyIcon> = {
   title: "Features/Ranking/EnergyIcon",
@@ -12,16 +17,20 @@ const meta: Meta<typeof EnergyIcon> = {
 
 export default meta;
 
+export const Default: StoryObj<typeof EnergyIcon> = {
+  args: defaultArgs,
+};
+
 export const Low: StoryObj<typeof EnergyIcon> = {
-  args: { level: "low", size: 48 },
+  args: { ...defaultArgs, level: "low", size: 48 },
 };
 
 export const Medium: StoryObj<typeof EnergyIcon> = {
-  args: { level: "medium", size: 48 },
+  args: { ...defaultArgs, size: 48 },
 };
 
 export const High: StoryObj<typeof EnergyIcon> = {
-  args: { level: "high", size: 48 },
+  args: { ...defaultArgs, level: "high", size: 48 },
 };
 
 export const Sizes: StoryObj<typeof EnergyIcon> = {

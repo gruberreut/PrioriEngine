@@ -4,6 +4,13 @@ import { FlameLow } from "../../assets/icons/FlameLow";
 import { FlameMedium } from "../../assets/icons/FlameMedium";
 import { FlameHigh } from "../../assets/icons/FlameHigh";
 
+const defaultArgs = {
+  asset: FlameMedium,
+  label: "medium energy",
+  size: 16,
+  viewBox: "0 0 24 24",
+};
+
 const meta: Meta<typeof Icon> = {
   title: "Atomic/Icon",
   component: Icon,
@@ -14,16 +21,20 @@ const meta: Meta<typeof Icon> = {
 
 export default meta;
 
+export const Default: StoryObj<typeof Icon> = {
+  args: defaultArgs,
+};
+
 export const Low: StoryObj<typeof Icon> = {
-  args: { asset: FlameLow, label: "low energy", size: 24 },
+  args: { ...defaultArgs, asset: FlameLow, label: "low energy", size: 24 },
 };
 
 export const Medium: StoryObj<typeof Icon> = {
-  args: { asset: FlameMedium, label: "medium energy", size: 24 },
+  args: { ...defaultArgs, size: 24 },
 };
 
 export const High: StoryObj<typeof Icon> = {
-  args: { asset: FlameHigh, label: "high energy", size: 24 },
+  args: { ...defaultArgs, asset: FlameHigh, label: "high energy", size: 24 },
 };
 
 export const Sizes: StoryObj<typeof Icon> = {

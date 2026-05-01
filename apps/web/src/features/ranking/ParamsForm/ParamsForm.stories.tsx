@@ -3,6 +3,11 @@ import { ParamsForm } from "./ParamsForm";
 
 const contexts = ["Garden", "Learning", "Home", "Bureaucracy", "Computer"];
 
+const defaultArgs = {
+  contexts,
+  loading: false,
+};
+
 const meta: Meta<typeof ParamsForm> = {
   title: "Features/Ranking/ParamsForm",
   component: ParamsForm,
@@ -14,13 +19,13 @@ const meta: Meta<typeof ParamsForm> = {
 export default meta;
 
 export const Default: StoryObj<typeof ParamsForm> = {
-  args: { contexts },
+  args: defaultArgs,
 };
 
 export const Loading: StoryObj<typeof ParamsForm> = {
-  args: { contexts, loading: true },
+  args: { ...defaultArgs, loading: true },
 };
 
 export const NoContexts: StoryObj<typeof ParamsForm> = {
-  args: { contexts: [] },
+  args: { ...defaultArgs, contexts: [] },
 };

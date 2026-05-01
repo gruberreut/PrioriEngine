@@ -71,3 +71,43 @@ The engine processes a JSON task tree through four sequential stages:
 ### Testing
 
 Tests live in `packages/engine/test/`. JSON fixtures are in `test/fixtures/` (structured scenarios) and `test/data/tasks.example.json` (realistic sample). Coverage thresholds: 100% lines/functions/statements, 95% branches — enforced by `vitest run --coverage`.
+
+## Storybook
+
+Before a story is considered complete, every callback prop on the component (`onClick`, `onSelect`, `onAction`, `onChange`, etc.) must be wired to the Storybook actions panel via `argTypes` in the story's `meta`:
+
+```ts
+argTypes: {
+  onAction: { action: "onAction" },
+  onSelect: { action: "onSelect" },
+}
+```
+
+Do not leave any callback prop unwired.
+
+### Story structure
+
+Every story file must declare a `defaultArgs` object near the top of the file. It mirrors the component's prop defaults exactly — required props use a representative sample fixture; optional props with no component-level default are omitted. The first story (`Default`) always uses `defaultArgs` directly, ensuring every control in the controls tab shows a meaningful value.
+
+All other stories spread `defaultArgs` and override only the prop(s) they demonstrate:
+
+```ts
+const defaultArgs = {
+  task,
+  explain: false,
+  flavor: "outlined" as const,
+  selected: false,
+};
+
+export const Default: StoryObj<typeof TaskCard> = {
+  args: defaultArgs,
+};
+
+export const Selected: StoryObj<typeof TaskCard> = {
+  args: { ...defaultArgs, selected: true },
+};
+```
+
+This keeps stories resilient to new props: adding a prop with a default only requires updating `defaultArgs`, not every individual story.
+
+Story ordering: group by subject (appearance → state → content variants → edge cases), then by ascending complexity within each group.
