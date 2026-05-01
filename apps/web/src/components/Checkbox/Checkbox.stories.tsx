@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useArgs } from "storybook/preview-api";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Checkbox } from "./Checkbox";
 
@@ -21,8 +21,14 @@ export default meta;
 type Story = StoryObj<typeof Checkbox>;
 
 const render: Story["render"] = (args) => {
-  const [checked, setChecked] = useState(args.checked);
-  return <Checkbox {...args} checked={checked} onChange={(val) => { setChecked(val); args.onChange?.(val); }} />;
+  const [{ checked }, updateArgs] = useArgs<{ checked: boolean }>();
+  return (
+    <Checkbox
+      {...args}
+      checked={checked}
+      onChange={(val) => { updateArgs({ checked: val }); args.onChange?.(val); }}
+    />
+  );
 };
 
 export const Default: Story = {

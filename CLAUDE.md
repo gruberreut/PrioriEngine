@@ -111,3 +111,24 @@ export const Selected: StoryObj<typeof TaskCard> = {
 This keeps stories resilient to new props: adding a prop with a default only requires updating `defaultArgs`, not every individual story.
 
 Story ordering: group by subject (appearance → state → content variants → edge cases), then by ascending complexity within each group.
+
+### Controls interactivity
+
+In every story, changing a value in the controls panel must be reflected in the component's display. For controlled components that require local state in a render function, use `useArgs` from `storybook/preview-api` instead of `useState` — this keeps the controls panel and the component display in sync bidirectionally:
+
+```ts
+import { useArgs } from "storybook/preview-api";
+
+const render: Story["render"] = (args) => {
+  const [{ checked }, updateArgs] = useArgs<{ checked: boolean }>();
+  return (
+    <Checkbox
+      {...args}
+      checked={checked}
+      onChange={(val) => { updateArgs({ checked: val }); args.onChange?.(val); }}
+    />
+  );
+};
+```
+
+Never use `useState` to shadow a prop that is also a Storybook control — the control will appear to change but the component won't update.
