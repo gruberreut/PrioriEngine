@@ -1,0 +1,12 @@
+.container {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+}
+
+.message {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin: 0;
+}
