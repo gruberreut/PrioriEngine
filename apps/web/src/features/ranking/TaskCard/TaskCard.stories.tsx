@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Icon } from "../../../components/Icon/Icon";
-import { StartPlay } from "../../../assets/icons/StartPlay";
-import { EditPencil } from "../../../assets/icons/EditPencil";
-import { SnoozeMoon } from "../../../assets/icons/SnoozeMoon";
-import { CompleteCircle } from "../../../assets/icons/CompleteCircle";
-import { DeleteTrash } from "../../../assets/icons/DeleteTrash";
+import { Play } from "../../../assets/icons/Play";
+import { Pencil } from "../../../assets/icons/Pencil";
+import { Moon } from "../../../assets/icons/Moon";
+import { CheckCircle } from "../../../assets/icons/CheckCircle";
+import { Trash } from "../../../assets/icons/Trash";
 import { TaskCard, type TaskAction } from "./TaskCard";
 
 const task = {
@@ -27,17 +27,17 @@ const breakdown = {
 };
 
 const inProgressActions: TaskAction[] = [
-  { id: "complete", icon: <Icon asset={CompleteCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
-  { id: "snooze", icon: <Icon asset={SnoozeMoon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
-  { id: "delete", icon: <Icon asset={DeleteTrash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
+  { id: "complete", icon: <Icon asset={CheckCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
+  { id: "snooze", icon: <Icon asset={Moon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
+  { id: "delete", icon: <Icon asset={Trash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
 ];
 
 const sampleActions: TaskAction[] = [
-  { id: "start", icon: <Icon asset={StartPlay} label="Start" size={24} />, label: "Start", color: "#d1fae5" },
-  { id: "edit", icon: <Icon asset={EditPencil} label="Edit" size={24} />, label: "Edit", color: "#fef9c3" },
-  { id: "snooze", icon: <Icon asset={SnoozeMoon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
-  { id: "complete", icon: <Icon asset={CompleteCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
-  { id: "delete", icon: <Icon asset={DeleteTrash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
+  { id: "start", icon: <Icon asset={Play} label="Start" size={24} />, label: "Start", color: "#d1fae5" },
+  { id: "edit", icon: <Icon asset={Pencil} label="Edit" size={24} />, label: "Edit", color: "#fef9c3" },
+  { id: "snooze", icon: <Icon asset={Moon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
+  { id: "complete", icon: <Icon asset={CheckCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
+  { id: "delete", icon: <Icon asset={Trash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
 ];
 
 const defaultArgs = {

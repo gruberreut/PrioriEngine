@@ -1,4 +1,4 @@
-export function DeleteTrash({ id }: { id: string }) {
+export function Trash({ id }: { id: string }) {
   return (
     <>
       <defs>

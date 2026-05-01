@@ -1,4 +1,4 @@
-export function SnoozeMoon({ id }: { id: string }) {
+export function Moon({ id }: { id: string }) {
   return (
     <>
       <defs>

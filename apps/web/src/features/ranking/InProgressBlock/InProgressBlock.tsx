@@ -1,15 +1,15 @@
 import { Icon } from "../../../components/Icon/Icon";
-import { InProgressIcon } from "../../../assets/icons/InProgressIcon";
-import { CompleteCircle } from "../../../assets/icons/CompleteCircle";
-import { SnoozeMoon } from "../../../assets/icons/SnoozeMoon";
-import { DeleteTrash } from "../../../assets/icons/DeleteTrash";
+import { SpinnerArc } from "../../../assets/icons/SpinnerArc";
+import { CheckCircle } from "../../../assets/icons/CheckCircle";
+import { Moon } from "../../../assets/icons/Moon";
+import { Trash } from "../../../assets/icons/Trash";
 import { TaskCard, type TaskAction, type TaskData } from "../TaskCard/TaskCard";
 import styles from "./InProgressBlock.module.css";
 
 const ACTIONS: TaskAction[] = [
-  { id: "complete", icon: <Icon asset={CompleteCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
-  { id: "snooze", icon: <Icon asset={SnoozeMoon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
-  { id: "delete", icon: <Icon asset={DeleteTrash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
+  { id: "complete", icon: <Icon asset={CheckCircle} label="Complete" size={24} />, label: "Complete", color: "#d1fae5" },
+  { id: "snooze", icon: <Icon asset={Moon} label="Snooze" size={24} />, label: "Snooze", color: "#ede9fe" },
+  { id: "delete", icon: <Icon asset={Trash} label="Delete" size={24} />, label: "Delete", color: "#fee2e2" },
 ];
 
 export interface InProgressBlockProps {
@@ -20,7 +20,7 @@ export interface InProgressBlockProps {
 export function InProgressBlock({ task, onAction }: InProgressBlockProps) {
   return (
     <div className={styles.container}>
-      <Icon asset={InProgressIcon} label="In progress" size={36} />
+      <Icon asset={SpinnerArc} label="In progress" size={36} />
       <div className={styles.content}>
         <TaskCard task={task} flavor="flat" actions={ACTIONS} onAction={onAction} />
         <div className={styles.prompt}>

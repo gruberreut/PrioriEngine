@@ -1,4 +1,4 @@
-export function StartPlay({ id }: { id: string }) {
+export function Play({ id }: { id: string }) {
   return (
     <>
       <defs>

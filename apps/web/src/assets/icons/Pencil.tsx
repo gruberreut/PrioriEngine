@@ -1,4 +1,4 @@
-export function EditPencil({ id }: { id: string }) {
+export function Pencil({ id }: { id: string }) {
   return (
     <>
       <defs>
