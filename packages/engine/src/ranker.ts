@@ -126,6 +126,7 @@ export function rankTasks(
   weights: ScoreWeights = DEFAULT_WEIGHTS
 ): RankResult {
   const runtimeContext = params.context?.trim().toLowerCase();
+  const runtimeLocation = params.location?.trim().toLowerCase();
   const allExclusions = [...exclusions];
   const inProgressTask = tasks.find((task) => task.status === "in_progress");
 
@@ -144,13 +145,25 @@ export function rankTasks(
     };
   }
 
-  const filtered = tasks.filter((task) => {
+  const contextFiltered = tasks.filter((task) => {
     if (!runtimeContext) return true;
     if (task.contexts.includes(runtimeContext)) return true;
     allExclusions.push({
       taskId: task.id,
       reason: "context_mismatch",
       detail: `Task does not match runtime context '${runtimeContext}'.`,
+    });
+    return false;
+  });
+
+  const filtered = contextFiltered.filter((task) => {
+    if (!runtimeLocation) return true;
+    if (task.location === "anywhere") return true;
+    if (task.location === runtimeLocation) return true;
+    allExclusions.push({
+      taskId: task.id,
+      reason: "location_mismatch",
+      detail: `Task requires '${task.location}' but current location is '${runtimeLocation}'.`,
     });
     return false;
   });

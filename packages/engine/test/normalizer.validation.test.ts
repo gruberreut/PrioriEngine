@@ -147,6 +147,37 @@ describe("normalizer validation paths", () => {
     expect(exclusions[0]?.detail).toContain("duration must be positive");
   });
 
+  it("defaults location to anywhere when missing or unknown", async () => {
+    const dir = await mkdtemp(path.join(os.tmpdir(), "priori-nv-"));
+    const file = path.join(dir, "t.json");
+    await writeFile(
+      file,
+      JSON.stringify([
+        {
+          id: "no_loc",
+          title: "T",
+          priority: 5,
+          priorityUpdatedAt: "2026-04-01T00:00:00Z",
+          duration: 10,
+        },
+        {
+          id: "bad_loc",
+          title: "T2",
+          priority: 5,
+          priorityUpdatedAt: "2026-04-01T00:00:00Z",
+          duration: 10,
+          location: "office",
+        },
+      ]),
+      "utf8"
+    );
+    const loaded = await loadTasksFromJson(file);
+    const { tasks } = normalizeTasks(loaded);
+    expect(tasks).toHaveLength(2);
+    expect(tasks[0]?.location).toBe("anywhere");
+    expect(tasks[1]?.location).toBe("anywhere");
+  });
+
   it("defaults priorityUpdatedAt when missing on leaf", async () => {
     const dir = await mkdtemp(path.join(os.tmpdir(), "priori-nv-"));
     const file = path.join(dir, "t.json");

@@ -6,6 +6,7 @@ import {
   parseAvailableTime,
   parseEnergy,
   parseLimit,
+  parseLocation,
   parseNow,
   resolveTasksPath,
 } from "../src/cliParse.js";
@@ -59,12 +60,23 @@ describe("cliParse", () => {
     expect(def).toMatch(/tasks\.example\.json$/);
   });
 
+  it("parseLocation accepts known values and ignores unknown", () => {
+    expect(parseLocation([])).toBeUndefined();
+    expect(parseLocation(["--location", "home"])).toBe("home");
+    expect(parseLocation(["--location", "in-person"])).toBe("in-person");
+    expect(parseLocation(["--location", "anywhere"])).toBe("anywhere");
+    expect(parseLocation(["--location", "  Home  "])).toBe("home");
+    expect(parseLocation(["--location", "office"])).toBeUndefined();
+  });
+
   it("buildRuntimeParams wires flags", () => {
     const fixed = new Date("2026-04-17T12:00:00Z");
     const p = buildRuntimeParams(
       [
         "--context",
         "  Garden ",
+        "--location",
+        "home",
         "--available-time",
         "20",
         "--energy",
@@ -78,6 +90,7 @@ describe("cliParse", () => {
       { fixedNow: fixed }
     );
     expect(p.context).toBe("garden");
+    expect(p.location).toBe("home");
     expect(p.availableTime).toBe(20);
     expect(p.energyLevel).toBe("high");
     expect(p.explain).toBe(true);

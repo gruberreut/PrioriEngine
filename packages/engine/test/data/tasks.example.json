@@ -2,8 +2,9 @@
   {
     "id": "project_garden",
     "title": "Garden Cleanup",
-    "projectId": "garden_maintenance",
-    "contexts": ["garden"],
+    "projectId": "garden",
+    "contexts": ["physical"],
+    "location": "home",
     "energyRequired": "medium",
     "children": [
       {
@@ -14,7 +15,6 @@
         "dueDate": null,
         "duration": 10,
         "energyRequired": "low",
-        "contexts": ["garden"],
         "status": "pending",
         "createdAt": "2026-04-01T09:00:00Z",
         "lastSuggestedAt": null
@@ -27,7 +27,6 @@
         "dueDate": null,
         "duration": 25,
         "energyRequired": "high",
-        "contexts": ["garden"],
         "status": "pending",
         "createdAt": "2026-04-02T09:00:00Z",
         "lastSuggestedAt": null
@@ -35,31 +34,333 @@
     ]
   },
   {
-    "id": "task_practice_french",
-    "title": "Practice French",
-    "priority": 6,
-    "priorityUpdatedAt": "2026-04-10T10:00:00Z",
-    "dueDate": null,
-    "duration": 20,
+    "id": "project_carte_vitale",
+    "title": "Get Carte Vitale",
+    "projectId": "carte_vitale",
+    "contexts": ["admin"],
+    "priority": 2,
+    "children": [
+      {
+        "id": "task_translate_birth_cert",
+        "title": "Translate birth certificate",
+        "priority": 2,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 60,
+        "energyRequired": "medium",
+        "location": "in-person",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_get_social_security_number",
+        "title": "Get social security number",
+        "priority": 2,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 20,
+        "energyRequired": "low",
+        "location": "home",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_submit_carte_vitale",
+        "title": "Submit Carte Vitale application online",
+        "priority": 2,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 30,
+        "energyRequired": "low",
+        "location": "home",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_followup_carte_vitale",
+        "title": "Follow up on Carte Vitale application",
+        "priority": 10,
+        "recurrence": "weekly",
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 10,
+        "energyRequired": "low",
+        "location": "home",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      }
+    ]
+  },
+  {
+    "id": "project_sewing",
+    "title": "Unfinished sewing projects",
+    "projectId": "sewing",
+    "contexts": ["creativity"],
+    "location": "home",
     "energyRequired": "medium",
-    "contexts": ["learning", "home"],
-    "projectId": "language",
-    "status": "pending",
-    "createdAt": "2026-04-03T09:00:00Z",
-    "lastSuggestedAt": null
+    "children": [
+      {
+        "id": "task_hem_jacket",
+        "title": "Hem jacket",
+        "priority": 5,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 45,
+        "energyRequired": "medium",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "project_assemble_pants",
+        "title": "Assemble pants",
+        "children": [
+          {
+            "id": "task_add_pockets",
+            "title": "Add pockets front and back",
+            "priority": 6,
+            "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+            "dueDate": null,
+            "duration": 60,
+            "energyRequired": "high",
+            "status": "pending",
+            "createdAt": "2026-05-02T09:00:00Z",
+            "lastSuggestedAt": null
+          },
+          {
+            "id": "task_put_in_zipper",
+            "title": "Put in zipper",
+            "priority": 6,
+            "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+            "dueDate": null,
+            "duration": 45,
+            "energyRequired": "high",
+            "status": "pending",
+            "createdAt": "2026-05-02T09:00:00Z",
+            "lastSuggestedAt": null
+          },
+          {
+            "id": "task_design_bottom",
+            "title": "Design the bottom",
+            "priority": 6,
+            "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+            "dueDate": null,
+            "duration": 30,
+            "energyRequired": "medium",
+            "status": "pending",
+            "createdAt": "2026-05-02T09:00:00Z",
+            "lastSuggestedAt": null
+          },
+          {
+            "id": "task_adjust_fit",
+            "title": "Adjust fit",
+            "priority": 6,
+            "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+            "dueDate": null,
+            "duration": 20,
+            "energyRequired": "medium",
+            "status": "pending",
+            "createdAt": "2026-05-02T09:00:00Z",
+            "lastSuggestedAt": null
+          }
+        ]
+      },
+      {
+        "id": "task_finish_vest",
+        "title": "Finish vest",
+        "priority": 5,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 90,
+        "energyRequired": "high",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_try_sewing_machine",
+        "title": "Try all new sewing machine functions",
+        "priority": 7,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 30,
+        "energyRequired": "medium",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      }
+    ]
+  },
+  {
+    "id": "project_job_search",
+    "title": "Prepare for job search",
+    "projectId": "job_search",
+    "contexts": ["admin"],
+    "location": "home",
+    "children": [
+      {
+        "id": "task_prepare_learning_plan",
+        "title": "Prepare learning plan",
+        "priority": 3,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 30,
+        "energyRequired": "high",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_daily_microlearning",
+        "title": "Daily microlearning",
+        "priority": 10,
+        "recurrence": "daily",
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 10,
+        "energyRequired": "medium",
+        "location": "anywhere",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      }
+    ]
+  },
+  {
+    "id": "project_learning_french",
+    "title": "Learning French",
+    "projectId": "learning_french",
+    "contexts": ["learning"],
+    "location": "home",
+    "energyRequired": "medium",
+    "children": [
+      {
+        "id": "task_practice_french",
+        "title": "Practice French",
+        "priority": 6,
+        "priorityUpdatedAt": "2026-04-10T10:00:00Z",
+        "dueDate": null,
+        "duration": 20,
+        "energyRequired": "medium",
+        "status": "pending",
+        "createdAt": "2026-04-03T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_read_french_page",
+        "title": "Read a page in French",
+        "priority": 10,
+        "recurrence": "daily",
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 5,
+        "energyRequired": "low",
+        "location": "anywhere",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_watch_french_tv",
+        "title": "Watch 20 minutes of French TV",
+        "priority": 10,
+        "recurrence": "daily",
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 20,
+        "energyRequired": "low",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      },
+      {
+        "id": "task_review_french_mistakes",
+        "title": "Review previous French class mistakes",
+        "priority": 7,
+        "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+        "dueDate": null,
+        "duration": 15,
+        "energyRequired": "medium",
+        "status": "pending",
+        "createdAt": "2026-05-02T09:00:00Z",
+        "lastSuggestedAt": null
+      }
+    ]
   },
   {
     "id": "task_pay_bill",
     "title": "Pay utility bill",
     "priority": 1,
     "priorityUpdatedAt": "2026-04-14T10:00:00Z",
-    "dueDate": "2026-04-20T18:00:00Z",
+    "dueDate": "2026-05-10T18:00:00Z",
     "duration": 15,
     "energyRequired": "low",
-    "contexts": ["bureaucracy", "computer"],
+    "contexts": ["admin"],
+    "location": "home",
     "projectId": "home_admin",
     "status": "pending",
     "createdAt": "2026-04-05T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_buy_steam_iron",
+    "title": "Buy steam iron",
+    "priority": 4,
+    "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+    "dueDate": null,
+    "duration": 60,
+    "energyRequired": "low",
+    "contexts": ["admin"],
+    "location": "in-person",
+    "projectId": "sewing",
+    "status": "pending",
+    "createdAt": "2026-05-02T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_embroidery",
+    "title": "Do a small section of embroidery",
+    "priority": 7,
+    "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+    "dueDate": null,
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["creativity"],
+    "location": "home",
+    "status": "pending",
+    "createdAt": "2026-05-02T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_nature_food_store",
+    "title": "Go to Nature food store — tofu and maple syrup",
+    "priority": 4,
+    "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+    "dueDate": null,
+    "duration": 45,
+    "energyRequired": "low",
+    "contexts": ["admin"],
+    "location": "in-person",
+    "status": "pending",
+    "createdAt": "2026-05-02T09:00:00Z",
+    "lastSuggestedAt": null
+  },
+  {
+    "id": "task_claude_review_emails",
+    "title": "Get Claude to review and rank emails for house search",
+    "priority": 3,
+    "priorityUpdatedAt": "2026-05-02T09:00:00Z",
+    "dueDate": null,
+    "duration": 20,
+    "energyRequired": "medium",
+    "contexts": ["admin"],
+    "location": "home",
+    "status": "pending",
+    "createdAt": "2026-05-02T09:00:00Z",
     "lastSuggestedAt": null
   }
 ]

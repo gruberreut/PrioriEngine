@@ -3,6 +3,7 @@ import {
   EnergyLevel,
   ExclusionRecord,
   LoadedTask,
+  LocationRequirement,
   NormalizedTask,
   RawTask,
 } from "./types.js";
@@ -55,6 +56,13 @@ function ensureEnergy(value: unknown): EnergyLevel {
   return "medium";
 }
 
+function ensureLocation(value: unknown): LocationRequirement {
+  if (value === "home" || value === "in-person" || value === "anywhere") {
+    return value;
+  }
+  return "anywhere";
+}
+
 function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
   const id = inheritedValue(loadedTask, (task) => task.id) ?? "";
   const title = inheritedValue(loadedTask, (task) => task.title) ?? "";
@@ -67,6 +75,9 @@ function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
   const duration = inheritedValue(loadedTask, (task) => task.duration) ?? 30;
   const energyRequired = ensureEnergy(
     inheritedValue(loadedTask, (task) => task.energyRequired)
+  );
+  const location = ensureLocation(
+    inheritedValue(loadedTask, (task) => task.location)
   );
   const contextsRaw = inheritedValue(loadedTask, (task) => task.contexts) ?? [];
   const contexts = contextsRaw.map(normalizeContext).filter(Boolean);
@@ -86,6 +97,7 @@ function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
     recurrence,
     duration,
     energyRequired,
+    location,
     contexts,
     projectId,
     parentId,

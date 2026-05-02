@@ -11,6 +11,7 @@ function baseTask(partial: Partial<NormalizedTask> & Pick<NormalizedTask, "id">)
     recurrence: null,
     duration: 15,
     energyRequired: "medium",
+    location: "anywhere",
     contexts: ["home"],
     projectId: "p1",
     parentId: null,

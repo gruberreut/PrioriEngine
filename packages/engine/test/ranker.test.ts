@@ -129,6 +129,56 @@ describe("Priori Engine ranker", () => {
     expect(output).toContain("Ranking paused until in-progress task is resolved.");
   });
 
+  it("filters tasks by location: home shows home and anywhere tasks", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "location-filter.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams({ location: "home" }));
+
+    const ids = result.top.map((t) => t.task.id);
+    expect(ids).toContain("task_home_only");
+    expect(ids).toContain("task_anywhere");
+    expect(ids).not.toContain("task_in_person");
+    expect(result.exclusions.some((e) => e.reason === "location_mismatch")).toBe(true);
+  });
+
+  it("filters tasks by location: anywhere shows only anywhere tasks", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "location-filter.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams({ location: "anywhere" }));
+
+    const ids = result.top.map((t) => t.task.id);
+    expect(ids).toEqual(["task_anywhere"]);
+    expect(result.exclusions.filter((e) => e.reason === "location_mismatch")).toHaveLength(2);
+  });
+
+  it("filters tasks by location: in-person shows in-person and anywhere tasks", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "location-filter.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams({ location: "in-person" }));
+
+    const ids = result.top.map((t) => t.task.id);
+    expect(ids).toContain("task_in_person");
+    expect(ids).toContain("task_anywhere");
+    expect(ids).not.toContain("task_home_only");
+  });
+
+  it("skips location filter when location param is not set", async () => {
+    const loaded = await loadTasksFromJson(
+      path.join(FIXTURE_DIR, "location-filter.json")
+    );
+    const normalized = normalizeTasks(loaded);
+    const result = rankTasks(normalized.tasks, defaultParams());
+
+    expect(result.top).toHaveLength(3);
+    expect(result.exclusions.some((e) => e.reason === "location_mismatch")).toBe(false);
+  });
+
   it("fixture files are valid JSON (best-effort parsing contract)", async () => {
     const fixtures = [
       "base.json",
@@ -138,6 +188,7 @@ describe("Priori Engine ranker", () => {
       "recurring-window.json",
       "tie-breaker.json",
       "in-progress-block.json",
+      "location-filter.json",
     ];
 
     for (const file of fixtures) {

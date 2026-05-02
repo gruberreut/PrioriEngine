@@ -52,6 +52,16 @@ export function resolveTasksPath(args: string[]): string {
   return path.resolve(srcDir, "../test/data/tasks.example.json");
 }
 
+export function parseLocation(args: string[]): string | undefined {
+  const raw = parseArgValue(args, "--location");
+  if (!raw) return undefined;
+  const normalized = raw.trim().toLowerCase();
+  if (normalized === "home" || normalized === "in-person" || normalized === "anywhere") {
+    return normalized;
+  }
+  return undefined;
+}
+
 export function buildRuntimeParams(
   args: string[],
   options?: { fixedNow?: Date }
@@ -60,6 +70,7 @@ export function buildRuntimeParams(
   return {
     currentTime: parseNow(args, options?.fixedNow),
     context: parseArgValue(args, "--context")?.trim().toLowerCase(),
+    location: parseLocation(args),
     availableTime: parseAvailableTime(args),
     energyLevel: parseEnergy(args),
     explain,

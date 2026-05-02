@@ -143,30 +143,60 @@ Single ranked task. Conditionally renders `ScoreBreakdown`.
 
 ---
 
-### 5.9 `InProgressBlock`
+### 5.9 `InProgressBlock` ✓
 
 Shown when the engine returns `in_progress_block` mode.
 
-- [ ] Implement `InProgressBlock`
-- [ ] Write story: Default (task title + action list)
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `InProgressBlock`
+- [x] Write story: Default (task title + action list)
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 5.10 `EmptyState`
+### 5.10 `EmptyState` ✓
 
 Shown when ranking returns zero results.
 
-- [ ] Implement `EmptyState`
-- [ ] Write stories: With context, Without context
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `EmptyState`
+- [x] Write stories: With context, Without context
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 5.11 `ResultsPanel`
+### 5.11 `ResultsPanel` ✓
 
 Composes `TaskCard`, `InProgressBlock`, and `EmptyState`. Switches between states based on `RankResult`.
 
-- [ ] Implement `ResultsPanel`
-- [ ] Write stories: No result, Three cards (explain off), Three cards (explain on), In-progress block, Empty state
-- [ ] Review in Storybook — **approve before proceeding**
+- [x] Implement `ResultsPanel`
+- [x] Write stories: No result, Three cards (explain off), Three cards (explain on), In-progress block, Empty state
+- [x] Review in Storybook — **approved**
+
+---
+
+## 6. Location & Context Refactor (`location-context-refactor`)
+
+Separate the two roles that `contexts` currently plays. `contexts` becomes open-ended abstract mental-mode categories (starting set: `creativity`, `learning`, `admin`, `physical`) — new categories can be added to the JSON at any time without code changes. A new `location` field captures where the task physically requires you to be; its values are fixed and structural.
+
+**Location values:** `"home"` | `"in-person"` | `"anywhere"` (default: `"anywhere"`)
+**Context categories:** open-ended `string[]` — no fixed enum; starting set is `creativity`, `learning`, `admin`, `physical`
+
+---
+
+### 6.1 Engine ✓
+
+- [x] `types.ts` — add `location: "home" | "in-person" | "anywhere"` to `RawTask` and `NormalizedTask`; add optional `location` to `RuntimeParams`; `contexts` remains `string[]` with no fixed enum
+- [x] `normalizer.ts` — inherit `location` up the parent chain; default to `"anywhere"` when unset; validate `location` against the three allowed values only (no context validation)
+- [x] `ranker.ts` — add hard location filter: when `RuntimeParams.location` is set, exclude tasks whose `location` does not match (tasks with `"anywhere"` always pass)
+- [x] `cliParse.ts` — add `--location` flag
+- [x] Update test fixtures in `test/fixtures/` to include `location`; add location-filter test cases; maintain 100% line/function/statement and 95% branch coverage thresholds
+- [x] `tasks.example.json` — rework all `contexts` from specific labels to abstract categories; add `location` to every task; remove location labels from `contexts` arrays
+
+### 6.2 Frontend
+
+- [ ] `ParamsForm` — add location selector (home / in-person / anywhere / no filter); update stories
+- [ ] `TaskCard` — add location badge; update stories
+- [ ] `RankingPage` — pass `location` through to the rank request
+
+### 6.3 Documentation
+
+- [ ] `ARCHITECTURE.md` — update data model section and priority semantics table to reflect `location` field and revised context categories

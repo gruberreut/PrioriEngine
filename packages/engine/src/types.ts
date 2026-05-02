@@ -1,5 +1,6 @@
 export type EnergyLevel = "low" | "medium" | "high";
 export type TaskStatus = "pending" | "in_progress" | "completed";
+export type LocationRequirement = "home" | "in-person" | "anywhere";
 
 export interface RawTask {
   id?: string;
@@ -10,6 +11,7 @@ export interface RawTask {
   recurrence?: string | null;
   duration?: number;
   energyRequired?: EnergyLevel;
+  location?: string;
   contexts?: string[];
   projectId?: string | null;
   parentId?: string | null;
@@ -34,6 +36,7 @@ export interface NormalizedTask {
   recurrence: string | null;
   duration: number;
   energyRequired: EnergyLevel;
+  location: LocationRequirement;
   contexts: string[];
   projectId: string | null;
   parentId: string | null;
@@ -46,6 +49,7 @@ export interface NormalizedTask {
 export interface RuntimeParams {
   currentTime: Date;
   context?: string;
+  location?: string;
   availableTime: number;
   energyLevel: EnergyLevel;
   explain: boolean;
@@ -80,6 +84,7 @@ export interface RankedTask {
 
 export type ExclusionReason =
   | "context_mismatch"
+  | "location_mismatch"
   | "completed"
   | "in_progress_blocked"
   | "non_leaf"
