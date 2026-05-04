@@ -1,5 +1,4 @@
 import { Icon } from "../../../components/Icon/Icon";
-import { SpinnerArc } from "../../../assets/icons/SpinnerArc";
 import { CheckCircle } from "../../../assets/icons/CheckCircle";
 import { Moon } from "../../../assets/icons/Moon";
 import { Trash } from "../../../assets/icons/Trash";
@@ -20,12 +19,9 @@ export interface InProgressBlockProps {
 export function InProgressBlock({ task, onAction }: InProgressBlockProps) {
   return (
     <div className={styles.container}>
-      <Icon asset={SpinnerArc} label="In progress" size={36} />
-      <div className={styles.content}>
-        <TaskCard task={task} flavor="flat" actions={ACTIONS} onAction={onAction} />
-        <div className={styles.prompt}>
-          Finish this task or mark it complete to get new suggestions.
-        </div>
+      <TaskCard task={{ ...task, status: "in_progress" }} flavor="flat" actions={ACTIONS} onAction={onAction} />
+      <div className={styles.prompt}>
+        Finish this task or mark it complete to get new suggestions.
       </div>
     </div>
   );

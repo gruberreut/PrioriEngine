@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Select } from "../../../components/Select/Select";
 import { Checkbox } from "../../../components/Checkbox/Checkbox";
 import { EnergyPicker, type EnergyLevel } from "../EnergyPicker/EnergyPicker";
+import { LocationPicker } from "../LocationPicker/LocationPicker";
 import styles from "./ParamsForm.module.css";
 
 export type { EnergyLevel };
 
 export interface RankParams {
   context: string | undefined;
+  location: "home" | "in-person" | "anywhere" | undefined;
   availableTime: number;
   energy: EnergyLevel;
   explain: boolean;
@@ -29,6 +31,7 @@ const AVAILABLE_TIME_OPTIONS = [
 
 export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormProps) {
   const [context, setContext] = useState<string | undefined>(undefined);
+  const [location, setLocation] = useState<RankParams["location"]>(undefined);
   const [availableTime, setAvailableTime] = useState(30);
   const [energy, setEnergy] = useState<EnergyLevel>("medium");
   const [explain, setExplain] = useState(false);
@@ -37,7 +40,7 @@ export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormPr
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    onSubmit({ context, availableTime, energy, explain });
+    onSubmit({ context, location, availableTime, energy, explain });
   }
 
   return (
@@ -48,6 +51,12 @@ export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormPr
         value={context}
         onChange={setContext}
         placeholder="All"
+        disabled={loading}
+      />
+      <LocationPicker
+        label="Location"
+        value={location}
+        onChange={setLocation}
         disabled={loading}
       />
       <Select

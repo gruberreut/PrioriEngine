@@ -12,7 +12,8 @@ const task = {
   title: "Repot the tomato seedlings",
   duration: 30,
   energyRequired: "medium" as const,
-  contexts: ["Garden"],
+  location: "home" as const,
+  contexts: ["physical"],
 };
 
 const breakdown = {
@@ -83,7 +84,7 @@ export const Selected: StoryObj<typeof TaskCard> = {
 };
 
 export const InProgress: StoryObj<typeof TaskCard> = {
-  args: { ...defaultArgs, flavor: "flat", actions: inProgressActions },
+  args: { ...defaultArgs, flavor: "flat", task: { ...task, status: "in_progress" }, actions: inProgressActions },
 };
 
 // Explain
@@ -100,6 +101,20 @@ export const WithActions: StoryObj<typeof TaskCard> = {
 
 export const WithActionLabels: StoryObj<typeof TaskCard> = {
   args: { ...defaultArgs, actions: sampleActions, showActionLabels: true },
+};
+
+// Location
+
+export const LocationHome: StoryObj<typeof TaskCard> = {
+  args: { ...defaultArgs, task: { ...task, location: "home" } },
+};
+
+export const LocationInPerson: StoryObj<typeof TaskCard> = {
+  args: { ...defaultArgs, task: { ...task, location: "in-person", title: "Go to Nature food store" } },
+};
+
+export const LocationAnywhere: StoryObj<typeof TaskCard> = {
+  args: { ...defaultArgs, task: { ...task, location: "anywhere", title: "Read a page in French" } },
 };
 
 // Edge cases

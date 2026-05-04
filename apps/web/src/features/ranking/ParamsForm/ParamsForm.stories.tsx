@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ParamsForm } from "./ParamsForm";
 
-const contexts = ["Garden", "Learning", "Home", "Bureaucracy", "Computer"];
+const contexts = ["creativity", "learning", "admin", "physical"];
 
 const defaultArgs = {
   contexts,

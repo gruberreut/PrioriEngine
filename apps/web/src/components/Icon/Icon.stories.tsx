@@ -42,6 +42,7 @@ export const Sizes: StoryObj<typeof Icon> = {
   ),
 };
 
+
 export const Gallery: StoryObj = {
   render: () => {
     const icons: { name: string; asset: ComponentType<IconAssetProps> }[] = [];
