@@ -309,12 +309,12 @@ The seed script covers the single dev user. When real user accounts are added (a
 
 ### Tasks
 
-- [ ] `POST /api/tasks` — body: `{ id, parentId?, contextId?, title, priority, dueDate?, duration, energyRequired, location }`; `id` is a client-generated UUID; inserts into DB for the dev user; returns created task
-- [ ] `GET /api/tasks` — returns all tasks for the dev user from DB as a flat array
-- [ ] `POST /api/contexts` — body: `{ name }`; creates context for dev user; returns created context (409 if name already exists)
-- [ ] `GET /api/contexts` — returns all contexts for dev user from DB as `{ id, userId, name, createdAt }[]`
-- [ ] `POST /api/tasks/:id/split` — atomic transaction: (1) create new parent task from body `{ title }`; (2) set current task's `parent_id` to new parent's id; (3) create blank sibling task under same parent; returns `{ parent, original, sibling }`
-- [ ] Update `apps/api/API.md` with all new endpoints
+- [x] `POST /api/tasks` — body: `{ id, parentId?, contextId?, title, priority, dueDate?, duration, energyRequired, location }`; `id` is a client-generated UUID; inserts into DB for the dev user; returns created task
+- [x] `GET /api/tasks` — returns all tasks for the dev user from DB as a flat array
+- [x] `POST /api/contexts` — body: `{ name }`; creates context for dev user; returns created context (409 if name already exists)
+- [x] `GET /api/contexts` — returns all contexts for dev user from DB as `{ id, userId, name, createdAt }[]`
+- [x] `POST /api/tasks/:id/split` — atomic transaction: (1) create new parent task from body `{ title }`; (2) set current task's `parent_id` to new parent's id; (3) create blank sibling task under same parent; returns `{ parent, original, sibling }`
+- [x] Update `apps/api/API.md` with all new endpoints
 
 ---
 
