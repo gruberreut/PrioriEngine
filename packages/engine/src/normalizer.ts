@@ -1,4 +1,4 @@
-import { isLeafTask } from "./taskLoader.js";
+import { isLeafTask } from "./treeUtils.js";
 import {
   EnergyLevel,
   ExclusionRecord,

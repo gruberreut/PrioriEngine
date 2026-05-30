@@ -9,6 +9,7 @@ export default defineConfig({
       exclude: [
         "src/types.ts",
         "src/cli.ts",
+        "src/index.ts",
         "**/*.d.ts",
       ],
       thresholds: {

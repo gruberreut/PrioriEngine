@@ -13,6 +13,8 @@
     "typecheck": "npm run typecheck -w @priori/engine",
     "rank": "npm run rank -w @priori/engine",
     "test": "npm run test -w @priori/engine",
-    "test:coverage": "npm run test:coverage -w @priori/engine"
+    "test:coverage": "npm run test:coverage -w @priori/engine",
+    "dev:api": "npm run dev -w @priori/api",
+    "dev:web": "npm run dev -w @priori/web"
   }
 }
