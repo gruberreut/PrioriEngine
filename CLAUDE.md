@@ -6,6 +6,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Per `AGENTS.md`: do not execute implementation steps or make code changes unless the user explicitly approves. Default to planning/discussion only until approval is given.
 
+## Technology and Architecture Choices
+
+Prefer the minimal solution that satisfies current requirements and can be incrementally enhanced to support the planned features in this project. Avoid introducing abstractions, dependencies, or infrastructure that aren't needed yet.
+
+When evaluating a technology or architecture decision:
+- Choose the option with the smallest footprint that doesn't foreclose future needs
+- Avoid choices that create tech debt (e.g. patterns that will need to be undone, not just extended, as the project grows)
+- If there is genuine uncertainty about whether a simpler choice will hold up against future requirements, raise it explicitly before proceeding — describe the trade-off, identify the specific future features that create the tension, and ask the developer to weigh in before committing to an approach
+
 ## Commands
 
 All commands are run from the repository root unless noted.
