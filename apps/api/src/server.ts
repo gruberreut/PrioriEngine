@@ -1,12 +1,19 @@
-import { createServer, IncomingMessage, ServerResponse } from "node:http";
+import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { asTaskArray, rankFromPayload } from "@priori/engine";
-import type { RawTask, RuntimeParams } from "@priori/engine";
+import { eq } from "drizzle-orm";
+import { asTaskArray } from "@priori/engine";
+import type { RawTask } from "@priori/engine";
+import { db } from "./db/index.js";
+import { users } from "./db/schema.js";
+import { setCorsHeaders, json } from "./lib/http.js";
+import { createTasksHandler } from "./routes/tasks.js";
+import { createContextsHandler } from "./routes/contexts.js";
+import { createRankHandler } from "./routes/rank.js";
 
 const PORT = 3001;
-const CORS_ORIGIN = "http://localhost:5173";
+const DEV_USER_EMAIL = "dev@priori.local";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DEFAULT_TASKS_PATH = path.resolve(
@@ -17,45 +24,21 @@ const DEFAULT_TASKS_PATH = path.resolve(
 const tasksPath = process.env.PRIORI_TASKS_PATH ?? DEFAULT_TASKS_PATH;
 const rawData: unknown = JSON.parse(await readFile(tasksPath, "utf8"));
 const rawTasks: RawTask[] = asTaskArray(rawData);
-const contexts = extractContexts(rawTasks);
+console.log(`Loaded ${rawTasks.length} top-level tasks from ${tasksPath} (used by /api/rank)`);
 
-console.log(`Loaded ${rawTasks.length} top-level tasks from ${tasksPath}`);
+const [devUser] = await db.select().from(users).where(eq(users.email, DEV_USER_EMAIL));
+if (!devUser) throw new Error(`Dev user not found — run npm run db:seed first.`);
+const devUserId = devUser.id;
+console.log(`Dev user: ${DEV_USER_EMAIL} (${devUserId})`);
 
-function extractContexts(tasks: RawTask[]): string[] {
-  const set = new Set<string>();
-  function walk(list: RawTask[]) {
-    for (const t of list) {
-      for (const ctx of t.contexts ?? []) set.add(ctx.trim().toLowerCase());
-      if (t.children?.length) walk(t.children);
-    }
-  }
-  walk(tasks);
-  return [...set].sort();
-}
-
-function setCorsHeaders(res: ServerResponse) {
-  res.setHeader("Access-Control-Allow-Origin", CORS_ORIGIN);
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-}
-
-function json(res: ServerResponse, status: number, data: unknown) {
-  setCorsHeaders(res);
-  res.writeHead(status, { "Content-Type": "application/json" });
-  res.end(JSON.stringify(data));
-}
-
-function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const chunks: Buffer[] = [];
-    req.on("data", (chunk: Buffer) => chunks.push(chunk));
-    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
-    req.on("error", reject);
-  });
-}
+const handlers = [
+  createTasksHandler(db, devUserId),
+  createContextsHandler(db, devUserId),
+  createRankHandler(rawTasks),
+];
 
 const server = createServer(async (req, res) => {
-  const url = req.url ?? "";
+  const { pathname } = new URL(req.url ?? "/", "http://localhost");
   const method = req.method ?? "";
 
   if (method === "OPTIONS") {
@@ -65,33 +48,8 @@ const server = createServer(async (req, res) => {
     return;
   }
 
-  if (method === "GET" && url === "/api/tasks") {
-    json(res, 200, rawTasks);
-    return;
-  }
-
-  if (method === "GET" && url === "/api/contexts") {
-    json(res, 200, contexts);
-    return;
-  }
-
-  if (method === "POST" && url === "/api/rank") {
-    try {
-      const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
-      const params: RuntimeParams = {
-        currentTime: new Date(),
-        availableTime: Number(body.availableTime ?? 30),
-        energyLevel: (body.energyLevel as RuntimeParams["energyLevel"]) ?? "medium",
-        context: body.context as string | undefined,
-        location: body.location as string | undefined,
-        explain: Boolean(body.explain ?? false),
-        limit: Number(body.limit ?? 3),
-      };
-      json(res, 200, rankFromPayload(rawTasks, params));
-    } catch {
-      json(res, 400, { error: "Invalid request body" });
-    }
-    return;
+  for (const handle of handlers) {
+    if (await handle(req, res, pathname, method)) return;
   }
 
   json(res, 404, { error: "Not found" });

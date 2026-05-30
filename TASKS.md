@@ -276,14 +276,15 @@ tasks
 
 ### Tasks
 
-- [ ] Install PostgreSQL locally (Homebrew: `brew install postgresql@16`, or Docker)
-- [ ] Add `drizzle-orm`, `drizzle-kit`, `pg`, `@types/pg` to `apps/api`
-- [ ] Create `apps/api/src/db/schema.ts` — Drizzle schema definitions for all three tables
-- [ ] Create `apps/api/src/db/index.ts` — exports db connection; reads `DATABASE_URL` env var
-- [ ] Generate and apply first migration via drizzle-kit
-- [ ] Create `apps/api/src/db/seed.ts` — creates one dev user + 4 default contexts: `Learning`, `Creativity`, `Projects`, `Physical`
-- [ ] Add `"db:generate"`, `"db:migrate"`, `"db:seed"` scripts to `apps/api/package.json`
-- [ ] Document `DATABASE_URL` in `apps/api/README.md`
+- [x] Install PostgreSQL locally (Homebrew: `brew install postgresql@16`, or Docker)
+- [x] Add `drizzle-orm`, `drizzle-kit`, `pg`, `@types/pg` to `apps/api`
+- [x] Create `apps/api/src/db/schema.ts` — Drizzle schema definitions for all three tables
+- [x] Create `apps/api/src/db/index.ts` — exports db connection; reads `DATABASE_URL` env var
+- [x] Generate and apply first migration via drizzle-kit
+- [x] Create `apps/api/src/db/seed.ts` — creates one dev user + 4 default contexts: `Learning`, `Creativity`, `Projects`, `Physical`
+- [x] Add `"db:generate"`, `"db:migrate"`, `"db:seed"` scripts to `apps/api/package.json`
+- [x] Document `DATABASE_URL` in `apps/api/README.md`
+- [x] Create `apps/api/src/db/migrateTasks.ts` — one-time script to import `tasks.example.json` into the DB; maps `admin` context → `Projects`; resolves inherited fields; safe to re-run
 
 ### User provisioning — needs detailed planning
 
@@ -304,20 +305,16 @@ The seed script covers the single dev user. When real user accounts are added (a
 
 **Depends on:** Section 7 complete (schema and DB connection must exist).
 
-Add DB-backed task and context endpoints alongside the existing JSON-backed ones. The JSON-backed `GET /api/tasks` and `GET /api/contexts` remain untouched until the ranking migration is planned.
-
-**Source selection:** `?source=db` query parameter routes to the DB; omitting it falls through to the existing JSON-backed behaviour. This is intentionally temporary — see cleanup task below.
+`GET /api/tasks` and `GET /api/contexts` now read from the DB directly. `POST /api/rank` continues to use the JSON file until the ranking migration is planned. All new write endpoints are DB-backed.
 
 ### Tasks
 
 - [ ] `POST /api/tasks` — body: `{ id, parentId?, contextId?, title, priority, dueDate?, duration, energyRequired, location }`; `id` is a client-generated UUID; inserts into DB for the dev user; returns created task
-- [ ] `GET /api/tasks?source=db` — returns all tasks for the dev user from DB as a flat array; `GET /api/tasks` (no param) continues reading from JSON file
-- [ ] `POST /api/contexts` — body: `{ name }`; creates context for dev user; returns created context
-- [ ] `GET /api/contexts?source=db` — returns all contexts for dev user from DB; `GET /api/contexts` (no param) continues reading from JSON file
+- [ ] `GET /api/tasks` — returns all tasks for the dev user from DB as a flat array
+- [ ] `POST /api/contexts` — body: `{ name }`; creates context for dev user; returns created context (409 if name already exists)
+- [ ] `GET /api/contexts` — returns all contexts for dev user from DB as `{ id, userId, name, createdAt }[]`
 - [ ] `POST /api/tasks/:id/split` — atomic transaction: (1) create new parent task from body `{ title }`; (2) set current task's `parent_id` to new parent's id; (3) create blank sibling task under same parent; returns `{ parent, original, sibling }`
-- [ ] Update `apps/api/API.md` with all new endpoints including split mechanics and `?source=db` behaviour
-
-**Future cleanup:** Remove `?source=db` parameter and JSON file fallback from `GET /api/tasks` and `GET /api/contexts` once the ranking pipeline is migrated to read from the DB. Track as part of the ranking migration planning.
+- [ ] Update `apps/api/API.md` with all new endpoints
 
 ---
 
@@ -411,3 +408,11 @@ Shown immediately after task creation and reachable at `/tasks/:id`.
 ## 10. Offline sync (`offline-sync`) — placeholder
 
 Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event.
+
+---
+
+## Open Issues
+
+Issues that came up during implementation but were deferred to keep scope focused.
+
+- **Split sibling title** — `POST /api/tasks/:id/split` creates the blank sibling with `title: ""`. Decide whether the API should accept an optional `siblingTitle` in the request body, or whether the client is always expected to prompt for it after navigation.

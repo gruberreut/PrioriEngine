@@ -4,13 +4,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:migrate-tasks": "tsx src/db/migrateTasks.ts"
   },
   "dependencies": {
-    "@priori/engine": "*"
+    "@priori/engine": "*",
+    "drizzle-orm": "^0.43.1",
+    "pg": "^8.14.1"
   },
   "devDependencies": {
     "@types/node": "^22.15.0",
+    "@types/pg": "^8.11.11",
+    "drizzle-kit": "^0.31.1",
     "tsx": "^4.19.2"
   }
 }

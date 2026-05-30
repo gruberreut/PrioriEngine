@@ -21,6 +21,7 @@ All commands are run from the repository root unless noted.
 
 ```bash
 npm ci                             # install all workspace dependencies (use this, not npm install)
+npm install <pkg> [-w <workspace>] # add a new package — updates both package.json and package-lock.json; use npm ci for everything else
 
 npm run build                      # compile packages/engine → dist/
 npm run typecheck                  # type-check without emitting
@@ -80,6 +81,12 @@ The engine processes a JSON task tree through four sequential stages:
 ### Testing
 
 Tests live in `packages/engine/test/`. JSON fixtures are in `test/fixtures/` (structured scenarios) and `test/data/tasks.example.json` (realistic sample). Coverage thresholds: 100% lines/functions/statements, 95% branches — enforced by `vitest run --coverage`.
+
+## API Server Structure (`apps/api`)
+
+Route handlers live in `apps/api/src/routes/`, one file per entity (e.g. `tasks.ts`, `contexts.ts`, `rank.ts`). Shared HTTP utilities (`json`, `readBody`, `setCorsHeaders`) live in `apps/api/src/lib/http.ts`.
+
+Each route file exports a single factory function — `create<Entity>Handler(db, ...deps)` — that returns a `(req, res, pathname, method) => Promise<boolean>` handler. The handler returns `true` if it matched and responded, `false` to pass through. `server.ts` is responsible only for startup (DB init, env vars) and iterating the handler list; it never contains route logic itself.
 
 ## API Documentation
 
