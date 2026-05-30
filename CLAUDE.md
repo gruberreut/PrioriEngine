@@ -11,7 +11,7 @@ Per `AGENTS.md`: do not execute implementation steps or make code changes unless
 All commands are run from the repository root unless noted.
 
 ```bash
-npm install                        # install all workspace dependencies
+npm ci                             # install all workspace dependencies (use this, not npm install)
 
 npm run build                      # compile packages/engine → dist/
 npm run typecheck                  # type-check without emitting
@@ -71,6 +71,19 @@ The engine processes a JSON task tree through four sequential stages:
 ### Testing
 
 Tests live in `packages/engine/test/`. JSON fixtures are in `test/fixtures/` (structured scenarios) and `test/data/tasks.example.json` (realistic sample). Coverage thresholds: 100% lines/functions/statements, 95% branches — enforced by `vitest run --coverage`.
+
+## API Documentation
+
+Every HTTP endpoint must be documented in `apps/api/API.md` before implementation is considered complete. The entry must include: method + path, a description, the full request body schema (field name, type, required/optional, default), the response shape for each mode, and a working `curl` example.
+
+Current standard: **markdown** (`apps/api/API.md`).
+
+Recommend upgrading to **OpenAPI** when any of the following conditions are met:
+- The API has more than one consumer (e.g. mobile app, third-party integration, or external team)
+- There are more than 5 endpoints
+- Request or response validation is needed at the server boundary
+
+Until then, keep the markdown doc in sync — update it in the same commit as any endpoint change.
 
 ## Storybook
 
