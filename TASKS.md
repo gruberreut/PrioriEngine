@@ -331,30 +331,30 @@ One component at a time; Storybook review required before the next begins.
 
 ---
 
-### 9.1 `DurationPicker`
+### 9.1 `DurationPicker` ✓
 
 **Depends on:** none — pure component, no API dependency.
 
 4-button segmented control; identical structure and CSS pattern to `EnergyPicker`. No icons — text labels only.
 
-- [ ] Props: `value: number`, `onChange: (value: number) => void`, `label?: string`, `disabled?: boolean`
-- [ ] Options: `10` / `20` / `30` / `60` minutes; default `20`
-- [ ] Write stories: Default (20 selected), Each option selected, Disabled
-- [ ] Review in Storybook — **approved**
+- [x] Props: `value: number`, `onChange: (value: number) => void`, `label?: string`, `disabled?: boolean`
+- [x] Options: `10` / `20` / `30` / `60` minutes; default `20`
+- [x] Write stories: Default (20 selected), Each option selected, Disabled
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 9.2 `PriorityPicker`
+### 9.2 `PriorityPicker` ✓
 
 **Depends on:** none — pure component, no API dependency.
 
 5-button segmented control; same button/CSS pattern as `EnergyPicker`. Selecting Urgent reveals an inline due date input below the picker.
 
-- [ ] Props: `value: number`, `onChange: (value: number) => void`, `dueDate?: string`, `onDueDateChange?: (date: string) => void`, `label?: string`, `disabled?: boolean`
-- [ ] Options and mappings: Urgent → 1, Soon → 3, Medium → 6, Later → 8, Ongoing → 10; default Soon (3)
-- [ ] Due date input appears inline beneath the picker only when Urgent is selected
-- [ ] Write stories: Default (Soon), Urgent selected (due date visible), Each option, Disabled
-- [ ] Review in Storybook — **approved**
+- [x] Props: `value: number`, `onChange: (value: number) => void`, `dueDate?: string`, `onDueDateChange?: (date: string) => void`, `label?: string`, `disabled?: boolean`
+- [x] Options and mappings: Urgent → 1, Soon → 3, Medium → 6, Later → 8, Ongoing → 10; default Soon (3)
+- [x] Due date input appears inline beneath the picker only when Urgent is selected; defaults to tomorrow's date
+- [x] Write stories: Default (Soon), Urgent selected (due date visible), Each option, Disabled
+- [x] Review in Storybook — **approved**
 
 ---
 
