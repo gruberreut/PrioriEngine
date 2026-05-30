@@ -5,6 +5,7 @@ import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "../db/schema.js";
 import { tasks as tasksTable } from "../db/schema.js";
 import { json, readBody } from "../lib/http.js";
+import { queryTasks } from "../db/queries.js";
 
 type Db = NodePgDatabase<typeof schema>;
 
@@ -76,7 +77,7 @@ export function createTasksHandler(db: Db, devUserId: string) {
 
     if (method === "GET" && pathname === "/api/tasks") {
       try {
-        const rows = await db.select().from(tasksTable).where(eq(tasksTable.userId, devUserId));
+        const rows = await queryTasks(db, devUserId);
         json(res, 200, rows);
       } catch {
         json(res, 500, { error: "Database error" });
