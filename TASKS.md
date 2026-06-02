@@ -184,7 +184,7 @@ Separate the two roles that `contexts` currently plays. `contexts` becomes open-
 
 ### 5.3 Documentation
 
-- [ ] `ARCHITECTURE.md` — update data model section and priority semantics table to reflect `location` field and revised context categories
+- [x] `ARCHITECTURE.md` — update data model section and priority semantics table to reflect `location` field and revised context categories
 
 ---
 
