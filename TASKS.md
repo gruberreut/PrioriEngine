@@ -405,7 +405,23 @@ Shown immediately after task creation and reachable at `/tasks/:id`.
 
 ---
 
-## 10. Offline sync (`offline-sync`) — placeholder
+## 10. Context theming (`context-theming`)
+
+**Depends on:** Section 8 (contexts table must exist).
+
+When a user creates a new context, assign it a stable color or theme seed so it always renders with the same background in the ranking carousel. Currently, slide colors are assigned by index into a fixed palette — this works but means colors shift if contexts are reordered or deleted.
+
+### Tasks
+
+- [ ] Add a `color` (or `theme_seed`) column to the `contexts` table; generate a migration
+- [ ] On context creation (`POST /api/contexts`), auto-assign a color from the palette, cycling through available slots and avoiding duplicates where possible
+- [ ] Return the color in `GET /api/contexts` responses
+- [ ] Update the web frontend to use the DB-assigned color instead of index-based assignment
+- [ ] Handle the edge case where more contexts exist than palette entries (cycle or generate complementary colors)
+
+---
+
+## 11. Offline sync (`offline-sync`) — placeholder
 
 Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event.
 

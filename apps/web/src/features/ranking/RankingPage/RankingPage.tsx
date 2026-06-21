@@ -15,6 +15,17 @@ interface SlideData {
 
 const SWIPE_DIRECTION: SwipeDirection = "ltr";
 
+const SLIDE_PALETTE = [
+  "var(--color-slide-0)",
+  "var(--color-slide-1)",
+  "var(--color-slide-2)",
+  "var(--color-slide-3)",
+  "var(--color-slide-4)",
+  "var(--color-slide-5)",
+  "var(--color-slide-6)",
+  "var(--color-slide-7)",
+];
+
 export function RankingPage() {
   const [contexts, setContexts] = useState<string[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -106,15 +117,16 @@ export function RankingPage() {
         showDots
         swipeHint
       >
-        <div className={styles.paramsSlide}>
+        <div className={styles.paramsSlide} style={{ backgroundColor: "var(--color-slide-params)" }}>
           <ParamsForm onParamsChange={handleParamsChange} />
         </div>
-        {slides.map((slide) => (
+        {slides.map((slide, i) => (
           <ResultsSlide
             key={slide.label}
             label={slide.label}
             state={slide.state}
             result={slide.result}
+            backgroundColor={SLIDE_PALETTE[i % SLIDE_PALETTE.length]}
           />
         ))}
       </Carousel>

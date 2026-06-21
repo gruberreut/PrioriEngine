@@ -7,11 +7,12 @@ export interface ResultsSlideProps {
   label: string;
   state: SlideState;
   result?: RankResultMode;
+  backgroundColor?: string;
 }
 
-export function ResultsSlide({ label, state, result }: ResultsSlideProps) {
+export function ResultsSlide({ label, state, result, backgroundColor }: ResultsSlideProps) {
   return (
-    <div className={styles.slide}>
+    <div className={styles.slide} style={backgroundColor ? { backgroundColor } : undefined}>
       <h2 className={styles.heading}>{label}</h2>
       {state === "idle" && <p className={styles.hint}>Swipe here to load results</p>}
       {state === "loading" && <p className={styles.loading}>Loading…</p>}

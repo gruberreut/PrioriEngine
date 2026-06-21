@@ -7,4 +7,6 @@
 
 .paramsSlide {
   padding: var(--space-4) var(--space-2);
+  min-height: 100%;
+  box-sizing: border-box;
 }

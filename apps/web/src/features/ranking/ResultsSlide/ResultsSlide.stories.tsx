@@ -35,6 +35,7 @@ const defaultArgs = {
   label: "All",
   state: "loaded" as const,
   result: mockResult,
+  backgroundColor: "var(--color-slide-0)",
 };
 
 const meta: Meta<typeof ResultsSlide> = {

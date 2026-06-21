@@ -13,6 +13,17 @@
   --color-bg-page: #FFFFFF;
   --color-bg-disabled: #F9FAFB;
 
+  /* Colors — slide palette */
+  --color-slide-params: #FFF5EB;
+  --color-slide-0: #EDF5E8;
+  --color-slide-1: #EDE8F5;
+  --color-slide-2: #E8F0F5;
+  --color-slide-3: #F5EDE8;
+  --color-slide-4: #E8F5F0;
+  --color-slide-5: #F5E8ED;
+  --color-slide-6: #F5F3E8;
+  --color-slide-7: #EBF0F5;
+
   /* Colors — semantic */
   --color-primary: #4F46E5;
   --color-primary-tint: #EEF2FF;
