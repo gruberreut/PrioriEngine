@@ -14,6 +14,11 @@ const task = {
   energyRequired: "medium" as const,
   location: "home" as const,
   contexts: ["physical"],
+  status: "pending" as const,
+  priority: 3,
+  priorityUpdatedAt: "2026-06-01T00:00:00.000Z",
+  dueDate: null,
+  lastSuggestedAt: null,
 };
 
 const breakdown = {

@@ -1,9 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ResultsPanel } from "./ResultsPanel";
 
-const task1 = { id: "t1", title: "Repot the tomato seedlings", duration: 30, energyRequired: "medium" as const, contexts: ["Garden"] };
-const task2 = { id: "t2", title: "Write weekly review", duration: 20, energyRequired: "low" as const, contexts: ["Admin"] };
-const task3 = { id: "t3", title: "Fix flaky CI test", duration: 15, energyRequired: "high" as const, contexts: ["Dev"] };
+const baseFields = {
+  location: "anywhere" as const,
+  status: "pending" as const,
+  priority: 3,
+  priorityUpdatedAt: "2026-06-01T00:00:00.000Z",
+  dueDate: null,
+  lastSuggestedAt: null,
+};
+
+const task1 = { id: "t1", title: "Repot the tomato seedlings", duration: 30, energyRequired: "medium" as const, contexts: ["Garden"], ...baseFields };
+const task2 = { id: "t2", title: "Write weekly review", duration: 20, energyRequired: "low" as const, contexts: ["Admin"], ...baseFields };
+const task3 = { id: "t3", title: "Fix flaky CI test", duration: 15, energyRequired: "high" as const, contexts: ["Dev"], ...baseFields };
 
 const breakdown = {
   priorityScore: 0.80,

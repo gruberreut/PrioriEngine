@@ -1,21 +1,10 @@
 import type { ReactNode } from "react";
+import type { Task } from "../../../types/task";
 import { ScoreBreakdown, type ScoreBreakdownData } from "../ScoreBreakdown/ScoreBreakdown";
 import { LocationIcon } from "../LocationIcon/LocationIcon";
 import { Icon } from "../../../components/Icon/Icon";
 import { SpinnerArc } from "../../../assets/icons/SpinnerArc";
 import styles from "./TaskCard.module.css";
-
-export type TaskStatus = "pending" | "in_progress" | "completed";
-
-export interface TaskData {
-  id: string;
-  title: string;
-  duration: number;
-  energyRequired: "low" | "medium" | "high";
-  location?: "home" | "in-person" | "anywhere";
-  contexts: string[];
-  status?: TaskStatus;
-}
 
 export interface TaskAction {
   id: string;
@@ -25,7 +14,7 @@ export interface TaskAction {
 }
 
 export interface TaskCardProps {
-  task: TaskData;
+  task: Task;
   breakdown?: ScoreBreakdownData;
   explain?: boolean;
   flavor?: "flat" | "outlined";

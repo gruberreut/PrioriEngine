@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Carousel, type SwipeDirection } from "../../../components/Carousel/Carousel";
 import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
 import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
-import { rank, getContexts } from "../rankingService";
+import { rank } from "../../../services/rankingService";
+import { getContexts } from "../../../services/contextService";
 import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 import styles from "./RankingPage.module.css";
 

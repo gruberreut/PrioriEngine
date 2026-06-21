@@ -33,13 +33,13 @@ Plain Node.js `http` server in a new `apps/api` workspace package. Loads tasks o
 
 ---
 
-## 3. Web integration (`web-integration`)
+## 3. Web integration (`web-integration`) ✓
 
 Wire `RankingPage` to the live API; replace all hardcoded mock data.
 
-- [ ] Add Vite dev proxy to `apps/web/vite.config.ts`: `/api` → `http://localhost:3001` (no CORS config needed in the browser)
-- [ ] Create `apps/web/src/features/ranking/rankingService.ts` — exports `rank(params: RankParams): Promise<RankResultMode>` and `getContexts(): Promise<string[]>`; `rank` maps `RankParams → request body` (rename `energy → energyLevel`), calls `POST /api/rank`, maps the `RankResult` response to `RankResultMode` (rename `top → tasks`, map `NormalizedTask → TaskData` by picking the 7 fields `TaskData` needs; `ScoreBreakdown` fields match exactly)
-- [ ] Update `RankingPage.tsx` — on mount call `getContexts()` and populate the `ParamsForm`; on submit call `rank(params)` (async, pass `loading` prop while pending); remove `MOCK_RESULT`; add an error state for when the API is unreachable
+- [x] Add Vite dev proxy to `apps/web/vite.config.ts`: `/api` → `http://localhost:3001` (no CORS config needed in the browser)
+- [x] Create `apps/web/src/features/ranking/rankingService.ts` — exports `rank(params: RankParams): Promise<RankResultMode>` and `getContexts(): Promise<string[]>`; `rank` maps `RankParams → request body` (rename `energy → energyLevel`), calls `POST /api/rank`, maps the `RankResult` response to `RankResultMode` (rename `top → tasks`, map `NormalizedTask → TaskData` by picking the 7 fields `TaskData` needs; `ScoreBreakdown` fields match exactly)
+- [x] Update `RankingPage.tsx` — on mount call `getContexts()` and populate the `ParamsForm`; on submit call `rank(params)` (async, pass `loading` prop while pending); remove `MOCK_RESULT`; add an error state for when the API is unreachable
 
 ---
 
@@ -158,6 +158,28 @@ Composes `TaskCard`, `InProgressBlock`, and `EmptyState`. Switches between state
 
 ---
 
+### 4.12 `Breadcrumbs` (`task-breadcrumbs`)
+
+Shows ancestor context for subtasks inside `TaskCard`. When a task is nested under a project or parent task, the title alone may not provide enough context — breadcrumbs display the ancestor chain above the title.
+
+**Engine:**
+- [ ] `types.ts` — add optional `ancestors?: { id: string; title: string }[]` to `NormalizedTask`
+- [ ] `normalizer.ts` — populate `ancestors` by walking the `LoadedTask.parent` chain (root-first order); omit when the task has no parent
+
+**Frontend:**
+- [ ] Add optional `ancestors?: { id: string; title: string }[]` to `TaskData` in `TaskCard.tsx`
+- [ ] Create `Breadcrumbs` component in `src/components/Breadcrumbs/` — renders `Ancestor1 › Ancestor2` in muted style; displayed above the title, full width
+- [ ] Write `Breadcrumbs` stories: TwoLevels, SingleParent, ThreeLevels
+- [ ] Review in Storybook — awaiting approval
+- [ ] Integrate `Breadcrumbs` into `TaskCard` — render above title when `task.ancestors` is present and non-empty
+- [ ] Update `TaskCard` stories: add WithAncestors variant
+- [ ] Review in Storybook — awaiting approval
+
+**Integration:**
+- [ ] Update `rankingService.ts` — map `ancestors` from `NormalizedTask` to `TaskData` when present
+
+---
+
 ## 5. Location & Context Refactor (`location-context-refactor`)
 
 Separate the two roles that `contexts` currently plays. `contexts` becomes open-ended abstract mental-mode categories (starting set: `creativity`, `learning`, `admin`, `physical`) — new categories can be added to the JSON at any time without code changes. A new `location` field captures where the task physically requires you to be; its values are fixed and structural.
@@ -196,16 +218,16 @@ A read-only page at `/tasks` that shows all tasks as an expandable tree. The col
 
 ---
 
-### 6.1 Routing setup
+### 6.1 Routing setup ✓
 
-- [ ] Install `react-router-dom`
-- [ ] Update `App.tsx` to wrap the app in `<BrowserRouter>` with two routes: `/` → `RankingPage`, `/tasks` → `TasksPage`
-- [ ] Add a minimal `NavBar` component (`src/components/NavBar/`) with links to both routes; write stories
+- [x] Install `react-router-dom`
+- [x] Update `App.tsx` to wrap the app in `<BrowserRouter>` with two routes: `/` → `RankingPage`, `/tasks` → `TasksPage`
+- [x] Add a minimal `NavBar` component (`src/components/NavBar/`) with links to both routes; write stories
 
-### 6.2 `tasksService`
+### 6.2 `tasksService` ✓
 
-- [ ] Copy `packages/engine/test/data/tasks.example.json` to `apps/web/public/tasks.json`
-- [ ] Create `apps/web/src/services/tasksService.ts` — exports `getTasks(): Promise<RawTask[]>`; initial impl uses `fetch('/tasks.json')`; swapping to `GET /api/tasks` later requires changing only this file
+- [x] ~~Copy `packages/engine/test/data/tasks.example.json` to `apps/web/public/tasks.json`~~ (skipped — tasks are DB-backed)
+- [x] Create `apps/web/src/services/taskService.ts` — exports `getTasks(): Promise<Task[]>`; calls `GET /api/tasks`
 
 ### 6.3 `resolveTask` utility
 

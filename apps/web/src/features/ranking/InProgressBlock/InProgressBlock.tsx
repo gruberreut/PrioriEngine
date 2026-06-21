@@ -2,7 +2,8 @@ import { Icon } from "../../../components/Icon/Icon";
 import { CheckCircle } from "../../../assets/icons/CheckCircle";
 import { Moon } from "../../../assets/icons/Moon";
 import { Trash } from "../../../assets/icons/Trash";
-import { TaskCard, type TaskAction, type TaskData } from "../TaskCard/TaskCard";
+import type { Task } from "../../../types/task";
+import { TaskCard, type TaskAction } from "../TaskCard/TaskCard";
 import styles from "./InProgressBlock.module.css";
 
 const ACTIONS: TaskAction[] = [
@@ -12,7 +13,7 @@ const ACTIONS: TaskAction[] = [
 ];
 
 export interface InProgressBlockProps {
-  task: TaskData;
+  task: Task;
   onAction?: (actionId: string) => void;
 }
 

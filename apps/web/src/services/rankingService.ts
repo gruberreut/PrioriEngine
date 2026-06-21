@@ -1,7 +1,7 @@
-import type { RankParams } from "./ParamsForm/ParamsForm";
-import type { RankResultMode } from "./ResultsPanel/ResultsPanel";
-import type { TaskData } from "./TaskCard/TaskCard";
-import type { ScoreBreakdownData } from "./ScoreBreakdown/ScoreBreakdown";
+import type { Task } from "../types/task";
+import type { RankParams } from "../features/ranking/ParamsForm/ParamsForm";
+import type { RankResultMode } from "../features/ranking/ResultsPanel/ResultsPanel";
+import type { ScoreBreakdownData } from "../features/ranking/ScoreBreakdown/ScoreBreakdown";
 
 interface ApiRankedTask {
   task: Record<string, unknown>;
@@ -14,23 +14,20 @@ interface ApiRankResult {
   inProgressTask?: Record<string, unknown>;
 }
 
-function toTaskData(t: Record<string, unknown>): TaskData {
+function toTask(t: Record<string, unknown>): Task {
   return {
     id: t.id as string,
     title: t.title as string,
     duration: t.duration as number,
-    energyRequired: t.energyRequired as TaskData["energyRequired"],
-    location: t.location as TaskData["location"],
-    contexts: t.contexts as string[],
-    status: t.status as TaskData["status"],
+    energyRequired: t.energyRequired as Task["energyRequired"],
+    location: t.location as Task["location"],
+    status: t.status as Task["status"],
+    contexts: (t.contexts as string[]) ?? [],
+    priority: t.priority as number,
+    priorityUpdatedAt: t.priorityUpdatedAt as string,
+    dueDate: (t.dueDate as string) ?? null,
+    lastSuggestedAt: (t.lastSuggestedAt as string) ?? null,
   };
-}
-
-export async function getContexts(): Promise<string[]> {
-  const res = await fetch("/api/contexts");
-  if (!res.ok) throw new Error("Failed to fetch contexts");
-  const data = await res.json() as { name: string }[];
-  return data.map((c) => c.name);
 }
 
 export async function rank(params: RankParams, context: string | undefined): Promise<RankResultMode> {
@@ -54,14 +51,14 @@ export async function rank(params: RankParams, context: string | undefined): Pro
   if (data.mode === "in_progress_block") {
     return {
       mode: "in_progress_block",
-      task: toTaskData(data.inProgressTask!),
+      task: toTask(data.inProgressTask!),
     };
   }
 
   return {
     mode: "recommendations",
     tasks: data.top.map((rt) => ({
-      task: toTaskData(rt.task),
+      task: toTask(rt.task),
       breakdown: rt.breakdown,
     })),
     explain: params.explain,

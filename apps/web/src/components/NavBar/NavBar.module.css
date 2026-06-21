@@ -1,0 +1,25 @@
+.nav {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-page);
+}
+
+.link {
+  font-size: var(--font-size-label);
+  font-weight: 500;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  transition: color 0.15s;
+}
+
+.link:hover {
+  color: var(--color-text-body);
+}
+
+.active {
+  color: var(--color-primary);
+}

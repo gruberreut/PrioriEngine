@@ -2,6 +2,13 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { ResultsSlide } from "./ResultsSlide";
 import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 
+const baseFields = {
+  priority: 3,
+  priorityUpdatedAt: "2026-06-01T00:00:00.000Z",
+  dueDate: null,
+  lastSuggestedAt: null,
+};
+
 const mockResult: RankResultMode = {
   mode: "recommendations",
   tasks: [
@@ -14,6 +21,7 @@ const mockResult: RankResultMode = {
         location: "home",
         contexts: ["physical"],
         status: "pending",
+        ...baseFields,
       },
     },
     {
@@ -25,6 +33,7 @@ const mockResult: RankResultMode = {
         location: "anywhere",
         contexts: ["learning"],
         status: "pending",
+        ...baseFields,
       },
     },
   ],

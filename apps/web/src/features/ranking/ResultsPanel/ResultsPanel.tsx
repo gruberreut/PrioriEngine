@@ -1,18 +1,19 @@
 import { useState } from "react";
-import { TaskCard, type TaskData } from "../TaskCard/TaskCard";
+import type { Task } from "../../../types/task";
+import { TaskCard } from "../TaskCard/TaskCard";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
 import { EmptyState } from "../EmptyState/EmptyState";
 import type { ScoreBreakdownData } from "../ScoreBreakdown/ScoreBreakdown";
 import styles from "./ResultsPanel.module.css";
 
 export interface RankedTask {
-  task: TaskData;
+  task: Task;
   breakdown?: ScoreBreakdownData;
 }
 
 export type RankResultMode =
   | { mode: "recommendations"; tasks: RankedTask[]; explain?: boolean; context?: string }
-  | { mode: "in_progress_block"; task: TaskData };
+  | { mode: "in_progress_block"; task: Task };
 
 export interface ResultsPanelProps {
   result?: RankResultMode;
