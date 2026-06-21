@@ -19,6 +19,7 @@
 
 .outlined {
   border: 1px solid var(--color-border);
+  background-color: var(--color-bg-page);
 }
 
 .selected {
@@ -43,14 +44,14 @@
 
 .title {
   font-weight: 600;
-  font-size: 15px;
+  font-size: var(--font-size-card-title);
   color: var(--color-text-strong);
 }
 
 .meta {
   display: flex;
   gap: var(--space-3);
-  font-size: 13px;
+  font-size: var(--font-size-card-meta);
   color: var(--color-text-muted);
 }
 
@@ -97,7 +98,7 @@
 }
 
 .actionLabel {
-  font-size: 11px;
+  font-size: var(--font-size-action);
   width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;

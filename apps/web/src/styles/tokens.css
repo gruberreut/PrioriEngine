@@ -38,6 +38,13 @@
   --space-3: 12px;
   --space-4: 16px;
 
+  /* Font sizes */
+  --font-size-label: 16px;
+  --font-size-option: 14px;
+  --font-size-card-title: 17px;
+  --font-size-card-meta: 15px;
+  --font-size-action: 13px;
+
   /* Border radius */
   --radius-sm: 6px;
   --radius-md: 8px;

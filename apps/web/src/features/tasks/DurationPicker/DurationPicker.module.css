@@ -5,7 +5,7 @@
 }
 
 .label {
-  font-size: 14px;
+  font-size: var(--font-size-label);
   font-weight: 500;
   color: var(--color-text-body);
 }
@@ -23,7 +23,7 @@
   border: 1px solid var(--color-border-input);
   background: var(--color-bg-page);
   cursor: pointer;
-  font-size: 12px;
+  font-size: var(--font-size-option);
   font-weight: 500;
   color: var(--color-text-muted);
   position: relative;
