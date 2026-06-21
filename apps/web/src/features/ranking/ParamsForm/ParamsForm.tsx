@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Select } from "../../../components/Select/Select";
 import { Checkbox } from "../../../components/Checkbox/Checkbox";
 import { EnergyPicker, type EnergyLevel } from "../EnergyPicker/EnergyPicker";
 import { LocationPicker } from "../LocationPicker/LocationPicker";
+import { DurationPicker } from "../../tasks/DurationPicker/DurationPicker";
 import styles from "./ParamsForm.module.css";
 
 export type { EnergyLevel };
@@ -17,70 +18,61 @@ export interface RankParams {
 
 export interface ParamsFormProps {
   contexts: string[];
-  onSubmit: (params: RankParams) => void;
-  loading?: boolean;
+  onParamsChange: (params: RankParams) => void;
+  disabled?: boolean;
 }
 
-const AVAILABLE_TIME_OPTIONS = [
-  { label: "10 min", value: "10" },
-  { label: "15 min", value: "15" },
-  { label: "30 min", value: "30" },
-  { label: "60 min", value: "60" },
-];
-
-
-export function ParamsForm({ contexts, onSubmit, loading = false }: ParamsFormProps) {
+export function ParamsForm({ contexts, onParamsChange, disabled = false }: ParamsFormProps) {
   const [context, setContext] = useState<string | undefined>(undefined);
   const [location, setLocation] = useState<RankParams["location"]>(undefined);
   const [availableTime, setAvailableTime] = useState(30);
   const [energy, setEnergy] = useState<EnergyLevel>("medium");
   const [explain, setExplain] = useState(false);
 
+  const paramsRef = useRef<RankParams>({ context, location, availableTime, energy, explain });
+
+  useEffect(() => {
+    const params = { context, location, availableTime, energy, explain };
+    paramsRef.current = params;
+    onParamsChange(params);
+  }, [context, location, availableTime, energy, explain]);
+
   const contextOptions = contexts.map((c) => ({ label: c, value: c }));
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    onSubmit({ context, location, availableTime, energy, explain });
-  }
-
   return (
-    <form onSubmit={handleSubmit} className={styles.form}>
+    <div className={styles.form}>
       <Select
         label="Context"
         options={contextOptions}
         value={context}
         onChange={setContext}
         placeholder="All"
-        disabled={loading}
+        disabled={disabled}
       />
       <LocationPicker
         label="Location"
         value={location}
         onChange={setLocation}
-        disabled={loading}
+        disabled={disabled}
       />
-      <Select
+      <DurationPicker
         label="Available Time"
-        options={AVAILABLE_TIME_OPTIONS}
-        value={availableTime.toString()}
-        onChange={(val) => setAvailableTime(val !== undefined ? Number(val) : 30)}
-        disabled={loading}
+        value={availableTime}
+        onChange={setAvailableTime}
+        disabled={disabled}
       />
       <EnergyPicker
         label="Energy"
         value={energy}
         onChange={setEnergy}
-        disabled={loading}
+        disabled={disabled}
       />
       <Checkbox
         label="Show score breakdown"
         checked={explain}
         onChange={setExplain}
-        disabled={loading}
+        disabled={disabled}
       />
-      <button type="submit" disabled={loading} className={styles.button}>
-        {loading ? "Ranking…" : "Rank"}
-      </button>
-    </form>
+    </div>
   );
 }

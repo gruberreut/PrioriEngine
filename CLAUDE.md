@@ -125,6 +125,15 @@ Until then, keep the markdown doc in sync — update it in the same commit as an
 
 ## Storybook
 
+Every component must have a corresponding Storybook story file. This applies to all components — especially basic, atomic ones in `src/components/`. A component is not considered complete without stories.
+
+### Story hierarchy
+
+Story titles must follow this convention to keep the Storybook sidebar organized:
+
+- **`Atomic/<ComponentName>`** — shared primitives in `src/components/` (e.g. Select, Checkbox, Carousel)
+- **`Features/<Feature>/<ComponentName>`** — domain-specific components in `src/features/` (e.g. Features/Ranking/TaskCard, Features/Tasks/DurationPicker)
+
 Before a story is considered complete, every callback prop on the component (`onClick`, `onSelect`, `onAction`, `onChange`, etc.) must be wired to the Storybook actions panel via `argTypes` in the story's `meta`:
 
 ```ts

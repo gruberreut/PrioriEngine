@@ -5,14 +5,14 @@ const contexts = ["creativity", "learning", "admin", "physical"];
 
 const defaultArgs = {
   contexts,
-  loading: false,
+  disabled: false,
 };
 
 const meta: Meta<typeof ParamsForm> = {
   title: "Features/Ranking/ParamsForm",
   component: ParamsForm,
   argTypes: {
-    onSubmit: { action: "onSubmit" },
+    onParamsChange: { action: "onParamsChange" },
   },
 };
 
@@ -22,8 +22,8 @@ export const Default: StoryObj<typeof ParamsForm> = {
   args: defaultArgs,
 };
 
-export const Loading: StoryObj<typeof ParamsForm> = {
-  args: { ...defaultArgs, loading: true },
+export const Disabled: StoryObj<typeof ParamsForm> = {
+  args: { ...defaultArgs, disabled: true },
 };
 
 export const NoContexts: StoryObj<typeof ParamsForm> = {

@@ -1,50 +1,122 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Carousel, type SwipeDirection } from "../../../components/Carousel/Carousel";
 import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
-import { ResultsPanel, type RankResultMode } from "../ResultsPanel/ResultsPanel";
+import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
+import { rank, getContexts } from "../rankingService";
+import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 import styles from "./RankingPage.module.css";
 
-const MOCK_RESULT: RankResultMode = {
-  mode: "recommendations",
-  tasks: [
-    {
-      task: { id: "t1", title: "Repot the tomato seedlings", duration: 30, energyRequired: "medium", location: "home", contexts: ["physical"] },
-      breakdown: { priorityScore: 0.8, urgencyScore: 0.6, energyScore: 0.5, durationScore: 0.4, flowBonus: 0.2, suggestionPenalty: 0, totalScore: 2.5, reasons: ["High priority"] },
-    },
-    {
-      task: { id: "t2", title: "Pay utility bill", duration: 15, energyRequired: "low", location: "home", contexts: ["admin"] },
-      breakdown: { priorityScore: 0.6, urgencyScore: 0.4, energyScore: 0.7, durationScore: 0.6, flowBonus: 0, suggestionPenalty: 0, totalScore: 2.3, reasons: [] },
-    },
-    {
-      task: { id: "t3", title: "Read a page in French", duration: 5, energyRequired: "low", location: "anywhere", contexts: ["learning"] },
-      breakdown: { priorityScore: 0.5, urgencyScore: 0.5, energyScore: 0.3, durationScore: 0.8, flowBonus: 0, suggestionPenalty: -0.1, totalScore: 2.0, reasons: ["Recently suggested"] },
-    },
-  ],
-};
+interface SlideData {
+  label: string;
+  context: string | undefined;
+  state: SlideState;
+  result?: RankResultMode;
+}
 
-type View = "form" | "results";
+const SWIPE_DIRECTION: SwipeDirection = "ltr";
 
 export function RankingPage() {
-  const [view, setView] = useState<View>("form");
-  const [result, setResult] = useState<RankResultMode | undefined>(undefined);
-  const [explain, setExplain] = useState(false);
+  const [contexts, setContexts] = useState<string[]>([]);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [slides, setSlides] = useState<SlideData[]>([]);
+  const paramsRef = useRef<RankParams>({
+    context: undefined,
+    location: undefined,
+    availableTime: 30,
+    energy: "medium",
+    explain: false,
+  });
+  const paramsVersionRef = useRef(0);
+  const slidesRef = useRef<SlideData[]>([]);
 
-  function handleSubmit(params: RankParams) {
-    setExplain(params.explain);
-    setResult({ ...MOCK_RESULT, explain: params.explain } as RankResultMode);
-    setView("results");
+  useEffect(() => {
+    getContexts().then(setContexts).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const allSlide: SlideData = { label: "All", context: undefined, state: "idle" };
+    const contextSlides: SlideData[] = contexts.map((c) => ({
+      label: c,
+      context: c,
+      state: "idle",
+    }));
+    const next = [allSlide, ...contextSlides];
+    setSlides(next);
+    slidesRef.current = next;
+  }, [contexts]);
+
+  function handleParamsChange(params: RankParams) {
+    paramsRef.current = params;
+    paramsVersionRef.current++;
+    setSlides((prev) => {
+      const next = prev.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
+      slidesRef.current = next;
+      return next;
+    });
   }
 
-  function handleBack() {
-    setView("form");
+  async function loadSlide(slideIndex: number) {
+    const version = paramsVersionRef.current;
+
+    setSlides((prev) => {
+      const copy = [...prev];
+      if (copy[slideIndex]) copy[slideIndex] = { ...copy[slideIndex], state: "loading" };
+      slidesRef.current = copy;
+      return copy;
+    });
+
+    try {
+      const params = paramsRef.current;
+      const slideContext = slidesRef.current[slideIndex]?.context;
+      const result = await rank({ ...params, context: slideContext });
+
+      if (paramsVersionRef.current !== version) return;
+
+      setSlides((prev) => {
+        const copy = [...prev];
+        if (copy[slideIndex]) copy[slideIndex] = { ...copy[slideIndex], state: "loaded", result };
+        slidesRef.current = copy;
+        return copy;
+      });
+    } catch {
+      if (paramsVersionRef.current !== version) return;
+
+      setSlides((prev) => {
+        const copy = [...prev];
+        if (copy[slideIndex]) copy[slideIndex] = { ...copy[slideIndex], state: "error" };
+        slidesRef.current = copy;
+        return copy;
+      });
+    }
+  }
+
+  function handleSlideChange(index: number) {
+    setActiveIndex(index);
+    const slideIndex = index - 1;
+    if (slideIndex >= 0 && slides[slideIndex]?.state === "idle") {
+      loadSlide(slideIndex);
+    }
   }
 
   return (
     <div className={styles.page}>
-      {view === "form" ? (
-        <ParamsForm contexts={["creativity", "learning", "admin", "physical"]} onSubmit={handleSubmit} />
-      ) : (
-        <ResultsPanel result={result} onBack={handleBack} />
-      )}
+      <Carousel
+        activeIndex={activeIndex}
+        onSlideChange={handleSlideChange}
+        direction={SWIPE_DIRECTION}
+      >
+        <div className={styles.paramsSlide}>
+          <ParamsForm contexts={contexts} onParamsChange={handleParamsChange} />
+        </div>
+        {slides.map((slide) => (
+          <ResultsSlide
+            key={slide.label}
+            label={slide.label}
+            state={slide.state}
+            result={slide.result}
+          />
+        ))}
+      </Carousel>
     </div>
   );
 }

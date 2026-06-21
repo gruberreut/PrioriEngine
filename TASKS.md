@@ -416,3 +416,4 @@ Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring t
 Issues that came up during implementation but were deferred to keep scope focused.
 
 - **Split sibling title** — `POST /api/tasks/:id/split` creates the blank sibling with `title: ""`. Decide whether the API should accept an optional `siblingTitle` in the request body, or whether the client is always expected to prompt for it after navigation.
+- **Carousel swipe direction** — currently parameterized (swipe-right reveals results). Finalize after UX testing whether this should be fixed or follow locale direction.
