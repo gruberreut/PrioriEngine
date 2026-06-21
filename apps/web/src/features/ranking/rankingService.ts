@@ -33,13 +33,13 @@ export async function getContexts(): Promise<string[]> {
   return data.map((c) => c.name);
 }
 
-export async function rank(params: RankParams): Promise<RankResultMode> {
+export async function rank(params: RankParams, context: string | undefined): Promise<RankResultMode> {
   const body: Record<string, unknown> = {
     availableTime: params.availableTime,
     energyLevel: params.energy,
     explain: params.explain,
   };
-  if (params.context) body.context = params.context;
+  if (context) body.context = context;
   if (params.location) body.location = params.location;
 
   const res = await fetch("/api/rank", {
@@ -65,6 +65,6 @@ export async function rank(params: RankParams): Promise<RankResultMode> {
       breakdown: rt.breakdown,
     })),
     explain: params.explain,
-    context: params.context,
+    context,
   };
 }

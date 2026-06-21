@@ -20,7 +20,6 @@ export function RankingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [slides, setSlides] = useState<SlideData[]>([]);
   const paramsRef = useRef<RankParams>({
-    context: undefined,
     location: undefined,
     availableTime: 30,
     energy: "medium",
@@ -68,7 +67,7 @@ export function RankingPage() {
     try {
       const params = paramsRef.current;
       const slideContext = slidesRef.current[slideIndex]?.context;
-      const result = await rank({ ...params, context: slideContext });
+      const result = await rank(params, slideContext);
 
       if (paramsVersionRef.current !== version) return;
 
@@ -104,9 +103,11 @@ export function RankingPage() {
         activeIndex={activeIndex}
         onSlideChange={handleSlideChange}
         direction={SWIPE_DIRECTION}
+        showDots
+        swipeHint
       >
         <div className={styles.paramsSlide}>
-          <ParamsForm contexts={contexts} onParamsChange={handleParamsChange} />
+          <ParamsForm onParamsChange={handleParamsChange} />
         </div>
         {slides.map((slide) => (
           <ResultsSlide

@@ -1,10 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { ParamsForm } from "./ParamsForm";
 
-const contexts = ["creativity", "learning", "admin", "physical"];
-
 const defaultArgs = {
-  contexts,
   disabled: false,
 };
 
@@ -24,8 +21,4 @@ export const Default: StoryObj<typeof ParamsForm> = {
 
 export const Disabled: StoryObj<typeof ParamsForm> = {
   args: { ...defaultArgs, disabled: true },
-};
-
-export const NoContexts: StoryObj<typeof ParamsForm> = {
-  args: { ...defaultArgs, contexts: [] },
 };

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { useArgs } from "storybook/preview-api";
 import { Carousel } from "./Carousel";
@@ -11,7 +10,7 @@ const meta: Meta<typeof Carousel> = {
   },
   decorators: [
     (Story) => (
-      <div style={{ height: "400px", border: "1px solid #e5e7eb" }}>
+      <div style={{ height: "100vh" }}>
         <Story />
       </div>
     ),
@@ -51,6 +50,8 @@ const defaultArgs = {
   children: slides,
   activeIndex: 0,
   direction: "ltr" as const,
+  showDots: false,
+  swipeHint: false,
 };
 
 export const Default: StoryObj<typeof Carousel> = {
@@ -70,8 +71,8 @@ export const Default: StoryObj<typeof Carousel> = {
   },
 };
 
-export const RTL: StoryObj<typeof Carousel> = {
-  args: { ...defaultArgs, direction: "rtl" },
+export const WithDots: StoryObj<typeof Carousel> = {
+  args: { ...defaultArgs, showDots: true },
   render: (args) => {
     const [{ activeIndex }, updateArgs] = useArgs<{ activeIndex: number }>();
     return (
@@ -87,8 +88,42 @@ export const RTL: StoryObj<typeof Carousel> = {
   },
 };
 
-export const SecondSlideActive: StoryObj<typeof Carousel> = {
-  args: { ...defaultArgs, activeIndex: 1 },
+export const WithSwipeHint: StoryObj<typeof Carousel> = {
+  args: { ...defaultArgs, swipeHint: true },
+  render: (args) => {
+    const [{ activeIndex }, updateArgs] = useArgs<{ activeIndex: number }>();
+    return (
+      <Carousel
+        {...args}
+        activeIndex={activeIndex}
+        onSlideChange={(i) => {
+          updateArgs({ activeIndex: i });
+          args.onSlideChange?.(i);
+        }}
+      />
+    );
+  },
+};
+
+export const WithDotsAndHint: StoryObj<typeof Carousel> = {
+  args: { ...defaultArgs, showDots: true, swipeHint: true },
+  render: (args) => {
+    const [{ activeIndex }, updateArgs] = useArgs<{ activeIndex: number }>();
+    return (
+      <Carousel
+        {...args}
+        activeIndex={activeIndex}
+        onSlideChange={(i) => {
+          updateArgs({ activeIndex: i });
+          args.onSlideChange?.(i);
+        }}
+      />
+    );
+  },
+};
+
+export const RTL: StoryObj<typeof Carousel> = {
+  args: { ...defaultArgs, direction: "rtl", showDots: true, swipeHint: true },
   render: (args) => {
     const [{ activeIndex }, updateArgs] = useArgs<{ activeIndex: number }>();
     return (
