@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useId, useState, useEffect } from "react";
 import { Select } from "../../../components/Select/Select";
 import { EnergyPicker, type EnergyLevel } from "../../ranking/EnergyPicker/EnergyPicker";
 import { LocationPicker, type LocationRequirement } from "../../ranking/LocationPicker/LocationPicker";
@@ -23,6 +23,7 @@ export interface TaskCreationFormProps {
   onCancel: () => void;
   onCreateContext: (name: string) => Promise<ContextItem>;
   loading?: boolean;
+  defaultContextId?: string | null;
 }
 
 const NEW_CONTEXT_VALUE = "__new__";
@@ -33,6 +34,7 @@ export function TaskCreationForm({
   onCancel,
   onCreateContext,
   loading = false,
+  defaultContextId,
 }: TaskCreationFormProps) {
   const titleId = useId();
   const newContextId = useId();
@@ -40,7 +42,11 @@ export function TaskCreationForm({
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState(false);
   const [addedContexts, setAddedContexts] = useState<ContextItem[]>([]);
-  const [contextId, setContextId] = useState<string | undefined>(undefined);
+  const [contextId, setContextId] = useState<string | undefined>(defaultContextId ?? undefined);
+
+  useEffect(() => {
+    setContextId(defaultContextId ?? undefined);
+  }, [defaultContextId]);
   const [isCreatingContext, setIsCreatingContext] = useState(false);
   const [newContextName, setNewContextName] = useState("");
   const [contextLoading, setContextLoading] = useState(false);

@@ -100,6 +100,7 @@ export function TaskCreationPage() {
         onCancel={() => navigate("/tasks")}
         onCreateContext={handleCreateContext}
         loading={loading}
+        defaultContextId={selectedParent?.contextId}
       />
       {createdTasks.length > 0 && (
         <div className={styles.createdList}>
