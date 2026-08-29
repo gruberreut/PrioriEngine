@@ -1,9 +1,57 @@
+import { useEffect, useState } from "react";
+import type { Task } from "../../../types/task";
+import { getTasks } from "../../../services/taskService";
+import { TaskTreeItem } from "../TaskTreeItem/TaskTreeItem";
 import styles from "./TasksPage.module.css";
 
-export function TasksPage() {
+type State =
+  | { status: "loading" }
+  | { status: "error"; message: string }
+  | { status: "loaded"; tasks: Task[] };
+
+interface TasksPageProps {
+  initialState?: State;
+}
+
+export function TasksPage({ initialState }: TasksPageProps) {
+  const [state, setState] = useState<State>(initialState ?? { status: "loading" });
+
+  useEffect(() => {
+    if (initialState) return;
+    getTasks()
+      .then((tasks) => setState({ status: "loaded", tasks }))
+      .catch((err: unknown) => setState({ status: "error", message: err instanceof Error ? err.message : "Unknown error" }));
+  }, [initialState]);
+
+  if (state.status === "loading") {
+    return (
+      <div className={styles.page}>
+        <p className={styles.message}>Loading tasks…</p>
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className={styles.page}>
+        <p className={`${styles.message} ${styles.error}`}>Could not load tasks: {state.message}</p>
+      </div>
+    );
+  }
+
+  const rootTasks = state.tasks.filter((t) => !t.parentId);
+
   return (
     <div className={styles.page}>
-      <p className={styles.placeholder}>Task browser coming soon.</p>
+      {rootTasks.map((task) => (
+        <TaskTreeItem
+          key={task.id}
+          task={task}
+          ancestors={[]}
+          depth={0}
+          allTasks={state.tasks}
+        />
+      ))}
     </div>
   );
 }

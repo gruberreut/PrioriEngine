@@ -250,12 +250,12 @@ A read-only page at `/tasks` that shows all tasks as an expandable tree. The col
 - [x] Parent expanded: title row stays; children render as `TaskTreeItem` instances (no card for the parent itself)
 - [x] Write stories: LeafCollapsed, LeafExpanded, ParentCollapsed, ParentExpanded, DeepNesting
 
-### 6.6 `TasksPage`
+### 6.6 `TasksPage` ✓
 
-- [ ] Create `apps/web/src/features/tasks/TasksPage/`
-- [ ] On mount, calls `tasksService.getTasks()`; shows loading state while pending, error state on failure
-- [ ] Renders root-level `RawTask[]` as a list of `TaskTreeItem` components (depth 0)
-- [ ] Write stories: Loading, Error, Populated
+- [x] Create `apps/web/src/features/tasks/TasksPage/`
+- [x] On mount, calls `tasksService.getTasks()`; shows loading state while pending, error state on failure
+- [x] Renders root-level `RawTask[]` as a list of `TaskTreeItem` components (depth 0)
+- [x] Write stories: Loading, Error, Populated
 
 ---
 

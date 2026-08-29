@@ -5,7 +5,11 @@
   padding: var(--space-4);
 }
 
-.placeholder {
+.message {
   color: var(--color-text-muted);
   font-size: var(--font-size-label);
+}
+
+.error {
+  color: var(--color-error);
 }
