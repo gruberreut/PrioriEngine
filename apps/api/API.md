@@ -138,6 +138,8 @@ Insert a new task for the dev user. The `id` is client-generated.
 
 **Response** — `201 Created`, the inserted task row (same shape as `GET /api/tasks` items).
 
+Returns `400` if `title` is missing, empty, or whitespace-only.
+
 **curl example**
 
 ```bash
@@ -210,7 +212,7 @@ Atomically splits a task into a parent/sibling structure:
 2. Re-parents the original task under the new parent.
 3. Creates a blank sibling task under the new parent (inherits same fields; title is `""`).
 
-Returns `404` if the task id does not exist.
+Returns `400` if `title` is missing, empty, or whitespace-only. Returns `404` if the task id does not exist.
 
 **Request body**
 

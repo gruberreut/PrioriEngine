@@ -22,6 +22,11 @@ export function createTasksHandler(db: Db, devUserId: string) {
       try {
         const taskId = splitMatch[1];
         const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+        const splitTitle = String(body.title ?? "").trim();
+        if (!splitTitle) {
+          json(res, 400, { error: "Title is required" });
+          return true;
+        }
         const result = await db.transaction(async (tx) => {
           const [original] = await tx.select().from(tasksTable).where(eq(tasksTable.id, taskId));
           if (!original) throw Object.assign(new Error("Task not found"), { code: "NOT_FOUND" });
@@ -34,7 +39,7 @@ export function createTasksHandler(db: Db, devUserId: string) {
             userId: devUserId,
             parentId: original.parentId,
             contextId: original.contextId,
-            title: String(body.title),
+            title: splitTitle,
             priority: original.priority,
             priorityUpdatedAt: new Date(),
             dueDate: original.dueDate,
@@ -88,12 +93,17 @@ export function createTasksHandler(db: Db, devUserId: string) {
     if (method === "POST" && pathname === "/api/tasks") {
       try {
         const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+        const title = String(body.title ?? "").trim();
+        if (!title) {
+          json(res, 400, { error: "Title is required" });
+          return true;
+        }
         const [created] = await db.insert(tasksTable).values({
           id: String(body.id),
           userId: devUserId,
           parentId: (body.parentId as string | undefined) ?? null,
           contextId: (body.contextId as string | undefined) ?? null,
-          title: String(body.title),
+          title,
           priority: Number(body.priority),
           dueDate: body.dueDate ? new Date(String(body.dueDate)) : null,
           duration: Number(body.duration),

@@ -82,6 +82,30 @@ describe("POST /api/tasks", () => {
     const res = await handle(handler, "POST", "/api/tasks", "not-json");
     expect(res.statusCode).toBe(400);
   });
+
+  it("returns 400 when title is missing", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", "/api/tasks", JSON.stringify({ id: randomUUID(), priority: 3, duration: 20, energyRequired: "low" }));
+    expect(res.statusCode).toBe(400);
+    expect((res.body() as { error: string }).error).toBe("Title is required");
+  });
+
+  it("returns 400 when title is empty", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", "/api/tasks", JSON.stringify({ id: randomUUID(), title: "", priority: 3, duration: 20, energyRequired: "low" }));
+    expect(res.statusCode).toBe(400);
+    expect((res.body() as { error: string }).error).toBe("Title is required");
+  });
+
+  it("returns 400 when title is whitespace only", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", "/api/tasks", JSON.stringify({ id: randomUUID(), title: "   ", priority: 3, duration: 20, energyRequired: "low" }));
+    expect(res.statusCode).toBe(400);
+    expect((res.body() as { error: string }).error).toBe("Title is required");
+  });
 });
 
 describe("POST /api/tasks/:id/split", () => {
@@ -123,5 +147,23 @@ describe("POST /api/tasks/:id/split", () => {
       JSON.stringify({ title: "Irrelevant" })
     );
     expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 400 when split title is empty", async () => {
+    const user = await seedUser();
+    const original = await seedTask(user.id, { title: "Original" });
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${original.id}/split`, JSON.stringify({ title: "" }));
+    expect(res.statusCode).toBe(400);
+    expect((res.body() as { error: string }).error).toBe("Title is required");
+  });
+
+  it("returns 400 when split title is whitespace only", async () => {
+    const user = await seedUser();
+    const original = await seedTask(user.id, { title: "Original" });
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${original.id}/split`, JSON.stringify({ title: "   " }));
+    expect(res.statusCode).toBe(400);
+    expect((res.body() as { error: string }).error).toBe("Title is required");
   });
 });

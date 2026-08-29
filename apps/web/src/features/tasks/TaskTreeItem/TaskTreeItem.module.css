@@ -3,16 +3,22 @@
   flex-direction: column;
 }
 
+.rowWrapper {
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  padding-right: var(--space-2);
+}
+
 .row {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding-top: var(--space-1);
-  padding-bottom: var(--space-1);
-  padding-right: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   cursor: pointer;
   user-select: none;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-page);
 }
 
 .row:hover {
@@ -21,7 +27,7 @@
 
 .row:focus-visible {
   outline: 2px solid var(--color-primary);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 .leaf {
@@ -41,7 +47,8 @@
 
 .title {
   font-size: var(--font-size-card-meta);
-  color: var(--color-text-body);
+  font-weight: 600;
+  color: var(--color-text-strong);
   flex: 1;
   min-width: 0;
   overflow: hidden;

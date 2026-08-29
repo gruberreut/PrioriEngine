@@ -50,16 +50,20 @@ export function TaskTreeItem({ task, ancestors, depth, allTasks, defaultExpanded
   return (
     <div className={styles.item}>
       <div
-        className={styles.row}
+        className={styles.rowWrapper}
         style={{ paddingLeft: `calc(${depth} * 24px + var(--space-2))` }}
-        onClick={() => setExpanded((v) => !v)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
       >
-        <span className={styles.indicator}>{expanded ? "▾" : "▸"}</span>
-        <span className={styles.title}>{task.title}</span>
-        <span className={styles.progress}>{completedMinutes} / {totalMinutes} min</span>
+        <div
+          className={styles.row}
+          onClick={() => setExpanded((v) => !v)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
+        >
+          <span className={styles.indicator}>{expanded ? "▾" : "▸"}</span>
+          <span className={styles.title}>{task.title}</span>
+          <span className={styles.progress}>{completedMinutes} / {totalMinutes} min</span>
+        </div>
       </div>
       {expanded && children.map((child) => (
         <TaskTreeItem
