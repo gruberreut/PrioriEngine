@@ -16,3 +16,40 @@
   color: var(--color-error);
   margin: 0 0 var(--space-3) 0;
 }
+
+.createdList {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.createdHeading {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 var(--space-2) 0;
+}
+
+.taskRow {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-page);
+}
+
+.taskTitle {
+  font-size: var(--font-size-option);
+  font-weight: 500;
+  color: var(--color-text-strong);
+}
+
+.taskMeta {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
