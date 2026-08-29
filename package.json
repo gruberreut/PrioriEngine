@@ -14,6 +14,7 @@
     "rank": "npm run rank -w @priori/engine",
     "test": "npm run test -w @priori/engine",
     "test:coverage": "npm run test:coverage -w @priori/engine",
+    "dev": "npm run dev:api & npm run dev:web & wait",
     "dev:api": "npm run dev -w @priori/api",
     "dev:backend": "npm run dev -w @priori/api",
     "dev:web": "npm run dev -w @priori/web"
