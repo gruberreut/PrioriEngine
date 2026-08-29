@@ -39,7 +39,7 @@ export function TaskCreationForm({
 
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState(false);
-  const [localContexts, setLocalContexts] = useState<ContextItem[]>(contexts);
+  const [addedContexts, setAddedContexts] = useState<ContextItem[]>([]);
   const [contextId, setContextId] = useState<string | undefined>(undefined);
   const [isCreatingContext, setIsCreatingContext] = useState(false);
   const [newContextName, setNewContextName] = useState("");
@@ -65,7 +65,7 @@ export function TaskCreationForm({
     setContextLoading(true);
     try {
       const created = await onCreateContext(name);
-      setLocalContexts((prev) => [...prev, created]);
+      setAddedContexts((prev) => [...prev, created]);
       setContextId(created.id);
       setIsCreatingContext(false);
       setNewContextName("");
@@ -96,8 +96,9 @@ export function TaskCreationForm({
     });
   }
 
+  const allContexts = [...contexts, ...addedContexts];
   const contextOptions = [
-    ...localContexts.map((c) => ({ label: c.name, value: c.id })),
+    ...allContexts.map((c) => ({ label: c.name, value: c.id })),
     { label: "New context…", value: NEW_CONTEXT_VALUE },
   ];
 
