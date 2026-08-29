@@ -14,4 +14,5 @@ export interface Task {
   contextId?: string | null;
   createdAt?: string;
   updatedAt?: string;
+  ancestors?: { id: string; title: string }[];
 }

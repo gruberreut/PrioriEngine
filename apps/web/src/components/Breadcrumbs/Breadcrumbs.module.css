@@ -1,0 +1,21 @@
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  width: 100%;
+  font-size: var(--font-size-card-meta);
+  color: var(--color-text-muted);
+}
+
+.separator {
+  margin: 0 var(--space-1);
+  opacity: 0.5;
+}
+
+.crumb {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}

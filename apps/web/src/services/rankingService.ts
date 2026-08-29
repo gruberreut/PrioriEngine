@@ -15,7 +15,7 @@ interface ApiRankResult {
 }
 
 function toTask(t: Record<string, unknown>): Task {
-  return {
+  const task: Task = {
     id: t.id as string,
     title: t.title as string,
     duration: t.duration as number,
@@ -28,6 +28,10 @@ function toTask(t: Record<string, unknown>): Task {
     dueDate: (t.dueDate as string) ?? null,
     lastSuggestedAt: (t.lastSuggestedAt as string) ?? null,
   };
+  if (Array.isArray(t.ancestors)) {
+    task.ancestors = t.ancestors as { id: string; title: string }[];
+  }
+  return task;
 }
 
 export async function rank(params: RankParams, context: string | undefined): Promise<RankResultMode> {

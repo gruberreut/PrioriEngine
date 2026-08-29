@@ -63,6 +63,17 @@ function ensureLocation(value: unknown): LocationRequirement {
   return "anywhere";
 }
 
+function buildAncestors(loadedTask: LoadedTask): { id: string; title: string }[] | undefined {
+  if (!loadedTask.parent) return undefined;
+  const chain: { id: string; title: string }[] = [];
+  let cursor: LoadedTask | undefined = loadedTask.parent;
+  while (cursor) {
+    chain.unshift({ id: cursor.task.id ?? "", title: cursor.task.title ?? "" });
+    cursor = cursor.parent;
+  }
+  return chain;
+}
+
 function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
   const id = inheritedValue(loadedTask, (task) => task.id) ?? "";
   const title = inheritedValue(loadedTask, (task) => task.title) ?? "";
@@ -88,6 +99,8 @@ function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
   const lastSuggestedAt =
     inheritedValue(loadedTask, (task) => task.lastSuggestedAt) ?? null;
 
+  const ancestors = buildAncestors(loadedTask);
+
   return {
     id,
     title,
@@ -105,6 +118,7 @@ function buildNormalizedTask(loadedTask: LoadedTask): NormalizedTask {
     createdAt,
     lastSuggestedAt,
     depth: loadedTask.depth,
+    ...(ancestors ? { ancestors } : {}),
   };
 }
 

@@ -1,9 +1,10 @@
 import type { ReactNode } from "react";
-import type { Task } from "../../../types/task";
-import { ScoreBreakdown, type ScoreBreakdownData } from "../ScoreBreakdown/ScoreBreakdown";
-import { LocationIcon } from "../LocationIcon/LocationIcon";
-import { Icon } from "../../../components/Icon/Icon";
-import { SpinnerArc } from "../../../assets/icons/SpinnerArc";
+import type { Task } from "../../types/task";
+import { ScoreBreakdown, type ScoreBreakdownData } from "../../features/ranking/ScoreBreakdown/ScoreBreakdown";
+import { LocationIcon } from "../../features/ranking/LocationIcon/LocationIcon";
+import { Icon } from "../../components/Icon/Icon";
+import { SpinnerArc } from "../../assets/icons/SpinnerArc";
+import { Breadcrumbs } from "../../components/Breadcrumbs/Breadcrumbs";
 import styles from "./TaskCard.module.css";
 
 export interface TaskAction {
@@ -37,6 +38,9 @@ export function TaskCard({ task, breakdown, explain = false, flavor = "outlined"
     >
       {inProgress && <Icon asset={SpinnerArc} label="In progress" size={36} />}
       <div className={styles.content}>
+        {task.ancestors && task.ancestors.length > 0 && (
+          <Breadcrumbs ancestors={task.ancestors} />
+        )}
         <div className={styles.title}>{task.title}</div>
         <div className={styles.meta}>
           <span>{task.duration} min</span>

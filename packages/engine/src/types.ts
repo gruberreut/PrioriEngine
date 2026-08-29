@@ -44,6 +44,7 @@ export interface NormalizedTask {
   createdAt: string | null;
   lastSuggestedAt: string | null;
   depth: number;
+  ancestors?: { id: string; title: string }[];
 }
 
 export interface RuntimeParams {

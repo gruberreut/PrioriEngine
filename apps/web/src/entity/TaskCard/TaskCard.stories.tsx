@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { Icon } from "../../../components/Icon/Icon";
-import { Play } from "../../../assets/icons/Play";
-import { Pencil } from "../../../assets/icons/Pencil";
-import { Moon } from "../../../assets/icons/Moon";
-import { CheckCircle } from "../../../assets/icons/CheckCircle";
-import { Trash } from "../../../assets/icons/Trash";
+import { Icon } from "../../components/Icon/Icon";
+import { Play } from "../../assets/icons/Play";
+import { Pencil } from "../../assets/icons/Pencil";
+import { Moon } from "../../assets/icons/Moon";
+import { CheckCircle } from "../../assets/icons/CheckCircle";
+import { Trash } from "../../assets/icons/Trash";
 import { TaskCard, type TaskAction } from "./TaskCard";
 
 const task = {
@@ -56,7 +56,7 @@ const defaultArgs = {
 };
 
 const meta: Meta<typeof TaskCard> = {
-  title: "Features/Ranking/TaskCard",
+  title: "Entity/TaskCard",
   component: TaskCard,
   argTypes: {
     onSelect: { action: "onSelect" },
@@ -120,6 +120,37 @@ export const LocationInPerson: StoryObj<typeof TaskCard> = {
 
 export const LocationAnywhere: StoryObj<typeof TaskCard> = {
   args: { ...defaultArgs, task: { ...task, location: "anywhere", title: "Read a page in French" } },
+};
+
+// Ancestors
+
+export const WithAncestors: StoryObj<typeof TaskCard> = {
+  args: {
+    ...defaultArgs,
+    task: {
+      ...task,
+      title: "Water the seedlings",
+      ancestors: [
+        { id: "home", title: "Home projects" },
+        { id: "garden", title: "Garden" },
+      ],
+    },
+  },
+};
+
+export const WithDeepAncestors: StoryObj<typeof TaskCard> = {
+  args: {
+    ...defaultArgs,
+    task: {
+      ...task,
+      title: "10-min jog",
+      ancestors: [
+        { id: "personal", title: "Personal" },
+        { id: "health", title: "Health & fitness" },
+        { id: "routine", title: "Morning routine" },
+      ],
+    },
+  },
 };
 
 // Edge cases

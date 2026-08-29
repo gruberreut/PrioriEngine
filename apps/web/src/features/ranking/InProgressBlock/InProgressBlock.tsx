@@ -3,7 +3,7 @@ import { CheckCircle } from "../../../assets/icons/CheckCircle";
 import { Moon } from "../../../assets/icons/Moon";
 import { Trash } from "../../../assets/icons/Trash";
 import type { Task } from "../../../types/task";
-import { TaskCard, type TaskAction } from "../TaskCard/TaskCard";
+import { TaskCard, type TaskAction } from "../../../entity/TaskCard/TaskCard";
 import styles from "./InProgressBlock.module.css";
 
 const ACTIONS: TaskAction[] = [

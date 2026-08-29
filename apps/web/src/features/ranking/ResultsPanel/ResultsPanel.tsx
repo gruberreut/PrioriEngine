@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Task } from "../../../types/task";
-import { TaskCard } from "../TaskCard/TaskCard";
+import { TaskCard } from "../../../entity/TaskCard/TaskCard";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
 import { EmptyState } from "../EmptyState/EmptyState";
 import type { ScoreBreakdownData } from "../ScoreBreakdown/ScoreBreakdown";

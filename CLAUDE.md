@@ -60,6 +60,19 @@ apps/              — api and web UI (planned, empty)
 documentation/     — design and product docs
 ```
 
+### Web frontend layout (`apps/web/src/`)
+
+```
+components/   — generic UI primitives with no domain knowledge (Select, Checkbox, Icon, Breadcrumbs)
+entity/       — domain-aware components that represent a core entity and are shared across features (TaskCard)
+features/     — feature-specific components that live inside one feature and are not shared
+types/        — shared TypeScript interfaces (Task, etc.)
+services/     — API clients (rankingService, taskService)
+assets/       — SVG icons and static files
+```
+
+**Entity components** (`src/entity/`) are components that represent a domain entity (e.g. a Task) and are naturally reused across multiple features. They are domain-aware but not feature-specific. When a component shows signs of becoming an entity component — it is being imported from a second feature, or a future task explicitly plans to use it outside its origin feature — flag this and propose moving it to `src/entity/` before the second use is implemented.
+
 ### Engine pipeline (`packages/engine/src/`)
 
 The engine processes a JSON task tree through four sequential stages:
@@ -131,8 +144,9 @@ Every component must have a corresponding Storybook story file. This applies to 
 
 Story titles must follow this convention to keep the Storybook sidebar organized:
 
-- **`Atomic/<ComponentName>`** — shared primitives in `src/components/` (e.g. Select, Checkbox, Carousel)
-- **`Features/<Feature>/<ComponentName>`** — domain-specific components in `src/features/` (e.g. Features/Ranking/TaskCard, Features/Tasks/DurationPicker)
+- **`Atomic/<ComponentName>`** — generic UI primitives in `src/components/` (e.g. Select, Checkbox, Carousel)
+- **`Entity/<ComponentName>`** — domain-aware shared components in `src/entity/` (e.g. Entity/TaskCard)
+- **`Features/<Feature>/<ComponentName>`** — feature-specific components in `src/features/` (e.g. Features/Ranking/ParamsForm, Features/Tasks/DurationPicker)
 
 Before a story is considered complete, every callback prop on the component (`onClick`, `onSelect`, `onAction`, `onChange`, etc.) must be wired to the Storybook actions panel via `argTypes` in the story's `meta`:
 
