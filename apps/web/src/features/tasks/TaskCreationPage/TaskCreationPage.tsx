@@ -14,18 +14,32 @@ const PRIORITY_LABELS: Record<number, string> = {
   10: "Ongoing",
 };
 
-function CreatedTaskRow({ task, contexts }: { task: Task; contexts: ContextItem[] }) {
+function CreatedTaskRow({
+  task,
+  contexts,
+  selected,
+  onClick,
+}: {
+  task: Task;
+  contexts: ContextItem[];
+  selected: boolean;
+  onClick: () => void;
+}) {
   const contextName = contexts.find((c) => c.id === task.contextId)?.name;
   const priorityLabel = PRIORITY_LABELS[task.priority] ?? `P${task.priority}`;
 
   return (
-    <div className={styles.taskRow}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${styles.taskRow} ${selected ? styles.taskRowSelected : ""}`}
+    >
       <span className={styles.taskTitle}>{task.title}</span>
       <span className={styles.taskMeta}>
         {priorityLabel} · {task.duration} min · {task.energyRequired}
         {contextName ? ` · ${contextName}` : ""}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -36,18 +50,24 @@ export function TaskCreationPage() {
   const [error, setError] = useState<string | null>(null);
   const [createdTasks, setCreatedTasks] = useState<Task[]>([]);
   const [formKey, setFormKey] = useState(0);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
 
   useEffect(() => {
     getContextItems().then(setContexts).catch(() => {});
   }, []);
+
+  function handleRowClick(taskId: string) {
+    setSelectedParentId((prev) => (prev === taskId ? null : taskId));
+  }
 
   async function handleSubmit(payload: TaskCreationPayload) {
     setLoading(true);
     setError(null);
     try {
       const id = crypto.randomUUID();
-      const task = await createTask({ id, ...payload });
+      const task = await createTask({ id, parentId: selectedParentId, ...payload });
       setCreatedTasks((prev) => [task, ...prev]);
+      setSelectedParentId(null);
       setFormKey((k) => k + 1);
     } catch {
       setError("Failed to save task. Please try again.");
@@ -62,9 +82,16 @@ export function TaskCreationPage() {
     return created;
   }
 
+  const selectedParent = createdTasks.find((t) => t.id === selectedParentId);
+
   return (
     <div className={styles.page}>
       <h1 className={styles.heading}>Add tasks</h1>
+      {selectedParent && (
+        <p className={styles.subtaskNotice}>
+          Adding as subtask of <strong>{selectedParent.title}</strong>
+        </p>
+      )}
       {error && <p className={styles.error}>{error}</p>}
       <TaskCreationForm
         key={formKey}
@@ -76,9 +103,17 @@ export function TaskCreationPage() {
       />
       {createdTasks.length > 0 && (
         <div className={styles.createdList}>
-          <h2 className={styles.createdHeading}>Added this session</h2>
+          <h2 className={styles.createdHeading}>
+            Added this session · tap to set as parent
+          </h2>
           {createdTasks.map((task) => (
-            <CreatedTaskRow key={task.id} task={task} contexts={contexts} />
+            <CreatedTaskRow
+              key={task.id}
+              task={task}
+              contexts={contexts}
+              selected={task.id === selectedParentId}
+              onClick={() => handleRowClick(task.id)}
+            />
           ))}
         </div>
       )}
