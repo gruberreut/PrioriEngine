@@ -158,25 +158,27 @@ Composes `TaskCard`, `InProgressBlock`, and `EmptyState`. Switches between state
 
 ---
 
-### 4.12 `Breadcrumbs` (`task-breadcrumbs`)
+### 4.12 `Breadcrumbs` (`task-breadcrumbs`) ✓
 
 Shows ancestor context for subtasks inside `TaskCard`. When a task is nested under a project or parent task, the title alone may not provide enough context — breadcrumbs display the ancestor chain above the title.
 
 **Engine:**
-- [ ] `types.ts` — add optional `ancestors?: { id: string; title: string }[]` to `NormalizedTask`
-- [ ] `normalizer.ts` — populate `ancestors` by walking the `LoadedTask.parent` chain (root-first order); omit when the task has no parent
+- [x] `types.ts` — add optional `ancestors?: { id: string; title: string }[]` to `NormalizedTask`
+- [x] `normalizer.ts` — populate `ancestors` by walking the `LoadedTask.parent` chain (root-first order); omit when the task has no parent
 
 **Frontend:**
-- [ ] Add optional `ancestors?: { id: string; title: string }[]` to `TaskData` in `TaskCard.tsx`
-- [ ] Create `Breadcrumbs` component in `src/components/Breadcrumbs/` — renders `Ancestor1 › Ancestor2` in muted style; displayed above the title, full width
-- [ ] Write `Breadcrumbs` stories: TwoLevels, SingleParent, ThreeLevels
-- [ ] Review in Storybook — awaiting approval
-- [ ] Integrate `Breadcrumbs` into `TaskCard` — render above title when `task.ancestors` is present and non-empty
-- [ ] Update `TaskCard` stories: add WithAncestors variant
-- [ ] Review in Storybook — awaiting approval
+- [x] Add optional `ancestors?: { id: string; title: string }[]` to `Task` in `src/types/task.ts` and `src/entity/TaskCard/TaskCard.tsx`
+- [x] Create `Breadcrumbs` component in `src/components/Breadcrumbs/` — renders `Ancestor1 › Ancestor2` in muted style; displayed above the title, full width
+- [x] Write `Breadcrumbs` stories: TwoLevels, SingleParent, ThreeLevels
+- [x] Review in Storybook — **approved**
+- [x] Integrate `Breadcrumbs` into `TaskCard` — render above title when `task.ancestors` is present and non-empty
+- [x] Update `TaskCard` stories: add WithAncestors, WithDeepAncestors variants
+- [x] Review in Storybook — **approved**
 
 **Integration:**
-- [ ] Update `rankingService.ts` — map `ancestors` from `NormalizedTask` to `TaskData` when present
+- [x] Update `rankingService.ts` — map `ancestors` from `NormalizedTask` to `TaskData` when present
+
+_Note: `TaskCard` was moved from `src/features/ranking/` to `src/entity/` as part of this task, establishing the entity component layer._
 
 ---
 
