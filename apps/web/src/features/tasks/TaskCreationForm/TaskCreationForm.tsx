@@ -113,7 +113,7 @@ export function TaskCreationForm({
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
       <div className={styles.field}>
-        <label htmlFor={titleId} className={styles.label}>
+        <label htmlFor={titleId} className="sr-only">
           Title
         </label>
         <input
