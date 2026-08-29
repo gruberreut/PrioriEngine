@@ -18,7 +18,7 @@ export interface TaskCardProps {
   task: Task;
   breakdown?: ScoreBreakdownData;
   explain?: boolean;
-  flavor?: "flat" | "outlined";
+  flavor?: "flat" | "outlined" | "dense";
   selected?: boolean;
   actions?: TaskAction[];
   showActionLabels?: boolean;
@@ -28,9 +28,10 @@ export interface TaskCardProps {
 
 export function TaskCard({ task, breakdown, explain = false, flavor = "outlined", selected = false, actions, showActionLabels = false, onSelect, onAction }: TaskCardProps) {
   const inProgress = task.status === "in_progress";
+  const isDense = flavor === "dense";
   return (
     <div
-      className={`${styles.container} ${flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress ? styles.withSpinner : ""}`}
+      className={`${styles.container} ${isDense ? styles.dense : flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress ? styles.withSpinner : ""}`}
       onClick={onSelect}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -41,20 +42,20 @@ export function TaskCard({ task, breakdown, explain = false, flavor = "outlined"
         {task.ancestors && task.ancestors.length > 0 && (
           <Breadcrumbs ancestors={task.ancestors} />
         )}
-        <div className={styles.title}>{task.title}</div>
-        <div className={styles.meta}>
+        <div className={`${styles.title} ${isDense ? styles.denseTitle : ""}`}>{task.title}</div>
+        <div className={`${styles.meta} ${isDense ? styles.denseMeta : ""}`}>
           <span>{task.duration} min</span>
           <span className={styles.context}>{task.energyRequired} energy</span>
           {task.contexts.length > 0 && <span>{task.contexts.join(", ")}</span>}
           {task.location && (
             <span className={styles.locationMeta}>
-              <LocationIcon location={task.location} size={18} />
+              <LocationIcon location={task.location} size={isDense ? 14 : 18} />
             </span>
           )}
         </div>
-        {explain && breakdown && <ScoreBreakdown breakdown={breakdown} />}
+        {!isDense && explain && breakdown && <ScoreBreakdown breakdown={breakdown} />}
       </div>
-      {actions && actions.length > 0 && (
+      {!isDense && actions && actions.length > 0 && (
         <div className={styles.actions}>
           {actions.map((action) => (
             <button

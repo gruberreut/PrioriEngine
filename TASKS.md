@@ -231,24 +231,24 @@ A read-only page at `/tasks` that shows all tasks as an expandable tree. The col
 - [x] ~~Copy `packages/engine/test/data/tasks.example.json` to `apps/web/public/tasks.json`~~ (skipped — tasks are DB-backed)
 - [x] Create `apps/web/src/services/taskService.ts` — exports `getTasks(): Promise<Task[]>`; calls `GET /api/tasks`
 
-### 6.3 `resolveTask` utility
+### 6.3 `resolveTask` utility ✓
 
-- [ ] Create `apps/web/src/features/tasks/resolveTask.ts` — exports `resolveTask(task: RawTask, ancestors: RawTask[]): ResolvedTask`
-- [ ] `ResolvedTask` carries: `id`, `title`, `duration`, `energyRequired`, `location`, `contexts`, `status` — all resolved by walking the ancestor chain with the same `inheritedValue` logic as the engine normalizer; no filtering
+- [x] Create `apps/web/src/features/tasks/resolveTask.ts` — exports `resolveTask(task: RawTask, ancestors: RawTask[]): ResolvedTask`
+- [x] `ResolvedTask` carries: `id`, `title`, `duration`, `energyRequired`, `location`, `contexts`, `status` — all resolved by walking the ancestor chain with the same `inheritedValue` logic as the engine normalizer; no filtering
 
-### 6.4 `TaskCard` dense flavor
+### 6.4 `TaskCard` dense flavor ✓
 
-- [ ] Add `"dense"` to the `flavor` union in `TaskCard`; dense reduces padding and font sizes, hides score breakdown and action bar regardless of props
-- [ ] Update `TaskCard` stories: add Dense story
+- [x] Add `"dense"` to the `flavor` union in `TaskCard`; dense reduces padding and font sizes, hides score breakdown and action bar regardless of props
+- [x] Update `TaskCard` stories: add Dense story
 
 ### 6.5 `TaskTreeItem` component
 
-- [ ] Create `apps/web/src/features/tasks/TaskTreeItem/`
-- [ ] Props: `task: RawTask`, `ancestors: RawTask[]`, `depth: number`
-- [ ] Collapsed state: one line — indent proportional to depth, chevron (parent) or bullet (leaf), title
-- [ ] Leaf expanded: title row stays; dense `TaskCard` renders below using `resolveTask(task, ancestors)`
-- [ ] Parent expanded: title row stays; children render as `TaskTreeItem` instances (no card for the parent itself)
-- [ ] Write stories: LeafCollapsed, LeafExpanded, ParentCollapsed, ParentExpanded, DeepNesting
+- [x] Create `apps/web/src/features/tasks/TaskTreeItem/`
+- [x] Props: `task: Task`, `ancestors: Task[]`, `depth: number`, `allTasks: Task[]` (needed to find children for recursive rendering)
+- [x] Collapsed state: one line — indent proportional to depth, chevron (parent) or bullet (leaf), title
+- [x] Leaf expanded: title row stays; dense `TaskCard` renders below using `resolveTask(task, ancestors)`
+- [x] Parent expanded: title row stays; children render as `TaskTreeItem` instances (no card for the parent itself)
+- [x] Write stories: LeafCollapsed, LeafExpanded, ParentCollapsed, ParentExpanded, DeepNesting
 
 ### 6.6 `TasksPage`
 
