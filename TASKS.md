@@ -379,29 +379,29 @@ One component at a time; Storybook review required before the next begins.
 
 ---
 
-### 9.3 `TaskCreationForm`
+### 9.3 `TaskCreationForm` ✓
 
 **Depends on:** 9.1, 9.2, Section 8 (`POST /api/tasks`, `GET /api/contexts?source=db`, `POST /api/contexts`), Section 6.1 (routing — form lives at `/tasks/new`).
 
 Composes all pickers into a single creation form. Submits via `POST /api/tasks` with a client-generated UUID.
 
-- [ ] Fields: title (text input, required), context (`Select` populated from `GET /api/contexts?source=db`; includes an inline "New context…" option that calls `POST /api/contexts` and appends the result to the list), `PriorityPicker` (default Soon), `DurationPicker` (default 20 min), `EnergyPicker` (default medium), `LocationPicker` (default anywhere)
-- [ ] On success: navigates to `/tasks/:id`
-- [ ] Props: `onSubmit`, `onCancel`, `loading`, `contexts: string[]`
-- [ ] Write stories: Default, Loading, With existing contexts
-- [ ] Review in Storybook — **approved**
+- [x] Fields: title (text input, required), context (`Select` populated from `GET /api/contexts?source=db`; includes an inline "New context…" option that calls `POST /api/contexts` and appends the result to the list), `PriorityPicker` (default Soon), `DurationPicker` (default 20 min), `EnergyPicker` (default medium), `LocationPicker` (default anywhere)
+- [x] On success: navigates to `/tasks/:id`
+- [x] Props: `onSubmit`, `onCancel`, `loading`, `contexts: ContextItem[]` (uses ContextItem with id+name rather than plain strings)
+- [x] Write stories: Default, Loading, WithExistingContexts
+- [x] Review in Storybook — **approved**
 
 ---
 
-### 9.4 `FAB`
+### 9.4 `FAB` ✓
 
 **Depends on:** Section 6.1 (needs routes to exist so the render condition can reference `/tasks/new`).
 
 Fixed-position `+` button. Not rendered on the `/tasks/new` route (controlled at the router level, not via a prop).
 
-- [ ] Props: `onClick`
-- [ ] Write story: Default
-- [ ] Review in Storybook — **approved**
+- [x] Props: `onClick`
+- [x] Write story: Default
+- [x] Review in Storybook — **approved**
 
 ---
 
