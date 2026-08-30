@@ -2,6 +2,8 @@
 
 Implementation tasks for the engine ↔ web integration.
 
+**Priority order:** at this point in development, work through sections in order: known bugs (10), then the OpenAPI documentation migration (11), then new feature work (12 onward).
+
 ---
 
 ## 1. Engine API surface (`engine-api`)
@@ -411,25 +413,108 @@ Fixed-position `+` button. Not rendered on the `/tasks/new` route (controlled at
 
 Shown immediately after task creation and reachable at `/tasks/:id`.
 
-- [ ] Fetches task by id from `GET /api/tasks?source=db`; shows loading and error states
-- [ ] Renders `TaskCard` with `showActionLabels={true}`, `flavor="outlined"`, and four actions:
+- [x] Fetches task by id from `GET /api/tasks?source=db`; shows loading and error states
+- [x] Renders `TaskCard` with `showActionLabels={true}`, `flavor="outlined"`, and four actions:
   - **Add another** — navigates to `/tasks/new`
-  - **Add subtask** — navigates to `/tasks/new?parentId=:id`
-  - **Split** — calls `POST /api/tasks/:id/split`; navigates to the new parent's `/tasks/:parentId`
+  - **Add subtask** — navigates to `/tasks/new?parentId=:id&parentTitle=:title`; `TaskCreationPage` reads search params to pre-fill parent
+  - **Split** — calls `POST /api/tasks/:id/split` (prompts for parent title via `window.prompt`); navigates to the new parent's `/tasks/:parentId`
   - **Start** — calls `PUT /api/tasks/:id` with `{ status: "in_progress" }`; disabled when any task already has `status: "in_progress"` (checked from the loaded task list)
-- [ ] Write stories: Default, Start disabled (in-progress exists), Loading, Error
+- [x] Added `PUT /api/tasks/:id` API endpoint and documented in `API.md`
+- [x] Write stories: Default, Start disabled (in-progress exists), Loading, Error
 - [ ] Review in Storybook — **approved**
 
 ### 9.6 Routing expansion
 
 **Depends on:** Section 6.1, 9.3, 9.4, 9.5 all complete.
 
-- [ ] Expand `App.tsx` routes (from 6.1) to add: `/tasks/new` → `TaskCreationForm`, `/tasks/:id` → `TaskDetailPage`
-- [ ] Render `FAB` on all routes except `/tasks/new`
+- [x] Expand `App.tsx` routes (from 6.1) to add: `/tasks/new` → `TaskCreationPage`, `/tasks/:id` → `TaskDetailPage`
+- [x] Render `FAB` on all routes except `/tasks/new`
 
 ---
 
-## 10. Context theming (`context-theming`)
+## 10. Known Bugs (`known-bugs`)
+
+Fix before starting section 11 or later — see priority note at the top of this file.
+
+### 10.1 DB-backed tasks never reconstruct hierarchy before ranking
+
+`routes/rank.ts` builds the engine's input (`rawTasks`) as a **flat** array — each task carries only a `parentId` field — and passes it straight to `rankFromPayload`. The engine's `flattenTaskTree` only discovers parent/child relationships by recursing into a `RawTask.children` array, which is never populated for DB-sourced rows. Consequences, all silent:
+
+- `isLeafTask`-based filtering (normalizer is supposed to drop any task that has children) never fires for DB data — every task is treated as a top-level leaf, so a parent task marked `in_progress` can surface in `in_progress_block` even though it has subtasks.
+- `ancestors` (and therefore `TaskCard` breadcrumbs) are always empty for anything returned by `/api/rank`, since the `LoadedTask.parent` chain is never built from `parentId`.
+- `inheritedValue`'s parent-chain walk (used to resolve fields a child task omits) never has a parent to walk to, so field inheritance silently fails for DB-sourced child tasks.
+
+- [ ] Add `groupTasksByParent(rows)` to `apps/api/src/db/queries.ts` — builds a `Map<parentId | null, Row[]>` from a flat task-row list in one pass. This is a shared foundational primitive: sections 11 (`hasChildren`) and 12 (cascading completion) both reuse it, so build it here first rather than duplicating ad hoc grouping in three places
+- [ ] `routes/rank.ts` — reconstruct nested `children` arrays from the flat `parentId`-linked DB rows using `groupTasksByParent` (attach recursively starting from root tasks) before calling `rankFromPayload`, so the existing (already 100%-covered) `flattenTaskTree`/`normalizeTasks` logic receives real hierarchy
+- [ ] Add a regression test in `apps/api/test/routes/rank.test.ts` with a seeded parent/child pair: parent is excluded from ranking output, child is ranked with inherited fields and populated `ancestors`
+- [ ] Note in `ARCHITECTURE.md` that `/api/rank`'s task-loading path constructs the tree from `parentId` before calling the engine, so this doesn't regress silently again
+
+---
+
+## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
+
+**Depends on:** section 10 (bugs fixed first).
+
+`apps/api` is past the 5-endpoint threshold in `CLAUDE.md`'s own stated policy for upgrading from markdown to OpenAPI (7 endpoints today; section 12/13 add 2 more). This is docs-only for now — no request/response validation library is being introduced, and no schema-driven code generation. The spec is hand-authored and kept in sync manually, same discipline `API.md` used, just in a different format with an interactive external view.
+
+- [ ] Add `apps/api/openapi.yaml` covering every endpoint currently in `API.md` (rank, tasks GET/POST/PUT/split, contexts GET/POST): full request/response schemas and examples, equivalent in content to what `API.md` has today
+- [ ] Add `swagger-ui-dist` as an `apps/api` dependency (static assets only — no server framework needed)
+- [ ] Serve the raw spec (e.g. `GET /openapi.yaml`) and Swagger UI (e.g. `GET /docs`, pointed at that spec) from `server.ts`
+- [ ] Retire `apps/api/API.md` — replace its content with a short pointer to `/docs` (Swagger UI) and `openapi.yaml`, same superseded-doc pattern used for the snooze documentation cleanup, rather than deleting the file outright
+- [ ] Update `CLAUDE.md`'s "API Documentation" section: change the standard from markdown/`API.md` to `openapi.yaml` + Swagger UI, and update the "must be documented before implementation is considered complete" rule to point at the spec instead
+- [ ] Update `documentation/ARCHITECTURE.md`'s repo-layout listing (currently shows `API.md` as "endpoint documentation, kept in sync with every change") to reference `openapi.yaml` instead
+- [x] Update the still-open `API.md` references later in this file (sections 12 and 13's "update `API.md`" bullets) to say `openapi.yaml` — done in this pass so the plan stays internally consistent
+
+---
+
+## 12. Task Actions (`task-actions`)
+
+Wire up the `Complete` / `Snooze` / `Delete` actions on `InProgressBlock` (shown on the ranking page when a task is `in_progress`) — the buttons and `onAction`/`onInProgressAction` plumbing already exist in the component tree but nothing calls the API yet. `TaskDetailPage`'s action set (Add another / Add subtask / Split / Start) is unchanged for this pass.
+
+- [x] Consolidate conflicting snooze-semantics documentation across `ARCHITECTURE.md`, `PRIORI_ENGINE_MVP_TECHNICAL_DESIGN.md`, `POST_ENGINE_NEXT_STEPS.md`, `user_experience_process.md` — `ARCHITECTURE.md` is now the canonical description (`lastSuggestedAt = now` only); the others point back to it. (Note: `documentation/` is gitignored, so this edit isn't tracked by git.)
+
+### Backend
+
+- [ ] `queryTasks(db, userId)` — compute `hasChildren: boolean` per row using `groupTasksByParent` (section 10.1): `hasChildren = grouped.has(row.id)`; no extra query; flows through to every consumer (`GET /api/tasks`, `routes/rank.ts`)
+- [ ] `routes/rank.ts` — merge `hasChildren` onto `inProgressTask` in the `in_progress_block` response using the `taskRows` it already has in scope
+- [ ] `POST /api/tasks/:id/snooze` — new endpoint; sets `lastSuggestedAt = now()` only (per `ARCHITECTURE.md` § Task status); returns the updated row; 404 if not found
+- [ ] `DELETE /api/tasks/:id` — single-call endpoint; optional body `{ childAction?: "delete" | "reparent" }`; `"delete"` recursively removes the task and all descendants in a transaction; `"reparent"` sets each direct child's `parentId = null` then deletes the task; a task with children but no `childAction` supplied (race condition) defaults to `"reparent"`; 404 if the task doesn't exist
+- [ ] Update `apps/api/openapi.yaml` with both new endpoints and the `hasChildren` field (same commit)
+- [ ] Update `ARCHITECTURE.md` recording the delete/reparent decision and `hasChildren` becoming a standard field on `Task` (same commit)
+- [ ] Real-DB integration tests: snooze sets `lastSuggestedAt`; delete with no children; delete with children via `"delete"`; delete with children via `"reparent"`; delete on a nonexistent id → 404
+
+### Frontend
+
+- [ ] Add `hasChildren: boolean` to `Task` (`src/types/task.ts`)
+- [ ] `taskService.ts` — add `snoozeTask(id)` and `deleteTask(id, childAction?)`; reuse `updateTask` for complete
+- [ ] New `ConfirmDialog` component (`src/components/ConfirmDialog/`) — generic question + button-options popup. One component at a time; Storybook story required; review/approval needed before it's wired in
+- [ ] Wire `RankingPage` → `ResultsPanel.onInProgressAction`: `complete`/`snooze` call their service function then re-run ranking; `delete` checks `task.hasChildren` — if true, opens `ConfirmDialog` first — then calls `deleteTask` exactly once with the decision (if any) already included, then re-runs ranking
+
+---
+
+## 13. Cascading Task Completion (`cascading-completion`)
+
+**Depends on:** section 10.1 (`groupTasksByParent` primitive), section 12 (Complete action wired up).
+
+When completing a task makes it the last non-completed direct child of its parent, the parent should automatically be marked `completed` too — and the check repeats up the ancestor chain, so finishing the last subproject under a project completes the project as well. The user finds out via accomplishment feedback after the fact, not a confirmation prompt beforehand. This applies uniformly regardless of the parent's priority — a priority-10/recurring parent is not exempt, even though "ongoing" tasks are expected to keep gaining children over time.
+
+### Backend
+
+- [ ] `PUT /api/tasks/:id` — when a status update results in `status: "completed"`, after committing, walk up the `parentId` chain using `groupTasksByParent`: at each level, check whether all direct children of that parent now have `status: "completed"`; if so, mark that parent `completed` too and continue to its parent; stop at the first parent with an incomplete child, or when there's no parent
+- [ ] Run the cascade in the same DB transaction as the original status update, so a crash mid-cascade can't leave the tree half-completed
+- [ ] Response shape: `{ task: <updated>, autoCompletedAncestors: Task[] }` — empty array when nothing cascaded
+- [ ] Update `openapi.yaml` for the new response shape
+- [ ] Update `ARCHITECTURE.md` recording this as a decision: automatic cascade (no per-level confirmation), applies uniformly regardless of priority/recurrence
+- [ ] Real-DB integration tests: completing the last leaf under a parent completes the parent; completing the last remaining subproject under a project cascades two levels; completing a task with incomplete siblings does not cascade; completing the last child of a priority-10/recurring parent still auto-completes it
+
+### Frontend
+
+- [ ] `taskService.ts` — `updateTask`'s return type gains `autoCompletedAncestors`
+- [ ] Surface accomplishment feedback when `autoCompletedAncestors` is non-empty (e.g. "You also finished 'Home Renovation'!"), in addition to the existing per-task completion feedback — exact placement (toast vs. banner vs. dedicated screen) ties into `ARCHITECTURE.md`'s planned "brief celebration" step, which isn't built yet and needs its own design pass before this can be wired up
+
+---
+
+## 14. Context theming (`context-theming`)
 
 **Depends on:** Section 8 (contexts table must exist).
 
@@ -445,7 +530,7 @@ When a user creates a new context, assign it a stable color or theme seed so it 
 
 ---
 
-## 11. Offline sync (`offline-sync`) — placeholder
+## 15. Offline sync (`offline-sync`) — placeholder
 
 Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event.
 
@@ -460,3 +545,4 @@ Issues that came up during implementation but were deferred to keep scope focuse
 - **Ranking filtering and sort order** — when filtering by available time (e.g. 10 minutes), tasks that exceed the time budget are still returned. Investigate whether the engine's `durationScore` penalizes but doesn't exclude over-budget tasks, and whether a hard filter is needed. Additionally, returned tasks are not sorted in a user-intuitive order — sort results from low to high based on energy level and available time so the easiest/quickest tasks surface first.
 - **Hide context label in context-specific slides** — when viewing results in a context-specific carousel slide (e.g. "Learning"), the context badge in each `TaskCard` is redundant. Only display the context label when the card is shown on the "All" slide.
 - **Use EnergyIcon in TaskCard** — replace the "medium energy" text in `TaskCard` meta with the `EnergyIcon` component (from `EnergyPicker`) for a more compact, visual representation.
+- ~~**ResultsSlide idle/loading text**~~ — replaced "Swipe here to load results" and "Loading…" text with a shimmer skeleton of 3 placeholder task cards for both `idle` and `loading` states. ✓
