@@ -62,6 +62,44 @@ describe("POST /api/rank", () => {
     expect(body.inProgressTask.title).toBe("Active task");
   });
 
+  it("reconstructs hierarchy from parentId: excludes the in_progress parent and ranks the child with populated ancestors", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, {
+      title: "Parent project",
+      priority: 3,
+      duration: 60,
+      energyRequired: "medium",
+      status: "in_progress",
+    });
+    await seedTask(user.id, {
+      title: "Child task",
+      parentId: parent.id,
+      priority: 2,
+      duration: 20,
+      energyRequired: "medium",
+    });
+
+    const handler = createRankHandler(db, user.id);
+    const res = await rank(handler, { availableTime: 60, energyLevel: "medium", limit: 5 });
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as {
+      mode: string;
+      top: {
+        task: { title: string; ancestors?: { id: string; title: string }[] };
+      }[];
+    };
+    // The parent has a child, so normalizer.ts's leaf filter must drop it —
+    // without the fix, the flat parentId-only rows never form a tree, the
+    // parent looks like a leaf, and its in_progress status blocks ranking
+    // entirely instead of surfacing the child.
+    expect(body.mode).toBe("recommendations");
+    expect(body.top).toHaveLength(1);
+    const child = body.top[0]!.task;
+    expect(child.title).toBe("Child task");
+    expect(child.ancestors).toEqual([{ id: parent.id, title: "Parent project" }]);
+  });
+
   it("resolves context name from DB for engine context matching", async () => {
     const user = await seedUser();
     const ctx = await seedContext(user.id, "Physical");

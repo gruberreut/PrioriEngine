@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { queryTasks } from "../../src/db/queries.js";
+import { groupTasksByParent, queryTasks } from "../../src/db/queries.js";
 import { clearAll, db, seedTask, seedUser } from "../helpers/db.js";
 
 beforeEach(async () => {
@@ -22,5 +22,31 @@ describe("queryTasks", () => {
     const user = await seedUser();
     const rows = await queryTasks(db, user.id);
     expect(rows).toHaveLength(0);
+  });
+});
+
+describe("groupTasksByParent", () => {
+  it("groups rows by parentId, keyed by null for roots", () => {
+    const rows = [
+      { id: "a", parentId: null },
+      { id: "b", parentId: "a" },
+      { id: "c", parentId: "a" },
+      { id: "d", parentId: null },
+    ];
+
+    const grouped = groupTasksByParent(rows);
+
+    expect(grouped.get(null)).toEqual([
+      { id: "a", parentId: null },
+      { id: "d", parentId: null },
+    ]);
+    expect(grouped.get("a")).toEqual([
+      { id: "b", parentId: "a" },
+      { id: "c", parentId: "a" },
+    ]);
+  });
+
+  it("returns an empty map for an empty input", () => {
+    expect(groupTasksByParent([]).size).toBe(0);
   });
 });

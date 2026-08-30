@@ -6,7 +6,7 @@ import { contexts as contextsTable } from "../db/schema.js";
 import { rankFromPayload } from "@priori/engine";
 import type { RawTask, RuntimeParams } from "@priori/engine";
 import { json, readBody } from "../lib/http.js";
-import { queryTasks } from "../db/queries.js";
+import { groupTasksByParent, queryTasks } from "../db/queries.js";
 
 type Db = NodePgDatabase<typeof schema>;
 
@@ -28,21 +28,40 @@ export function createRankHandler(db: Db, userId: string) {
         const body = JSON.parse(bodyText) as Record<string, unknown>;
         const contextNameById = new Map(contextRows.map((c) => [c.id, c.name]));
 
-        const rawTasks: RawTask[] = taskRows.map((t) => ({
-          id: t.id,
-          title: t.title,
-          priority: t.priority,
-          priorityUpdatedAt: t.priorityUpdatedAt.toISOString(),
-          dueDate: t.dueDate?.toISOString() ?? null,
-          duration: t.duration,
-          energyRequired: t.energyRequired as RawTask["energyRequired"],
-          location: t.location,
-          contexts: t.contextId ? [contextNameById.get(t.contextId) ?? ""].filter(Boolean) : [],
-          parentId: t.parentId,
-          status: t.status as RawTask["status"],
-          lastSuggestedAt: t.lastSuggestedAt?.toISOString() ?? null,
-          createdAt: t.createdAt.toISOString(),
-        }));
+        const rawTaskById = new Map<string, RawTask>(
+          taskRows.map((t) => [
+            t.id,
+            {
+              id: t.id,
+              title: t.title,
+              priority: t.priority,
+              priorityUpdatedAt: t.priorityUpdatedAt.toISOString(),
+              dueDate: t.dueDate?.toISOString() ?? null,
+              duration: t.duration,
+              energyRequired: t.energyRequired as RawTask["energyRequired"],
+              location: t.location,
+              contexts: t.contextId
+                ? [contextNameById.get(t.contextId) ?? ""].filter(Boolean)
+                : [],
+              parentId: t.parentId,
+              status: t.status as RawTask["status"],
+              lastSuggestedAt: t.lastSuggestedAt?.toISOString() ?? null,
+              createdAt: t.createdAt.toISOString(),
+            },
+          ])
+        );
+
+        // DB rows only carry parentId; reconstruct the nested `children` tree
+        // flattenTaskTree expects before handing off to the engine.
+        const childrenByParentId = groupTasksByParent(taskRows);
+        const attachChildren = (parentId: string | null): RawTask[] =>
+          (childrenByParentId.get(parentId) ?? []).map((row) => {
+            const node = rawTaskById.get(row.id)!;
+            node.children = attachChildren(row.id);
+            return node;
+          });
+
+        const rawTasks: RawTask[] = attachChildren(null);
 
         const params: RuntimeParams = {
           currentTime: new Date(),

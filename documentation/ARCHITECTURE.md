@@ -267,6 +267,8 @@ Browser (React SPA)
 
 The engine is called **in-process as a library** — the API does not spawn a CLI per request. The `TaskSource` abstraction described in early design docs was not implemented; the rank handler directly queries the DB. If a file-based or remote task source is needed later, that abstraction can be introduced at that point.
 
+DB rows are flat, linked only by `parentId` — the engine's `flattenTaskTree` expects a nested `RawTask.children` tree instead. `routes/rank.ts` reconstructs that tree from the flat rows (via `groupTasksByParent` in `queries.ts`) before calling `rankFromPayload`, so the engine's leaf-filtering, ancestor-chain, and field-inheritance logic all see real hierarchy. This step must not be skipped when the rank handler's task-loading path changes.
+
 ---
 
 ## User Flow (planned product)
