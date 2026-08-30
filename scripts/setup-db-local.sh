@@ -12,4 +12,7 @@ brew services start postgresql@16
 # Create the dev database (no-op if it already exists)
 createdb priori_dev 2>/dev/null || echo "Database priori_dev already exists, skipping."
 
-echo "Done. Connect with: postgresql://localhost/priori_dev"
+# Create the test database used by apps/api's real-DB integration tests
+createdb priori_test 2>/dev/null || echo "Database priori_test already exists, skipping."
+
+echo "Done. Dev: postgresql://localhost/priori_dev — Test: postgresql://localhost/priori_test"
