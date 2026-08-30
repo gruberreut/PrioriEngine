@@ -6,6 +6,12 @@ export async function getTasks(): Promise<Task[]> {
   return res.json() as Promise<Task[]>;
 }
 
+export async function getTasksByStatus(status: Task["status"]): Promise<Task[]> {
+  const res = await fetch(`/api/tasks?status=${status}`);
+  if (!res.ok) throw new Error("Failed to fetch tasks");
+  return res.json() as Promise<Task[]>;
+}
+
 export async function updateTask(id: string, updates: { status: Task["status"] }): Promise<Task> {
   const res = await fetch(`/api/tasks/${id}`, {
     method: "PUT",

@@ -457,12 +457,12 @@ Fix before starting section 11 or later — see priority note at the top of this
 
 `apps/api` is past the 5-endpoint threshold in `CLAUDE.md`'s own stated policy for upgrading from markdown to OpenAPI (7 endpoints today; section 12/13 add 2 more). This is docs-only for now — no request/response validation library is being introduced, and no schema-driven code generation. The spec is hand-authored and kept in sync manually, same discipline `API.md` used, just in a different format with an interactive external view.
 
-- [ ] Add `apps/api/openapi.yaml` covering every endpoint currently in `API.md` (rank, tasks GET/POST/PUT/split, contexts GET/POST): full request/response schemas and examples, equivalent in content to what `API.md` has today
-- [ ] Add `swagger-ui-dist` as an `apps/api` dependency (static assets only — no server framework needed)
-- [ ] Serve the raw spec (e.g. `GET /openapi.yaml`) and Swagger UI (e.g. `GET /docs`, pointed at that spec) from `server.ts`
-- [ ] Retire `apps/api/API.md` — replace its content with a short pointer to `/docs` (Swagger UI) and `openapi.yaml`, same superseded-doc pattern used for the snooze documentation cleanup, rather than deleting the file outright
-- [ ] Update `CLAUDE.md`'s "API Documentation" section: change the standard from markdown/`API.md` to `openapi.yaml` + Swagger UI, and update the "must be documented before implementation is considered complete" rule to point at the spec instead
-- [ ] Update `documentation/ARCHITECTURE.md`'s repo-layout listing (currently shows `API.md` as "endpoint documentation, kept in sync with every change") to reference `openapi.yaml` instead
+- [x] Add `apps/api/openapi.yaml` covering every endpoint currently in `API.md` (rank, tasks GET/POST/PUT/split, contexts GET/POST): full request/response schemas and examples, equivalent in content to what `API.md` has today
+- [x] Add `swagger-ui-dist` as an `apps/api` dependency (static assets only — no server framework needed)
+- [x] Serve the raw spec (e.g. `GET /openapi.yaml`) and Swagger UI (e.g. `GET /docs`, pointed at that spec) from `server.ts`
+- [x] Retire `apps/api/API.md` — replace its content with a short pointer to `/docs` (Swagger UI) and `openapi.yaml`, same superseded-doc pattern used for the snooze documentation cleanup, rather than deleting the file outright
+- [x] Update `CLAUDE.md`'s "API Documentation" section: change the standard from markdown/`API.md` to `openapi.yaml` + Swagger UI, and update the "must be documented before implementation is considered complete" rule to point at the spec instead
+- [x] Update `documentation/ARCHITECTURE.md`'s repo-layout listing (currently shows `API.md` as "endpoint documentation, kept in sync with every change") to reference `openapi.yaml` instead
 - [x] Update the still-open `API.md` references later in this file (sections 12 and 13's "update `API.md`" bullets) to say `openapi.yaml` — done in this pass so the plan stays internally consistent
 
 ---
@@ -533,6 +533,82 @@ When a user creates a new context, assign it a stable color or theme seed so it 
 ## 15. Offline sync (`offline-sync`) — placeholder
 
 Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event.
+
+---
+
+## 16. OpenAPI documentation maintenance (`openapi-maintenance`) — deferred, low priority
+
+None of these are indicated by the project's current state — single dev user, no auth, `apps/api` reachable only at `localhost:3001`, one consumer (`apps/web`, local). Per `CLAUDE.md`'s "smallest footprint" guidance, don't do any of these preemptively; revisit each independently once its own trigger condition below is actually met.
+
+- [ ] **Spec/route sync check** — `openapi.yaml` is hand-authored and nothing enforces that it matches the real route handlers; drift is caught only by remembering to update it per `CLAUDE.md`'s rule. Add automated verification (e.g. a script diffing paths in `src/routes/*.ts` against the spec, or `openapi-spec-validator` for at least catching YAML/schema syntax errors) in CI or as a pre-commit check.
+  **Trigger:** endpoint count grows well past today's ~9, or spec drift has actually caused confusion or a bug at least once.
+- [ ] **Publish docs outside the running server** — e.g. GitHub Pages hosting a static Swagger UI build + the spec, or serving `/docs` from a deployed instance. Right now docs only exist while the local dev server is running.
+  **Trigger:** the API gains a consumer that isn't `apps/web` running locally — a second team, a deployed environment, a third-party integration. This mirrors the same "more than one consumer" condition `CLAUDE.md` already uses for the markdown → OpenAPI upgrade itself.
+- [ ] **Gate or remove `/docs` and `/openapi.yaml`** — currently unauthenticated, which is fine while everything is localhost-only.
+  **Trigger:** `apps/api` is deployed anywhere reachable outside localhost.
+- [ ] **Revisit CORS** — `Access-Control-Allow-Origin` is hardcoded to `http://localhost:5173` in `lib/http.ts`.
+  **Trigger:** same as above — any real deployment, or a second frontend origin.
+- [ ] **Bump `swagger-ui-dist`** — pinned to `^5.32.14` in `apps/api/package.json`. Not tied to a project milestone; routine dependency maintenance whenever convenient.
+
+---
+
+## 17. Bottom navigation bar (`bottom-nav`)
+
+Replace the current top `NavBar` (`src/components/NavBar/`) with a fixed bottom bar with icon links, matching the mobile-first patterns already used elsewhere in the app (FAB, swipeable carousel).
+
+- [ ] Redesign `NavBar` as a fixed-position bottom bar; icon-based links for Rank / Tasks (label optional depending on space)
+- [ ] Respect mobile safe-area insets (`env(safe-area-inset-bottom)`) so the bar sits above the home-indicator/gesture area on iOS/Android; add enough height/padding that icons aren't flush with the device edge
+- [ ] Check for overlap with the `FAB` (bottom-right) and the carousel's dots/swipe-hint (bottom-center) — adjust their positioning if the new bar collides with either
+- [ ] Update `NavBar` stories to reflect the new layout
+- [ ] Review in Storybook — **approved**
+
+---
+
+## 18. App design review (`design-review`)
+
+A broader visual/UX pass across the app. Not scoped yet — needs a walkthrough of current screens to produce a concrete list of issues before any implementation begins.
+
+- [ ] Walk through all screens (Rank, Tasks, Task Detail, Task Creation) and note visual/UX inconsistencies
+- [ ] Produce a prioritized list of design improvements
+- [ ] Scope out and implement approved improvements as follow-up tasks
+
+---
+
+## 19. Loading sequence / loading page (`app-loading-gate`)
+
+Currently the app renders straight into its routes on mount — there's no single point where cross-cutting startup concerns (auth, authorization, blocking-state checks) can run before the rest of the app appears. Build a generic bootstrap mechanism for that, independent of what the individual steps end up being (those are separate tasks — see 20).
+
+- [ ] Create a `LoadingPage` / bootstrap gate component that runs on app mount, wraps the router, and renders before any route
+- [ ] Design the gate as an ordered sequence of async steps; each step can pass through, redirect, or block until resolved
+- [ ] Add a placeholder authentication step (no-op today; ties into section 7's deferred "User provisioning" design work), just to give the sequence the right shape for when auth exists
+- [ ] Add a placeholder authorization step (no-op today), same reasoning
+- [ ] Show a loading state while steps are in flight
+- [ ] Update `ARCHITECTURE.md` documenting the gate as the app's bootstrap sequence
+
+---
+
+## 20. In-progress-task check as an early gate step (`in-progress-check`)
+
+**Depends on:** section 19 (the loading gate must exist to add a step to it), section 21 (needs the dedicated route to redirect to).
+
+Today, whether an in-progress task exists is discovered lazily and per-slide: `RankingPage` finds out only when a given carousel slide's `rank` call returns `in_progress_block`, so on refresh the user briefly sees the full ranking carousel, and then every slide (except the params slide) independently renders the same in-progress task. Replace this with a single check that runs once as a step in the loading gate (section 19), before any route renders.
+
+- [ ] Add an in-progress-task check step to the loading gate: fetch tasks; if one has `status: "in_progress"`, redirect to the dedicated in-progress route (section 21)
+- [ ] Keep the user on that route — block navigation to other routes — until they resolve it via Complete / Snooze / Delete
+- [ ] Update `ARCHITECTURE.md` — record this step as the canonical place in-progress blocking is enforced, superseding the current per-slide discovery in `ResultsPanel`/`RankingPage`
+
+---
+
+## 21. Dedicated in-progress task route (`in-progress-route`)
+
+**Depends on:** none — only needs the Start action (already done), not Complete/Snooze/Delete. The page can render with those buttons unwired, same as they are today in the ranking carousel's `InProgressBlock`; they'll light up once section 12 lands.
+
+Add a standalone route/page for the in-progress task, separate from the ranking carousel, so section 20 has somewhere real to redirect to.
+
+- [x] Add a new route (e.g. `/in-progress`) and page component
+- [x] Reuse the existing `InProgressBlock` component (Complete/Snooze/Delete remain unwired until section 12 lands)
+- [x] Register the route in `App.tsx`
+- [ ] Hide the top `NavBar` (Rank / Tasks) on `/in-progress` — the `FAB` should be the only button visible on this route
 
 ---
 

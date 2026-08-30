@@ -109,7 +109,13 @@ export function createTasksHandler(db: Db, devUserId: string) {
 
     if (method === "GET" && pathname === "/api/tasks") {
       try {
-        const rows = await queryTasks(db, devUserId);
+        const { searchParams } = new URL(req.url ?? "/", "http://localhost");
+        const status = searchParams.get("status") ?? undefined;
+        if (status && !["pending", "in_progress", "completed"].includes(status)) {
+          json(res, 400, { error: "Invalid status" });
+          return true;
+        }
+        const rows = await queryTasks(db, devUserId, { status });
         json(res, 200, rows);
       } catch {
         json(res, 500, { error: "Database error" });

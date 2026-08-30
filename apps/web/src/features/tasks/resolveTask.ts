@@ -24,6 +24,18 @@ function inheritedValue<K extends keyof Task>(
   return undefined;
 }
 
+export function getAncestors(task: Task, allTasks: Task[]): Task[] {
+  const ancestors: Task[] = [];
+  let current: Task | undefined = task;
+  while (current?.parentId) {
+    const parent = allTasks.find((t) => t.id === current!.parentId);
+    if (!parent) break;
+    ancestors.unshift(parent);
+    current = parent;
+  }
+  return ancestors;
+}
+
 export function resolveTask(task: Task, ancestors: Task[]): ResolvedTask {
   return {
     id: task.id,

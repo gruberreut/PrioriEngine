@@ -14,9 +14,10 @@ async function handle(
   handler: ReturnType<typeof createTasksHandler>,
   method: string,
   pathname: string,
-  body = ""
+  body = "",
+  url = pathname
 ) {
-  const req = mockReq(body);
+  const req = mockReq(body, url);
   const res = mockRes();
   await handler(req, res, pathname, method);
   return res;
@@ -47,6 +48,28 @@ describe("GET /api/tasks", () => {
 
     expect(res.statusCode).toBe(200);
     expect(res.body()).toHaveLength(0);
+  });
+
+  it("filters by status when a status query param is given", async () => {
+    const user = await seedUser();
+    await seedTask(user.id, { title: "Pending task", status: "pending" });
+    const active = await seedTask(user.id, { title: "Active task", status: "in_progress" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "GET", "/api/tasks", "", "/api/tasks?status=in_progress");
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { id: string }[];
+    expect(body).toHaveLength(1);
+    expect(body[0]!.id).toBe(active.id);
+  });
+
+  it("rejects an unrecognized status value", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "GET", "/api/tasks", "", "/api/tasks?status=bogus");
+
+    expect(res.statusCode).toBe(400);
   });
 });
 

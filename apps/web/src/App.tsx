@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-ro
 import { NavBar } from "./components/NavBar/NavBar";
 import { FAB } from "./components/FAB/FAB";
 import { RankingPage } from "./features/ranking/RankingPage/RankingPage";
+import { InProgressPage } from "./features/ranking/InProgressPage/InProgressPage";
 import { TasksPage } from "./features/tasks/TasksPage/TasksPage";
 import { TaskCreationPage } from "./features/tasks/TaskCreationPage/TaskCreationPage";
 import { TaskDetailPage } from "./features/tasks/TaskDetailPage/TaskDetailPage";
@@ -16,6 +17,7 @@ function AppShell() {
       <NavBar />
       <Routes>
         <Route path="/" element={<RankingPage />} />
+        <Route path="/in-progress" element={<InProgressPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/tasks/new" element={<TaskCreationPage />} />
         <Route path="/tasks/:id" element={<TaskDetailPage />} />

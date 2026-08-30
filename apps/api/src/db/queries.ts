@@ -1,12 +1,14 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import type { NodePgDatabase } from "drizzle-orm/node-postgres";
 import type * as schema from "./schema.js";
 import { tasks } from "./schema.js";
 
 type Db = NodePgDatabase<typeof schema>;
 
-export async function queryTasks(db: Db, userId: string) {
-  return db.select().from(tasks).where(eq(tasks.userId, userId));
+export async function queryTasks(db: Db, userId: string, options?: { status?: string }) {
+  const conditions = [eq(tasks.userId, userId)];
+  if (options?.status) conditions.push(eq(tasks.status, options.status));
+  return db.select().from(tasks).where(and(...conditions));
 }
 
 export function groupTasksByParent<T extends { id: string; parentId: string | null }>(

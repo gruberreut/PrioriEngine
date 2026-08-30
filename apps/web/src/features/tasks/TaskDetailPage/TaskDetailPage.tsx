@@ -5,7 +5,7 @@ import { TaskCard } from "../../../entity/TaskCard/TaskCard";
 import { Icon } from "../../../components/Icon/Icon";
 import { Play } from "../../../assets/icons/Play";
 import { getTasks, updateTask, splitTask } from "../../../services/taskService";
-import { resolveTask } from "../resolveTask";
+import { resolveTask, getAncestors } from "../resolveTask";
 import styles from "./TaskDetailPage.module.css";
 
 type State =
@@ -16,18 +16,6 @@ type State =
 interface TaskDetailPageProps {
   taskId?: string;
   initialState?: State;
-}
-
-function getAncestors(task: Task, allTasks: Task[]): Task[] {
-  const ancestors: Task[] = [];
-  let current: Task | undefined = task;
-  while (current?.parentId) {
-    const parent = allTasks.find((t) => t.id === current!.parentId);
-    if (!parent) break;
-    ancestors.unshift(parent);
-    current = parent;
-  }
-  return ancestors;
 }
 
 export function TaskDetailPage({ taskId: propTaskId, initialState }: TaskDetailPageProps) {

@@ -1,10 +1,11 @@
 import { Readable } from "node:stream";
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-export function mockReq(body = ""): IncomingMessage {
+export function mockReq(body = "", url = "/"): IncomingMessage {
   const stream = new Readable({ read() {} });
   stream.push(body);
   stream.push(null);
+  (stream as unknown as { url: string }).url = url;
   return stream as unknown as IncomingMessage;
 }
 

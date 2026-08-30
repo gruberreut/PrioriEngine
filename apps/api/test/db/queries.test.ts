@@ -23,6 +23,16 @@ describe("queryTasks", () => {
     const rows = await queryTasks(db, user.id);
     expect(rows).toHaveLength(0);
   });
+
+  it("filters by status when given", async () => {
+    const user = await seedUser();
+    await seedTask(user.id, { title: "Pending task", status: "pending" });
+    const active = await seedTask(user.id, { title: "Active task", status: "in_progress" });
+
+    const rows = await queryTasks(db, user.id, { status: "in_progress" });
+    expect(rows).toHaveLength(1);
+    expect(rows[0]!.id).toBe(active.id);
+  });
 });
 
 describe("groupTasksByParent", () => {
