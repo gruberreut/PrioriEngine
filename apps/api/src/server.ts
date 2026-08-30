@@ -6,6 +6,7 @@ import { setCorsHeaders, json } from "./lib/http.js";
 import { createTasksHandler } from "./routes/tasks.js";
 import { createContextsHandler } from "./routes/contexts.js";
 import { createRankHandler } from "./routes/rank.js";
+import { createDocsHandler } from "./routes/docs.js";
 
 const PORT = 3001;
 const DEV_USER_EMAIL = "dev@priori.local";
@@ -19,6 +20,7 @@ const handlers = [
   createTasksHandler(db, devUserId),
   createContextsHandler(db, devUserId),
   createRankHandler(db, devUserId),
+  createDocsHandler(),
 ];
 
 const server = createServer(async (req, res) => {

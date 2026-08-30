@@ -1,0 +1,554 @@
+openapi: 3.0.3
+info:
+  title: Priori API
+  version: "0.1.0"
+  description: >
+    All endpoints operate on behalf of a single seeded dev user
+    (`dev@priori.local`) — there is no auth yet. Every endpoint reads from and
+    writes to the PostgreSQL database (`DATABASE_URL`), including
+    `POST /api/rank`, which loads the dev user's tasks from the DB and
+    reconstructs the parent/child hierarchy from `parentId` before ranking.
+servers:
+  - url: http://localhost:3001
+
+tags:
+  - name: rank
+  - name: tasks
+  - name: contexts
+
+paths:
+  /api/rank:
+    post:
+      tags: [rank]
+      summary: Rank tasks against runtime parameters
+      description: >
+        Returns the top results, or an in-progress block if a task is
+        already active.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RankRequest'
+            example:
+              availableTime: 30
+              energyLevel: medium
+              context: admin
+              location: home
+              explain: true
+              limit: 3
+      responses:
+        '200':
+          description: Ranking result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RankRecommendationsResponse'
+                  - $ref: '#/components/schemas/RankInProgressBlockResponse'
+              examples:
+                recommendations:
+                  summary: Recommendations
+                  value:
+                    mode: recommendations
+                    top:
+                      - task:
+                          id: t1
+                          title: Pay utility bill
+                          duration: 15
+                          energyRequired: low
+                          location: home
+                          contexts: [admin]
+                          priority: 2
+                        breakdown:
+                          priorityScore: 9
+                          urgencyScore: 1.25
+                          energyScore: 2
+                          durationScore: 2
+                          flowBonus: 0
+                          suggestionPenalty: 0
+                          totalScore: 14.25
+                          reasons: [priority weighting, urgency aging, energy fit, duration fit]
+                    exclusions: []
+                inProgressBlock:
+                  summary: In-progress block
+                  value:
+                    mode: in_progress_block
+                    top: []
+                    inProgressTask:
+                      id: t2
+                      title: Write design doc
+                      duration: 60
+                      energyRequired: high
+                      location: anywhere
+                      contexts: [creativity]
+                    exclusions: []
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks:
+    get:
+      tags: [tasks]
+      summary: List tasks for the dev user
+      parameters:
+        - name: status
+          in: query
+          required: false
+          description: Filter to tasks with this status. Omit to return all tasks.
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+          example: in_progress
+      responses:
+        '200':
+          description: Flat array of task rows, optionally filtered by status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+        '400':
+          description: Unrecognized status value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags: [tasks]
+      summary: Create a task
+      description: The `id` is client-generated.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+            example:
+              id: 550e8400-e29b-41d4-a716-446655440000
+              parentId: null
+              contextId: 5c9d3b1a-1111-2222-3333-444455556666
+              title: Write release notes
+              priority: 3
+              dueDate: null
+              duration: 20
+              energyRequired: medium
+              location: anywhere
+      responses:
+        '201':
+          description: Created task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: Title is missing, empty, or whitespace-only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks/{id}:
+    put:
+      tags: [tasks]
+      summary: Update a task's status
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed]
+            example:
+              status: in_progress
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+        '400':
+          description: status is not one of pending, in_progress, completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks/{id}/split:
+    post:
+      tags: [tasks]
+      summary: Split a task into a parent/sibling structure
+      description: >
+        Atomically: (1) creates a new parent task from `{ title }`,
+        inheriting priority/duration/energyRequired/location/contextId from
+        the original task; (2) re-parents the original task under the new
+        parent; (3) creates a blank (`title: ""`) sibling task under the new
+        parent, inheriting the same fields.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+            example:
+              title: Prepare for product review
+      responses:
+        '200':
+          description: The new parent, the re-parented original, and the blank sibling
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  parent:
+                    $ref: '#/components/schemas/Task'
+                  original:
+                    $ref: '#/components/schemas/Task'
+                  sibling:
+                    $ref: '#/components/schemas/Task'
+        '400':
+          description: Title is missing, empty, or whitespace-only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/contexts:
+    get:
+      tags: [contexts]
+      summary: List all contexts for the dev user
+      responses:
+        '200':
+          description: Array of contexts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Context'
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    post:
+      tags: [contexts]
+      summary: Create a context
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+            example:
+              name: Deep Work
+      responses:
+        '201':
+          description: Created context
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
+        '409':
+          description: A context with this name already exists for this user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  parameters:
+    TaskId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+
+    EnergyLevel:
+      type: string
+      enum: [low, medium, high]
+
+    Location:
+      type: string
+      enum: [home, in-person, anywhere]
+
+    TaskStatus:
+      type: string
+      enum: [pending, in_progress, completed]
+
+    Task:
+      type: object
+      description: A task row as stored in the database.
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+        contextId:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+        priorityUpdatedAt:
+          type: string
+          format: date-time
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+        duration:
+          type: integer
+          description: Minutes
+        energyRequired:
+          $ref: '#/components/schemas/EnergyLevel'
+        location:
+          $ref: '#/components/schemas/Location'
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        lastSuggestedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      example:
+        id: 550e8400-e29b-41d4-a716-446655440000
+        userId: 5c9d3b1a-1111-2222-3333-444455556666
+        parentId: null
+        contextId: null
+        title: Pay utility bill
+        priority: 2
+        priorityUpdatedAt: '2024-01-01T00:00:00.000Z'
+        dueDate: null
+        duration: 15
+        energyRequired: low
+        location: home
+        status: pending
+        lastSuggestedAt: null
+        createdAt: '2024-01-01T00:00:00.000Z'
+        updatedAt: '2024-01-01T00:00:00.000Z'
+
+    CreateTaskRequest:
+      type: object
+      required: [id, title, priority, duration, energyRequired]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Client-generated.
+        parentId:
+          type: string
+          format: uuid
+          nullable: true
+          default: null
+        contextId:
+          type: string
+          format: uuid
+          nullable: true
+          default: null
+        title:
+          type: string
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 10
+        dueDate:
+          type: string
+          format: date-time
+          nullable: true
+          default: null
+        duration:
+          type: integer
+          description: Minutes
+        energyRequired:
+          $ref: '#/components/schemas/EnergyLevel'
+        location:
+          allOf:
+            - $ref: '#/components/schemas/Location'
+          default: anywhere
+
+    Context:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+        name:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      example:
+        id: 5c9d3b1a-1111-2222-3333-444455556666
+        userId: 5c9d3b1a-0000-0000-0000-000000000000
+        name: Learning
+        createdAt: '2024-01-01T00:00:00.000Z'
+
+    RankRequest:
+      type: object
+      required: [availableTime, energyLevel]
+      properties:
+        availableTime:
+          type: number
+          description: Minutes
+        energyLevel:
+          $ref: '#/components/schemas/EnergyLevel'
+        context:
+          type: string
+          description: Filters to a single context label. Omit to include all contexts.
+        location:
+          $ref: '#/components/schemas/Location'
+          description: Omit to include all locations.
+        explain:
+          type: boolean
+          default: false
+        limit:
+          type: integer
+          default: 3
+
+    RankedTaskSummary:
+      type: object
+      description: Subset of task fields surfaced in rank results.
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        duration:
+          type: integer
+        energyRequired:
+          $ref: '#/components/schemas/EnergyLevel'
+        location:
+          $ref: '#/components/schemas/Location'
+        contexts:
+          type: array
+          items:
+            type: string
+        priority:
+          type: integer
+
+    ScoreBreakdown:
+      type: object
+      properties:
+        priorityScore:
+          type: number
+        urgencyScore:
+          type: number
+        energyScore:
+          type: number
+        durationScore:
+          type: number
+        flowBonus:
+          type: number
+        suggestionPenalty:
+          type: number
+        totalScore:
+          type: number
+        reasons:
+          type: array
+          items:
+            type: string
+
+    RankRecommendationsResponse:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [recommendations]
+        top:
+          type: array
+          items:
+            type: object
+            properties:
+              task:
+                $ref: '#/components/schemas/RankedTaskSummary'
+              breakdown:
+                $ref: '#/components/schemas/ScoreBreakdown'
+        exclusions:
+          type: array
+          items:
+            type: object
+
+    RankInProgressBlockResponse:
+      type: object
+      properties:
+        mode:
+          type: string
+          enum: [in_progress_block]
+        top:
+          type: array
+          items: {}
+          maxItems: 0
+        inProgressTask:
+          $ref: '#/components/schemas/RankedTaskSummary'
+        exclusions:
+          type: array
+          items:
+            type: object

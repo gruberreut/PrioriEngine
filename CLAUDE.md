@@ -125,16 +125,11 @@ When adding a new route or query, apply the same judgment: if the logic has mean
 
 ## API Documentation
 
-Every HTTP endpoint must be documented in `apps/api/API.md` before implementation is considered complete. The entry must include: method + path, a description, the full request body schema (field name, type, required/optional, default), the response shape for each mode, and a working `curl` example.
+Every HTTP endpoint must be documented in `apps/api/openapi.yaml` before implementation is considered complete. The entry must include: method + path, a description, the full request/response schemas (field name, type, required/optional, default), and a request/response example.
 
-Current standard: **markdown** (`apps/api/API.md`).
+Current standard: **OpenAPI** (`apps/api/openapi.yaml`), served interactively as Swagger UI at `GET /docs` (raw spec at `GET /openapi.yaml`). `apps/api/API.md` is superseded — it now just points here.
 
-Recommend upgrading to **OpenAPI** when any of the following conditions are met:
-- The API has more than one consumer (e.g. mobile app, third-party integration, or external team)
-- There are more than 5 endpoints
-- Request or response validation is needed at the server boundary
-
-Until then, keep the markdown doc in sync — update it in the same commit as any endpoint change.
+Keep the spec in sync — update it in the same commit as any endpoint change.
 
 ## Storybook
 

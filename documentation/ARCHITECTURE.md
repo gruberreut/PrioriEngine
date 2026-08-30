@@ -50,9 +50,10 @@ priori/                         # npm workspace root
           tasks.ts              # GET/POST /api/tasks, POST /api/tasks/:id/split
           contexts.ts           # GET/POST /api/contexts
           rank.ts               # POST /api/rank
+          docs.ts               # GET /openapi.yaml, GET /docs (Swagger UI)
         server.ts               # startup: DB init, dev user lookup, handler wiring
       drizzle/                  # generated migration SQL files
-      API.md                    # endpoint documentation (kept in sync with every change)
+      openapi.yaml              # endpoint documentation (OpenAPI 3.0, kept in sync with every change)
     web/                        # React + Vite SPA
       src/
         components/             # generic UI primitives (Checkbox, Icon, Select, …)
@@ -150,12 +151,19 @@ Each route file exports a factory function `create<Entity>Handler(db, userId)` t
 |--------|------|-------------|
 | `GET` | `/api/tasks` | List all tasks for dev user |
 | `POST` | `/api/tasks` | Create a task |
+| `PUT` | `/api/tasks/:id` | Update a task's status |
 | `POST` | `/api/tasks/:id/split` | Atomically split a task into parent + original + blank sibling |
 | `GET` | `/api/contexts` | List all contexts for dev user |
 | `POST` | `/api/contexts` | Create a context |
 | `POST` | `/api/rank` | Rank tasks against runtime params |
+| `GET` | `/openapi.yaml` | Raw OpenAPI spec |
+| `GET` | `/docs` | Swagger UI, reading `/openapi.yaml` |
 
 No URL versioning (`/api/v1/...`) — paths are plain `/api/...`. If a breaking API change is needed, versioning can be added at that point.
+
+### Documentation
+
+Endpoints are documented in `apps/api/openapi.yaml` (OpenAPI 3.0), hand-authored and served interactively via Swagger UI at `/docs`. Migrated from a hand-maintained `apps/api/API.md` once the API crossed the 5-endpoint / docs-upgrade threshold in `CLAUDE.md`. This is docs-only — no request/response validation library or schema-driven code generation was introduced; the spec still has to be kept in sync by hand, same discipline `API.md` used, just machine-readable and with an interactive view. `API.md` is kept in place as a pointer rather than deleted.
 
 ### Authentication
 
