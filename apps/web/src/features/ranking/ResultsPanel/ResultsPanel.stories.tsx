@@ -44,6 +44,7 @@ const meta: Meta<typeof ResultsPanel> = {
     onBack: { action: "onBack" },
     onSelectTask: { action: "onSelectTask" },
     onInProgressAction: { action: "onInProgressAction" },
+    onStartTask: { action: "onStartTask" },
   },
 };
 

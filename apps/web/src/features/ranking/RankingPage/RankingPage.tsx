@@ -4,6 +4,7 @@ import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
 import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
 import { rank } from "../../../services/rankingService";
 import { getContexts } from "../../../services/contextService";
+import { updateTask } from "../../../services/taskService";
 import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 import styles from "./RankingPage.module.css";
 
@@ -101,6 +102,22 @@ export function RankingPage() {
     }
   }
 
+  async function handleStartTask(taskId: string) {
+    try {
+      await updateTask(taskId, { status: "in_progress" });
+    } catch {
+      return;
+    }
+    paramsVersionRef.current++;
+    const next = slidesRef.current.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
+    slidesRef.current = next;
+    setSlides(next);
+    const slideIndex = activeIndex - 1;
+    if (slideIndex >= 0) {
+      loadSlide(slideIndex);
+    }
+  }
+
   function handleSlideChange(index: number) {
     setActiveIndex(index);
     const slideIndex = index - 1;
@@ -128,6 +145,7 @@ export function RankingPage() {
             state={slide.state}
             result={slide.result}
             backgroundColor={SLIDE_PALETTE[i % SLIDE_PALETTE.length]}
+            onStartTask={handleStartTask}
           />
         ))}
       </Carousel>

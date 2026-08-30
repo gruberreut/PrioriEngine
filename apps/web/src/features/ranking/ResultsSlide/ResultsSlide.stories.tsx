@@ -50,6 +50,9 @@ const defaultArgs = {
 const meta: Meta<typeof ResultsSlide> = {
   title: "Features/Ranking/ResultsSlide",
   component: ResultsSlide,
+  argTypes: {
+    onStartTask: { action: "onStartTask" },
+  },
 };
 
 export default meta;

@@ -1,10 +1,16 @@
 import { useState } from "react";
 import type { Task } from "../../../types/task";
-import { TaskCard } from "../../../entity/TaskCard/TaskCard";
+import { TaskCard, type TaskAction } from "../../../entity/TaskCard/TaskCard";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
 import { EmptyState } from "../EmptyState/EmptyState";
 import type { ScoreBreakdownData } from "../ScoreBreakdown/ScoreBreakdown";
+import { Icon } from "../../../components/Icon/Icon";
+import { Play } from "../../../assets/icons/Play";
 import styles from "./ResultsPanel.module.css";
+
+const START_ACTIONS: TaskAction[] = [
+  { id: "start", icon: <Icon asset={Play} label="Start" size={20} /> },
+];
 
 export interface RankedTask {
   task: Task;
@@ -20,9 +26,10 @@ export interface ResultsPanelProps {
   onBack?: () => void;
   onSelectTask?: (taskId: string | null) => void;
   onInProgressAction?: (actionId: string) => void;
+  onStartTask?: (taskId: string) => void;
 }
 
-export function ResultsPanel({ result, onBack, onSelectTask, onInProgressAction }: ResultsPanelProps) {
+export function ResultsPanel({ result, onBack, onSelectTask, onInProgressAction, onStartTask }: ResultsPanelProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   if (!result) return null;
@@ -50,6 +57,8 @@ export function ResultsPanel({ result, onBack, onSelectTask, onInProgressAction 
           breakdown={breakdown}
           explain={result.explain}
           selected={selectedId === task.id}
+          actions={START_ACTIONS}
+          onAction={(actionId) => { if (actionId === "start") onStartTask?.(task.id); }}
           onSelect={() => handleSelect(task.id)}
         />
       ))}
