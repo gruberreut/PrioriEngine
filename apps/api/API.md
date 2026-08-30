@@ -204,6 +204,34 @@ curl -s -X POST http://localhost:3001/api/contexts \
 
 ---
 
+## PUT /api/tasks/:id
+
+Updates a task's status.
+
+Returns `400` if `status` is not one of `pending`, `in_progress`, or `completed`. Returns `404` if the task id does not exist.
+
+**Request body**
+
+```json
+{ "status": "in_progress" }
+```
+
+| Field    | Type   | Required | Values                              |
+|----------|--------|----------|-------------------------------------|
+| `status` | string | yes      | `pending`, `in_progress`, `completed` |
+
+**Response** — `200 OK`, the updated task row (same shape as `GET /api/tasks` items).
+
+**curl example**
+
+```bash
+curl -s -X PUT http://localhost:3001/api/tasks/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -d '{"status": "in_progress"}' | jq
+```
+
+---
+
 ## POST /api/tasks/:id/split
 
 Atomically splits a task into a parent/sibling structure:

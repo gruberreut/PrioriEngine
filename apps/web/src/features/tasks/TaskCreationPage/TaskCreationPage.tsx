@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { TaskCreationForm, type TaskCreationPayload } from "../TaskCreationForm/TaskCreationForm";
 import { getContextItems, type ContextItem } from "../../../services/contextService";
 import { createTask, createContext } from "../../../services/taskCreationService";
@@ -45,12 +45,15 @@ function CreatedTaskRow({
 
 export function TaskCreationPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlParentId = searchParams.get("parentId");
+  const urlParentTitle = searchParams.get("parentTitle");
   const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdTasks, setCreatedTasks] = useState<Task[]>([]);
   const [formKey, setFormKey] = useState(0);
-  const [selectedParentId, setSelectedParentId] = useState<string | null>(null);
+  const [selectedParentId, setSelectedParentId] = useState<string | null>(urlParentId);
 
   useEffect(() => {
     getContextItems().then(setContexts).catch(() => {});
@@ -83,13 +86,14 @@ export function TaskCreationPage() {
   }
 
   const selectedParent = createdTasks.find((t) => t.id === selectedParentId);
+  const parentTitle = selectedParent?.title ?? (selectedParentId === urlParentId ? urlParentTitle : null);
 
   return (
     <div className={styles.page}>
       <h1 className={styles.heading}>Add tasks</h1>
-      {selectedParent && (
+      {parentTitle && (
         <p className={styles.subtaskNotice}>
-          Adding as subtask of <strong>{selectedParent.title}</strong>
+          Adding as subtask of <strong>{parentTitle}</strong>
         </p>
       )}
       {error && <p className={styles.error}>{error}</p>}

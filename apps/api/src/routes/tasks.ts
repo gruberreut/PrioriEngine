@@ -80,6 +80,33 @@ export function createTasksHandler(db: Db, devUserId: string) {
       return true;
     }
 
+    const updateMatch = pathname.match(/^\/api\/tasks\/([^/]+)$/);
+
+    if (method === "PUT" && updateMatch) {
+      const taskId = updateMatch[1];
+      try {
+        const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
+        const status = String(body.status ?? "");
+        if (!["pending", "in_progress", "completed"].includes(status)) {
+          json(res, 400, { error: "Invalid status" });
+          return true;
+        }
+        const [updated] = await db
+          .update(tasksTable)
+          .set({ status, updatedAt: new Date() })
+          .where(eq(tasksTable.id, taskId))
+          .returning();
+        if (!updated) {
+          json(res, 404, { error: "Task not found" });
+        } else {
+          json(res, 200, updated);
+        }
+      } catch {
+        json(res, 400, { error: "Bad request" });
+      }
+      return true;
+    }
+
     if (method === "GET" && pathname === "/api/tasks") {
       try {
         const rows = await queryTasks(db, devUserId);

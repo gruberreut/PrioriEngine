@@ -4,6 +4,7 @@ import { FAB } from "./components/FAB/FAB";
 import { RankingPage } from "./features/ranking/RankingPage/RankingPage";
 import { TasksPage } from "./features/tasks/TasksPage/TasksPage";
 import { TaskCreationPage } from "./features/tasks/TaskCreationPage/TaskCreationPage";
+import { TaskDetailPage } from "./features/tasks/TaskDetailPage/TaskDetailPage";
 
 function AppShell() {
   const location = useLocation();
@@ -17,6 +18,7 @@ function AppShell() {
         <Route path="/" element={<RankingPage />} />
         <Route path="/tasks" element={<TasksPage />} />
         <Route path="/tasks/new" element={<TaskCreationPage />} />
+        <Route path="/tasks/:id" element={<TaskDetailPage />} />
       </Routes>
       {showFAB && <FAB onClick={() => navigate("/tasks/new")} />}
     </>
