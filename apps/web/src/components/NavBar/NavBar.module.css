@@ -23,3 +23,7 @@
 .active {
   color: var(--color-primary);
 }
+
+.themeToggle {
+  margin-left: auto;
+}

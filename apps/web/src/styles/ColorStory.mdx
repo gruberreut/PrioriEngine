@@ -1,0 +1,146 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { useTokenValue, contrastRatio } from './useTokenValue';
+import { ThemePreviewToggle } from './ThemePreviewToggle';
+
+<Meta title="Design System/Color Story" />
+
+export const Swatch = ({ token, label }) => {
+  const value = useTokenValue(token);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+      <div style={{
+        width: '40px', height: '40px', borderRadius: '6px',
+        background: `var(${token})`,
+        border: '1px solid var(--color-border)', flexShrink: 0
+      }} />
+      <div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</div>
+        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{value}{label ? ` — ${label}` : ''}</div>
+      </div>
+    </div>
+  );
+};
+
+export const TextSample = ({ textToken, bgToken, label }) => {
+  const textValue = useTokenValue(textToken);
+  const bgValue = useTokenValue(bgToken);
+  const ratio = contrastRatio(textValue, bgValue);
+  return (
+    <div style={{
+      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      padding: '12px 16px', marginBottom: '8px', borderRadius: '6px',
+      background: `var(${bgToken})`, border: '1px solid var(--color-border)',
+    }}>
+      <span style={{ color: `var(${textToken})`, fontSize: '15px' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '12px', color: `var(${textToken})`, opacity: 0.75 }}>
+        {ratio ? `${ratio.toFixed(2)}:1` : '—'}
+      </span>
+    </div>
+  );
+};
+
+export const AccentButton = () => (
+  <button style={{
+    background: 'var(--color-primary)', color: 'var(--color-text-on-primary)',
+    border: 'none', borderRadius: 'var(--radius-md)', padding: '10px 20px',
+    fontSize: 'var(--font-size-label)', fontWeight: 500, cursor: 'pointer',
+  }}>
+    Start task
+  </button>
+);
+
+export const SelectedRow = () => (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px',
+    borderRadius: 'var(--radius-md)', border: '1px solid var(--color-primary)',
+    background: 'var(--color-primary-tint)', color: 'var(--color-primary)',
+  }}>
+    Water the garden
+  </div>
+);
+
+export const SlideRow = () => {
+  const slides = ['--color-slide-params', '--color-slide-0', '--color-slide-1', '--color-slide-2', '--color-slide-3', '--color-slide-4', '--color-slide-5', '--color-slide-6', '--color-slide-7'];
+  return (
+    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+      {slides.map((token) => (
+        <div key={token} style={{
+          width: '72px', height: '72px', borderRadius: '6px',
+          background: `var(${token})`, border: '1px solid var(--color-border)',
+          display: 'flex', alignItems: 'flex-end', padding: '6px', boxSizing: 'border-box',
+        }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', color: 'var(--color-text-muted)' }}>
+            {token.replace('--color-slide-', '')}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+# Color Story
+
+A cleared, uncluttered ground; a single confident accent that means *the one next thing*. There is no second accent — every other color on the screen (status, disabled state, the slide tints) is deliberately quiet, so the one place color is used to mean "act here" keeps meaning it. Switch modes with the **Preview** toggle below — every swatch reads its value live from the current cascade, so this page cannot drift from what the app actually renders.
+
+<ThemePreviewToggle />
+
+---
+
+## Ground
+
+<Swatch token="--color-bg-page" label="canvas — page background" />
+<Swatch token="--color-bg-surface" label="surface — cards, sheets" />
+<Swatch token="--color-bg-disabled" label="disabled input background — darker than surface, not lighter" />
+<Swatch token="--color-bg-code" label="inline code background" />
+<Swatch token="--color-border" label="hairline — container borders" />
+<Swatch token="--color-border-input" label="hairline (2) — input borders" />
+
+## Ink
+
+Each text role shown as real text, on both canvas and surface, with the computed contrast ratio against that background.
+
+<TextSample textToken="--color-text-strong" bgToken="--color-bg-page" label="Strong — headings" />
+<TextSample textToken="--color-text-strong" bgToken="--color-bg-surface" label="Strong — headings" />
+<TextSample textToken="--color-text-body" bgToken="--color-bg-page" label="Body — default reading text" />
+<TextSample textToken="--color-text-body" bgToken="--color-bg-surface" label="Body — default reading text" />
+<TextSample textToken="--color-text-muted" bgToken="--color-bg-page" label="Muted — secondary text" />
+<TextSample textToken="--color-text-muted" bgToken="--color-bg-surface" label="Muted — secondary text" />
+<TextSample textToken="--color-text-disabled" bgToken="--color-bg-page" label="Disabled — inactive text" />
+<TextSample textToken="--color-text-disabled" bgToken="--color-bg-surface" label="Disabled — inactive text" />
+
+## The Accent
+
+<Swatch token="--color-primary" label="base" />
+<Swatch token="--color-primary-hover" label="hover" />
+<Swatch token="--color-primary-active" label="active" />
+<Swatch token="--color-primary-tint" label="wash — selected state background" />
+<Swatch token="--color-primary-disabled" label="disabled" />
+<Swatch token="--color-text-on-primary" label="text on primary" />
+
+<div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
+  <AccentButton />
+  <SelectedRow />
+</div>
+
+## Status
+
+<Swatch token="--color-success" label="positive scores, success states" />
+<Swatch token="--color-error" label="negative scores, error states" />
+
+Success and error are deliberately the only other saturated colors on screen — reserved for states the accent doesn't cover, never used as a second call to action.
+
+## Slide Tints
+
+Eight steps of the warm ground at very low chroma — enough to tell slides apart at a glance without competing with the accent.
+
+<SlideRow />
+
+## Do / Don't
+
+- The accent is reserved for the single active priority on screen — a button, a selected row, a focus ring. Never decoration.
+- Never place two accented elements on one screen competing for attention. If something else needs emphasis, it should not be the accent color.
+- Disabled is darker than surface, not lighter — on a warm ground, a lighter "disabled" would read as *brighter*, the opposite of inactive.
+
+---
+
+See [Design Tokens](./DesignTokens.mdx) for spacing, radius, and the full token contract.

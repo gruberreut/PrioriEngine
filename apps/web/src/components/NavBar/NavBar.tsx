@@ -1,4 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
+import { useTheme } from "../../features/theme/useTheme";
 import styles from "./NavBar.module.css";
 
 interface NavBarProps {
@@ -7,6 +9,7 @@ interface NavBarProps {
 
 export function NavBar({ onNavigate }: NavBarProps) {
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
 
   function handleClick(path: string) {
     if (location.pathname !== path) {
@@ -35,6 +38,9 @@ export function NavBar({ onNavigate }: NavBarProps) {
       >
         Tasks
       </NavLink>
+      <div className={styles.themeToggle}>
+        <ThemeToggle theme={theme} onChange={setTheme} />
+      </div>
     </nav>
   );
 }

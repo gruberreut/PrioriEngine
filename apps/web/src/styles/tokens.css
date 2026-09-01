@@ -1,36 +1,113 @@
+/* ---------- Layer 1: the palette (raw, mode-independent names) ---------- */
 :root {
-  /* Colors — text */
-  --color-text-strong: #111827;
-  --color-text-body: #374151;
-  --color-text-muted: #6B7280;
-  --color-text-disabled: #9CA3AF;
+  /* warm neutral ground */
+  --tendril-canvas:      #F3EEE6;
+  --tendril-surface:     #FBF8F3;
+  --tendril-hairline:    #E4DCCF;
+  --tendril-hairline-2:  #D8CDBB;
+  --tendril-ink:         #2E2A26;
+  --tendril-ink-body:    #4A443D;
+  --tendril-ink-muted:   #7D746A;
+  --tendril-ink-faint:   #A79C90;
 
-  /* Colors — border */
-  --color-border: #E5E7EB;
-  --color-border-input: #D1D5DB;
+  /* the accent — the one active priority
+     (darkened one step from the original artboard-01 values so
+     --color-text-on-primary clears 4.5:1 on the button fill — see DesignTokens.mdx) */
+  --tendril-accent:      #9E5350;
+  --tendril-accent-over: #8A463F;   /* hover  */
+  --tendril-accent-down: #753C36;   /* active */
+  --tendril-accent-wash: #EBD3CD;
 
-  /* Colors — background */
-  --color-bg-page: #FFFFFF;
-  --color-bg-disabled: #F9FAFB;
+  /* dark ground */
+  --tendril-d-canvas:      #1B1917;
+  --tendril-d-surface:     #24211D;
+  --tendril-d-hairline:    #332E29;
+  --tendril-d-hairline-2:  #3E3833;
+  --tendril-d-ink:         #EDE7DE;
+  --tendril-d-ink-body:    #C9C1B7;
+  --tendril-d-ink-muted:   #948A7E;
+  --tendril-d-ink-faint:   #6B6259;
+  --tendril-d-accent:      #D98A7E;
+  --tendril-d-accent-over: #E9A296;
+  --tendril-d-accent-down: #C4756A;
+  --tendril-d-accent-wash: #3B2B27;
 
-  /* Colors — slide palette */
-  --color-slide-params: #FFF5EB;
-  --color-slide-0: #EDF5E8;
-  --color-slide-1: #EDE8F5;
-  --color-slide-2: #E8F0F5;
-  --color-slide-3: #F5EDE8;
-  --color-slide-4: #E8F5F0;
-  --color-slide-5: #F5E8ED;
-  --color-slide-6: #F5F3E8;
-  --color-slide-7: #EBF0F5;
+  /* status — warmed so they sit in the same world as the accent,
+     and kept far enough from it in hue that error ≠ accent */
+  --tendril-success:   #4F7A57;
+  --tendril-error:     #C2382B;
+  --tendril-d-success: #7FA37E;
+  --tendril-d-error:   #E0685A;
 
-  /* Colors — semantic */
-  --color-primary: #4F46E5;
-  --color-primary-tint: #EEF2FF;
-  --color-primary-disabled: #9CA3AF;
-  --color-success: #10B981;
-  --color-error: #EF4444;
-  --color-text-on-primary: #FFFFFF;
+  /* slide tints — eight steps of the warm ground at very low chroma */
+  --tendril-slide-params: #F6EDE1;
+  --tendril-slide-0: #EFE9DD;
+  --tendril-slide-1: #F0E7DE;
+  --tendril-slide-2: #ECE8E1;
+  --tendril-slide-3: #F1E8E0;
+  --tendril-slide-4: #EAE6DC;
+  --tendril-slide-5: #EFE5DE;
+  --tendril-slide-6: #F1EBDD;
+  --tendril-slide-7: #EBE8E2;
+  --tendril-d-slide-params: #221F1C;
+  --tendril-d-slide-0: #221F1C;
+  --tendril-d-slide-1: #221F1C;
+  --tendril-d-slide-2: #221F1C;
+  --tendril-d-slide-3: #221F1C;
+  --tendril-d-slide-4: #221F1C;
+  --tendril-d-slide-5: #221F1C;
+  --tendril-d-slide-6: #221F1C;
+  --tendril-d-slide-7: #2A2622;
+}
+
+/* ---------- Layer 2: semantic roles — LIGHT (default) ---------- */
+:root {
+  color-scheme: light;
+
+  --color-text-strong:      var(--tendril-ink);
+  --color-text-body:        var(--tendril-ink-body);
+  --color-text-muted:       var(--tendril-ink-muted);
+  --color-text-disabled:    var(--tendril-ink-faint);
+
+  --color-border:           var(--tendril-hairline);
+  --color-border-input:     var(--tendril-hairline-2);
+
+  --color-bg-page:          var(--tendril-canvas);
+  --color-bg-surface:       var(--tendril-surface);
+  --color-bg-disabled:      var(--tendril-hairline);
+
+  --color-primary:          var(--tendril-accent);
+  --color-primary-hover:    var(--tendril-accent-over);
+  --color-primary-active:   var(--tendril-accent-down);
+  --color-primary-tint:     var(--tendril-accent-wash);
+  --color-primary-disabled: var(--tendril-ink-faint);
+  --color-text-on-primary:  var(--tendril-surface);
+
+  --color-success:          var(--tendril-success);
+  --color-error:            var(--tendril-error);
+
+  /* absorbed from index.css */
+  --color-bg-code:          var(--tendril-surface);
+
+  /* slide palette */
+  --color-slide-params: var(--tendril-slide-params);
+  --color-slide-0: var(--tendril-slide-0);
+  --color-slide-1: var(--tendril-slide-1);
+  --color-slide-2: var(--tendril-slide-2);
+  --color-slide-3: var(--tendril-slide-3);
+  --color-slide-4: var(--tendril-slide-4);
+  --color-slide-5: var(--tendril-slide-5);
+  --color-slide-6: var(--tendril-slide-6);
+  --color-slide-7: var(--tendril-slide-7);
+
+  --shadow-sm: 0 1px 2px rgb(46 42 38 / .06);
+  --shadow-md: 0 4px 12px rgb(46 42 38 / .10);
+  --shadow-lg: 0 6px 16px rgb(46 42 38 / .14);
+
+  /* type families — absorbed from index.css */
+  --font-sans:    system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --font-mono:    ui-monospace, Consolas, monospace;
 
   /* Spacing */
   --space-1: 4px;
@@ -48,4 +125,96 @@
   /* Border radius */
   --radius-sm: 6px;
   --radius-md: 8px;
+}
+
+/* ---------- Layer 2: semantic roles — DARK ----------
+   Duplicated (not shared) with the @media block below on purpose: plain CSS
+   has no way to share a declaration block between a bare selector and one
+   nested in @media without a preprocessor or build step. See
+   ARCHITECTURE.md for the accepted trade-off and the token-parity guardrail
+   that keeps the two blocks in sync (test/tokenParity.test.ts). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-text-strong:      var(--tendril-d-ink);
+  --color-text-body:        var(--tendril-d-ink-body);
+  --color-text-muted:       var(--tendril-d-ink-muted);
+  --color-text-disabled:    var(--tendril-d-ink-faint);
+
+  --color-border:           var(--tendril-d-hairline);
+  --color-border-input:     var(--tendril-d-hairline-2);
+
+  --color-bg-page:          var(--tendril-d-canvas);
+  --color-bg-surface:       var(--tendril-d-surface);
+  --color-bg-disabled:      var(--tendril-d-hairline);
+
+  --color-primary:          var(--tendril-d-accent);
+  --color-primary-hover:    var(--tendril-d-accent-over);
+  --color-primary-active:   var(--tendril-d-accent-down);
+  --color-primary-tint:     var(--tendril-d-accent-wash);
+  --color-primary-disabled: var(--tendril-d-ink-faint);
+  --color-text-on-primary:  var(--tendril-d-canvas);
+
+  --color-success:          var(--tendril-d-success);
+  --color-error:            var(--tendril-d-error);
+
+  --color-bg-code:          var(--tendril-d-surface);
+
+  --color-slide-params: var(--tendril-d-slide-params);
+  --color-slide-0: var(--tendril-d-slide-0);
+  --color-slide-1: var(--tendril-d-slide-1);
+  --color-slide-2: var(--tendril-d-slide-2);
+  --color-slide-3: var(--tendril-d-slide-3);
+  --color-slide-4: var(--tendril-d-slide-4);
+  --color-slide-5: var(--tendril-d-slide-5);
+  --color-slide-6: var(--tendril-d-slide-6);
+  --color-slide-7: var(--tendril-d-slide-7);
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / .40);
+  --shadow-md: 0 4px 12px rgb(0 0 0 / .50);
+  --shadow-lg: 0 6px 16px rgb(0 0 0 / .60);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --color-text-strong:      var(--tendril-d-ink);
+    --color-text-body:        var(--tendril-d-ink-body);
+    --color-text-muted:       var(--tendril-d-ink-muted);
+    --color-text-disabled:    var(--tendril-d-ink-faint);
+
+    --color-border:           var(--tendril-d-hairline);
+    --color-border-input:     var(--tendril-d-hairline-2);
+
+    --color-bg-page:          var(--tendril-d-canvas);
+    --color-bg-surface:       var(--tendril-d-surface);
+    --color-bg-disabled:      var(--tendril-d-hairline);
+
+    --color-primary:          var(--tendril-d-accent);
+    --color-primary-hover:    var(--tendril-d-accent-over);
+    --color-primary-active:   var(--tendril-d-accent-down);
+    --color-primary-tint:     var(--tendril-d-accent-wash);
+    --color-primary-disabled: var(--tendril-d-ink-faint);
+    --color-text-on-primary:  var(--tendril-d-canvas);
+
+    --color-success:          var(--tendril-d-success);
+    --color-error:            var(--tendril-d-error);
+
+    --color-bg-code:          var(--tendril-d-surface);
+
+    --color-slide-params: var(--tendril-d-slide-params);
+    --color-slide-0: var(--tendril-d-slide-0);
+    --color-slide-1: var(--tendril-d-slide-1);
+    --color-slide-2: var(--tendril-d-slide-2);
+    --color-slide-3: var(--tendril-d-slide-3);
+    --color-slide-4: var(--tendril-d-slide-4);
+    --color-slide-5: var(--tendril-d-slide-5);
+    --color-slide-6: var(--tendril-d-slide-6);
+    --color-slide-7: var(--tendril-d-slide-7);
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / .40);
+    --shadow-md: 0 4px 12px rgb(0 0 0 / .50);
+    --shadow-lg: 0 6px 16px rgb(0 0 0 / .60);
+  }
 }

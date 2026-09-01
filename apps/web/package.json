@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "eslint . && stylelint \"src/**/*.module.css\"",
+    "lint:css": "stylelint \"src/**/*.module.css\"",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
@@ -35,6 +36,8 @@
     "eslint-plugin-storybook": "^10.3.5",
     "globals": "^17.5.0",
     "storybook": "^10.3.5",
+    "stylelint": "^17.14.1",
+    "stylelint-config-standard": "^40.0.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^7",

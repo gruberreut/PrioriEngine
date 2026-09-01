@@ -518,15 +518,17 @@ When completing a task makes it the last non-completed direct child of its paren
 
 **Depends on:** Section 8 (contexts table must exist).
 
-When a user creates a new context, assign it a stable color or theme seed so it always renders with the same background in the ranking carousel. Currently, slide colors are assigned by index into a fixed palette — this works but means colors shift if contexts are reordered or deleted.
+When a user creates a new context, assign it a stable `slide_index` so it always renders with the same background in the ranking carousel. Currently, slide colors are assigned by index into a fixed palette — this works but means colors shift if contexts are reordered or deleted.
+
+The DB stores an index, not a color value. The frontend maps that index onto the existing `--color-slide-{n}` design tokens (`apps/web/src/styles/tokens.css`), which are already light/dark-aware — see `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8.7. This keeps one color system instead of two.
 
 ### Tasks
 
-- [ ] Add a `color` (or `theme_seed`) column to the `contexts` table; generate a migration
-- [ ] On context creation (`POST /api/contexts`), auto-assign a color from the palette, cycling through available slots and avoiding duplicates where possible
-- [ ] Return the color in `GET /api/contexts` responses
-- [ ] Update the web frontend to use the DB-assigned color instead of index-based assignment
-- [ ] Handle the edge case where more contexts exist than palette entries (cycle or generate complementary colors)
+- [ ] Add a `slide_index` (integer) column to the `contexts` table; generate a migration
+- [ ] On context creation (`POST /api/contexts`), auto-assign the next unused index, cycling through the available `--color-slide-*` slots and avoiding duplicates where possible
+- [ ] Return `slide_index` in `GET /api/contexts` responses
+- [ ] Update the web frontend to key `--color-slide-{n}` off the context's `slide_index` instead of raw carousel-page position
+- [ ] Handle the edge case where more contexts exist than palette entries (cycle the indices)
 
 ---
 
@@ -609,6 +611,114 @@ Add a standalone route/page for the in-progress task, separate from the ranking 
 - [x] Reuse the existing `InProgressBlock` component (Complete/Snooze/Delete remain unwired until section 12 lands)
 - [x] Register the route in `App.tsx`
 - [ ] Hide the top `NavBar` (Rank / Tasks) on `/in-progress` — the `FAB` should be the only button visible on this route
+
+---
+
+## 22. Tendril design token rollout (`tendril-design-rollout`)
+
+Moved from `documentation/Tendril - applying the design to components.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
+
+`priori-patch/` contains complete file replacements for §§ 22.1–22.2. Everything else here needs a call site the patch couldn't see, a decision, or a file outside `apps/web/src`.
+
+---
+
+### 22.1 Apply the patch (`tendril-tokens-apply`)
+
+Prerequisite for all the rest.
+
+- [ ] Copy `priori-patch/apps/web/src/**` over the matching repo paths
+- [ ] Confirm `--radius-sm` 6px → 12px and `--radius-md` 8px → 16px landed, then run the visual audit from `documentation/Tendril - applying the design to components.md` § 2 — the rename reaches roughly fifteen files beyond `Select`/`NavBar`/`ThemeToggle` (full list in that section)
+- [ ] `npm run typecheck` — the new `NavBar` imports `Icon`, `Tendril`, `ListChecks` and `useTheme`
+- [ ] Confirm `test/tokenParity.test.ts` still passes with the Layer-3 block present (verified — the test only extracts the `:root[data-theme='dark']` and `@media (prefers-color-scheme: dark)` blocks by selector, so the block is never inspected)
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.2 App-shell bottom padding (`bottom-nav-inset`)
+
+Without this the fixed bar covers the last item of every scrollable route. Applies once on the shell rather than per page.
+
+- [ ] Add `padding-bottom: calc(var(--bottom-nav-total-height) + var(--space-4))` to the app shell's scroll container (the element wrapping `<Routes>`, not `body` — `body` does not scroll when a route owns its own overflow)
+- [ ] Audit each route for its own `height: 100%` / `overflow` rules that would defeat the shell padding: Rank, Tasks, Task Detail, Task Creation
+- [ ] Confirm the Carousel's dots and swipe hint clear the bar — they are in normal flow, so this padding is the whole fix; no `Carousel.module.css` change needed
+- [ ] Check on a device with a home indicator (or Chrome DevTools iPhone preset) that nothing sits under the inset
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.3 Hide navigation on blocking routes (`bottom-nav-links-hidden`)
+
+§ 17 and § 21 above both want this; the `linksHidden` prop exists on `NavBar` but nothing passes it.
+
+- [ ] Pass `linksHidden` to `NavBar` on `/in-progress` so the FAB is the only action visible
+- [ ] Decide whether the bar renders at all on that route, or renders with the theme control only (the patch assumes the latter — the bar keeps its place so the layout does not shift when the block resolves)
+- [ ] Confirm the FAB's `--fab-inset-bottom` still clears the bar in the links-hidden state
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.4 Decide where the theme control lives (`theme-control-placement`)
+
+Kept in the bar's right slot so nothing else breaks, but a three-option segmented control inside a bottom nav is crowded at 360pt and has no icon language of its own.
+
+- [ ] Decide: keep in the bar, collapse to a single cycling icon button, or move to a settings screen
+- [ ] If it moves, remove the `themeToggle` slot from `NavBar.module.css` and the `useTheme` call from `NavBar.tsx` — the component then needs no theme knowledge at all
+- [ ] If it stays, apply the segmented-control redesign in `documentation/Tendril - applying the design to components.md` § 3.3 so it stops looking like a bordered button row
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.5 Record the token architecture (`tendril-tokens-docs`)
+
+- [ ] Save `documentation/Tendril - applying the design to components.md` as `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
+- [ ] Add that document's § 7 block to `CLAUDE.md` under a new `## Design tokens` heading, after the Storybook section
+- [ ] Add an `ARCHITECTURE.md` entry for the three-layer token model: what was decided, the forces (per-component adjustability without a preprocessor or a build step), and the rejected alternatives (a single flat token layer; per-component CSS files owning their own values; a generated `tokens.ts`)
+- [ ] Note in the same entry that Layer 3 deliberately sits outside the light/dark split, and why
+
+---
+
+### 22.6 Storybook token surface (`storybook-component-tokens`)
+
+Makes the Layer-3 block self-documenting instead of a second thing to maintain.
+
+- [ ] Build `<ComponentTokens prefix="--bottom-nav-" />` on the existing `useTokenValue` hook — lists whatever is actually in `tokens.css`, resolved through the cascade, following the theme toolbar
+- [ ] Add it to the docs page of every migrated component
+- [ ] Add a lint or test assertion that no `*.module.css` references a Layer-2 token directly, with a failure message pointing at `documentation/Tendril - applying the design to components.md`
+- [ ] Add a matching assertion that every `--<prefix>-*` group in Layer 3 has a `components/<Prefix>` directory, to catch tokens orphaned by a rename
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.7 Carousel page tints (`carousel-page-tints`)
+
+The eight dark values are real now, so this is unblocked. Reconciled with § 14 above (context theming): the DB stores a `slide_index` per context, not a color value, and the frontend maps that index onto `--color-slide-{n}`, which is already theme-aware — one color system, not two.
+
+- [ ] Apply `background: var(--color-slide-{n})` per page, indexed from the context's `slide_index` (falls back to raw carousel-page position until § 14's DB column lands)
+- [ ] Give the Carousel a Layer-3 group (`documentation/Tendril - applying the design to components.md` § 3.7) and move `.dot` / `.dotActive` onto it, including the elongating active dot
+- [ ] Check that cards on a tinted page still read as cards in dark mode — a tint sits only ~1.03:1 from `--color-bg-surface` there, so a card without its hairline border merges into the page
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 22.8 Add the new primitives to the task list (`new-primitives-tasks`)
+
+`documentation/Tendril - applying the design to components.md` § 4 carries token blocks and target values only. Before any of it is built, each primitive needs its own TASKS.md entry — otherwise the specs sit in a document with nothing scheduling them.
+
+- [ ] Write a TASKS.md entry per primitive, in this order: `Button`, `TextInput`, `Card`, then `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal`
+- [ ] Each entry gets: that document's § 4 token block, the props list, its § 5 checklist, and a Storybook story covering every visual state
+- [ ] Make each entry depend on § 22.1 above (the patch) — the primitives reference `--control-height-*`, `--radius-*`, `--focus-ring*` and `--motion-*`, none of which exist until it lands
+- [ ] Sequence `Button` first and hold the rest until it is reviewed — it settles the Layer-3 conventions the other nine repeat
+- [ ] For the seven table-only components in § 4.4, expand the row into a full token block as part of its own task, not up front
+
+---
+
+### 22.9 Delete `priori-patch/` (`tendril-patch-cleanup`)
+
+**Depends on:** every task in this section and every component in `documentation/Tendril - applying the design to components.md` § 9 being complete — `priori-patch/` is a reference for diffs until then.
+
+- [ ] Confirm no remaining checklist item points at `priori-patch/`
+- [ ] Delete the `priori-patch/` directory
+- [ ] Review in Storybook — **approved**
 
 ---
 

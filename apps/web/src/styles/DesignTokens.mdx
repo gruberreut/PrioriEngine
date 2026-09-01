@@ -2,26 +2,12 @@ import { Meta } from '@storybook/addon-docs/blocks';
 
 <Meta title="Design System/Tokens" />
 
-export const Swatch = ({ token, hex, label }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-    <div style={{
-      width: '40px', height: '40px', borderRadius: '6px',
-      background: `var(${token})`,
-      border: '1px solid #E5E7EB', flexShrink: 0
-    }} />
-    <div>
-      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 600 }}>{token}</div>
-      <div style={{ fontSize: '12px', color: '#6B7280' }}>{hex}{label ? ` — ${label}` : ''}</div>
-    </div>
-  </div>
-);
-
 export const SpacingBar = ({ token, px }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-    <div style={{ width: px, height: '20px', background: '#4F46E5', borderRadius: '2px', flexShrink: 0 }} />
+    <div style={{ width: px, height: '20px', background: 'var(--color-primary)', borderRadius: '2px', flexShrink: 0 }} />
     <div>
-      <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 600 }}>{token}</span>
-      <span style={{ fontSize: '12px', color: '#6B7280', marginLeft: '8px' }}>{px}</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</span>
+      <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '8px' }}>{px}</span>
     </div>
   </div>
 );
@@ -30,51 +16,23 @@ export const RadiusSwatch = ({ token, px }) => (
   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
     <div style={{
       width: '48px', height: '48px',
-      background: '#E5E7EB',
-      border: '2px solid #4F46E5',
+      background: 'var(--color-border)',
+      border: '2px solid var(--color-primary)',
       borderRadius: `var(${token})`,
       flexShrink: 0
     }} />
     <div>
-      <div style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 600 }}>{token}</div>
-      <div style={{ fontSize: '12px', color: '#6B7280' }}>{px}</div>
+      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</div>
+      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{px}</div>
     </div>
   </div>
 );
 
 # Design Tokens
 
-All component colors, spacing, and border-radius values must reference the tokens below, defined in `src/styles/tokens.css`.
+All component colors, spacing, and border-radius values must reference tokens defined in `src/styles/tokens.css` — never a raw hex or pixel value in component CSS. For the color palette itself — swatches, contrast ratios, dark mode, and the rationale behind it — see [Color Story](./ColorStory.mdx). This page covers everything else the token contract includes: spacing, border radius, and font families below.
 
-> **Font sizes and font weights are not tokenized.** Use plain values directly in each component's `.module.css` file.
-
----
-
-## Colors — Text
-
-<Swatch token="--color-text-strong"   hex="#111827" label="headings, strong emphasis" />
-<Swatch token="--color-text-body"     hex="#374151" label="body text, labels" />
-<Swatch token="--color-text-muted"    hex="#6B7280" label="secondary / supporting text" />
-<Swatch token="--color-text-disabled" hex="#9CA3AF" label="disabled state text" />
-
-## Colors — Border
-
-<Swatch token="--color-border"        hex="#E5E7EB" label="card and container borders" />
-<Swatch token="--color-border-input"  hex="#D1D5DB" label="form input borders" />
-
-## Colors — Background
-
-<Swatch token="--color-bg-page"       hex="#FFFFFF" label="default surface" />
-<Swatch token="--color-bg-disabled"   hex="#F9FAFB" label="disabled input background" />
-
-## Colors — Semantic
-
-<Swatch token="--color-primary"          hex="#4F46E5" label="primary action" />
-<Swatch token="--color-primary-tint"     hex="#EEF2FF" label="selected state background" />
-<Swatch token="--color-primary-disabled" hex="#9CA3AF" label="primary action — disabled" />
-<Swatch token="--color-text-on-primary"  hex="#FFFFFF" label="text on primary background" />
-<Swatch token="--color-success"          hex="#10B981" label="positive scores, success states" />
-<Swatch token="--color-error"            hex="#EF4444" label="negative scores, error states" />
+> **Font families are tokenized** (`--font-sans`, `--font-heading`, `--font-mono`). **Font sizes and font weights are not.** Use plain size/weight values directly in each component's `.module.css` file.
 
 ---
 

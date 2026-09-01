@@ -45,6 +45,7 @@
 
 .button:disabled {
   background: var(--color-bg-disabled);
+  color: var(--color-text-disabled);
   cursor: not-allowed;
 }
 
@@ -53,8 +54,4 @@
   background: var(--color-primary-tint);
   color: var(--color-primary);
   z-index: 1;
-}
-
-.button:disabled {
-  color: var(--color-text-disabled);
 }

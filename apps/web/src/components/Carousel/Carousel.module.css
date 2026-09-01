@@ -44,13 +44,13 @@
   border-radius: 50%;
   border: none;
   padding: 0;
-  background: var(--color-border, #e5e7eb);
+  background: var(--color-border);
   cursor: pointer;
   transition: background 0.2s;
 }
 
 .dotActive {
-  background: var(--color-primary, #4f46e5);
+  background: var(--color-primary);
 }
 
 .hint {
@@ -59,7 +59,7 @@
   justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2) 0;
-  color: var(--color-text-muted, #6b7280);
+  color: var(--color-text-muted);
   font-size: 0.8125rem;
   animation: pulse 2s ease-in-out infinite;
 }

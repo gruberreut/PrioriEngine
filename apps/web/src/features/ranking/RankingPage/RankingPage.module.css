@@ -1,5 +1,5 @@
 .page {
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0);
   flex: 1;
   min-height: 0;
   box-sizing: border-box;
