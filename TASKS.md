@@ -626,7 +626,7 @@ Add a standalone route/page for the in-progress task, separate from the ranking 
 
 ## 22. Tendril design token rollout (`tendril-design-rollout`)
 
-Moved from `documentation/Tendril - applying the design to components.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
+Moved from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
 
 `priori-patch/` contains complete file replacements for §§ 22.1–22.2. Everything else here needs a call site the patch couldn't see, a decision, or a file outside `apps/web/src`.
 
@@ -643,7 +643,7 @@ Prerequisite for all the rest.
 - [x] Reconcile and apply `NavBar.tsx`/`NavBar.module.css`/`NavBar.stories.tsx` and the two new icon assets (`Tendril.tsx`, `ListChecks.tsx`) — on inspection the patch's `NavBar` already carried the `ThemeToggle`/`useTheme` wiring forward (an earlier read of a stale diff wrongly suggested otherwise), so this landed close to verbatim. Bar is now `position: fixed` to the bottom using `--bottom-nav-*` tokens — will visually overlap page content until § 22.2 adds shell padding (expected, sequenced). Storybook stories brought in line with the `defaultArgs` convention (the previous file predated it). Approved in Storybook.
 - [x] Reconcile and apply `FAB.module.css` (additive only, no known conflicts). Approved in Storybook.
 - [x] `stylelint` flagged 11 formatting violations in the patch's CSS (blank-line/declaration-order rules, `max-width` media query) — the patch predates the `.stylelintrc.json` the color-story work added. Fixed with `--fix`, purely cosmetic. **Note for § 22.8**: the new-primitive patches will likely hit the same gap — run `stylelint --fix` on each as it lands.
-- [x] Confirm `--radius-sm` 6px → 12px and `--radius-md` 8px → 16px landed, then run the visual audit from `documentation/Tendril - applying the design to components.md` § 2 — the rename reaches roughly fifteen files beyond `Select`/`NavBar`/`ThemeToggle` (full list in that section). Visual audit covered `Select`, `ThemeToggle`, `TaskCard`, `EmptyState`, `EnergyPicker`, `InProgressBlock`, `LocationPicker`, `ResultsSlide`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `TaskTreeItem` — **all approved** in Storybook
+- [x] Confirm `--radius-sm` 6px → 12px and `--radius-md` 8px → 16px landed, then run the visual audit from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 2 — the rename reaches roughly fifteen files beyond `Select`/`NavBar`/`ThemeToggle` (full list in that section). Visual audit covered `Select`, `ThemeToggle`, `TaskCard`, `EmptyState`, `EnergyPicker`, `InProgressBlock`, `LocationPicker`, `ResultsSlide`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `TaskTreeItem` — **all approved** in Storybook
 - [x] `npm run typecheck` (`apps/web` has no `typecheck` script — use `npx tsc -b`) — clean except the same two pre-existing, unrelated errors (`Carousel.tsx` argument count, `vite.config.ts` `test` property). One new error surfaced from the patch's `NavBar.stories.tsx` (`Cannot find namespace 'JSX'` on a bare `JSX.Element` type) — fixed by importing `ReactElement` from `react` instead.
 - [x] Confirm `test/tokenParity.test.ts` still passes with the Layer-3 block present (verified — the test only extracts the `:root[data-theme='dark']` and `@media (prefers-color-scheme: dark)` blocks by selector, so the block is never inspected)
 - [x] Review in Storybook — **approved**
@@ -691,10 +691,10 @@ Kept in the bar's right slot so nothing else breaks, but a three-option segmente
 
 ### 22.5 Record the token architecture (`tendril-tokens-docs`)
 
-- [ ] Save `documentation/Tendril - applying the design to components.md` as `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
-- [ ] Add that document's § 7 block to `CLAUDE.md` under a new `## Design tokens` heading, after the Storybook section
-- [ ] Add an `ARCHITECTURE.md` entry for the three-layer token model: what was decided, the forces (per-component adjustability without a preprocessor or a build step), and the rejected alternatives (a single flat token layer; per-component CSS files owning their own values; a generated `tokens.ts`)
-- [ ] Note in the same entry that Layer 3 deliberately sits outside the light/dark split, and why
+- [x] Renamed `documentation/Tendril - applying the design to components.md` to `documentation/DESIGN-TOKENS-BY-COMPONENT.md` (`git mv`, content unchanged) and updated the seven other references to the old filename elsewhere in this file
+- [x] Added that document's § 7 block to `CLAUDE.md` under a new `## Design tokens` heading, after the Storybook section
+- [x] Updated the `ARCHITECTURE.md` "Design tokens" entry from two layers to three: what was decided, the forces (per-component adjustability without a preprocessor or a build step), and the rejected alternatives (a single flat token layer; per-component CSS files owning their own values; a generated `tokens.ts`)
+- [x] Noted in the same entry that Layer 3 deliberately sits outside the light/dark split, and why
 
 ---
 
@@ -704,7 +704,7 @@ Makes the Layer-3 block self-documenting instead of a second thing to maintain.
 
 - [ ] Build `<ComponentTokens prefix="--bottom-nav-" />` on the existing `useTokenValue` hook — lists whatever is actually in `tokens.css`, resolved through the cascade, following the theme toolbar
 - [ ] Add it to the docs page of every migrated component
-- [ ] Add a lint or test assertion that no `*.module.css` references a Layer-2 token directly, with a failure message pointing at `documentation/Tendril - applying the design to components.md`
+- [ ] Add a lint or test assertion that no `*.module.css` references a Layer-2 token directly, with a failure message pointing at `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
 - [ ] Add a matching assertion that every `--<prefix>-*` group in Layer 3 has a `components/<Prefix>` directory, to catch tokens orphaned by a rename
 - [ ] Review in Storybook — **approved**
 
@@ -715,7 +715,7 @@ Makes the Layer-3 block self-documenting instead of a second thing to maintain.
 The eight dark values are real now, so this is unblocked. Reconciled with § 14 above (context theming): the DB stores a `slide_index` per context, not a color value, and the frontend maps that index onto `--color-slide-{n}`, which is already theme-aware — one color system, not two.
 
 - [ ] Apply `background: var(--color-slide-{n})` per page, indexed from the context's `slide_index` (falls back to raw carousel-page position until § 14's DB column lands)
-- [ ] Give the Carousel a Layer-3 group (`documentation/Tendril - applying the design to components.md` § 3.7) and move `.dot` / `.dotActive` onto it, including the elongating active dot
+- [ ] Give the Carousel a Layer-3 group (`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.7) and move `.dot` / `.dotActive` onto it, including the elongating active dot
 - [ ] Check that cards on a tinted page still read as cards in dark mode — a tint sits only ~1.03:1 from `--color-bg-surface` there, so a card without its hairline border merges into the page
 - [ ] Review in Storybook — **approved**
 
@@ -723,7 +723,7 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 
 ### 22.8 Add the new primitives to the task list (`new-primitives-tasks`)
 
-`documentation/Tendril - applying the design to components.md` § 4 carries token blocks and target values only. Before any of it is built, each primitive needs its own TASKS.md entry — otherwise the specs sit in a document with nothing scheduling them.
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carries token blocks and target values only. Before any of it is built, each primitive needs its own TASKS.md entry — otherwise the specs sit in a document with nothing scheduling them.
 
 - [ ] Write a TASKS.md entry per primitive, in this order: `Button`, `TextInput`, `Card`, then `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal`
 - [ ] Each entry gets: that document's § 4 token block, the props list, its § 5 checklist, and a Storybook story covering every visual state
@@ -735,7 +735,7 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 
 ### 22.9 Delete `priori-patch/` (`tendril-patch-cleanup`)
 
-**Depends on:** every task in this section and every component in `documentation/Tendril - applying the design to components.md` § 9 being complete — `priori-patch/` is a reference for diffs until then.
+**Depends on:** every task in this section and every component in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 9 being complete — `priori-patch/` is a reference for diffs until then.
 
 - [ ] Confirm no remaining checklist item points at `priori-patch/`
 - [ ] Delete the `priori-patch/` directory
@@ -748,7 +748,7 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`timeOfDayTheme()` in `useTheme.ts`), and the only override is `window.switchTheme('light' | 'dark' | 'auto')` from the browser console. Build a real settings screen so a user can set this without the console.
 
 - [ ] Add a `/settings` route and page
-- [ ] Put `ThemeToggle` (`src/components/ThemeToggle/` — still exists, just unused since § 22.4) on that screen, wired to `useTheme`'s `setTheme`. Apply the segmented-control redesign in `documentation/Tendril - applying the design to components.md` § 3.3 while it's being touched, rather than keeping the bordered-button-group look
+- [ ] Put `ThemeToggle` (`src/components/ThemeToggle/` — still exists, just unused since § 22.4) on that screen, wired to `useTheme`'s `setTheme`. Apply the segmented-control redesign in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.3 while it's being touched, rather than keeping the bordered-button-group look
 - [ ] Add a way to reach `/settings` from the app — `NavBar` has no slot for it currently; decide whether it gets one or the entry point is elsewhere
 - [ ] Reconsider `timeOfDayTheme()`'s fixed 6am–6pm split at the same time — e.g. treat `Auto` as "time-of-day split" only when the user hasn't explicitly picked Light/Dark, or consider deriving real sunrise/sunset if that's ever worth the complexity
 

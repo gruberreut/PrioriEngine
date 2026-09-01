@@ -201,3 +201,26 @@ const render: Story["render"] = (args) => {
 ```
 
 Never use `useState` to shadow a prop that is also a Storybook control — the control will appear to change but the component won't update.
+
+## Design tokens
+
+All visual values live in `apps/web/src/styles/tokens.css`, in three layers:
+
+- **Layer 1 — palette** (`--tendril-*`): raw hexes. Hexes appear nowhere else in the codebase.
+- **Layer 2 — semantic roles** (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--control-height-*`, `--focus-ring*`, `--motion-*`): what a value *means*. Mode-aware — the light block, the `[data-theme='dark']` block and the `prefers-color-scheme` block must stay in parity (enforced by `test/tokenParity.test.ts`).
+- **Layer 3 — component tokens** (`--<component>-*`): per-component knobs, one labelled group per component, in the same file.
+
+**Rule: a `*.module.css` file references Layer 3 only.** Never `var(--color-*)` directly from a component. This is what allows one component's design to be adjusted without touching any other.
+
+When building or restyling a component:
+
+1. Add a Layer-3 group to `tokens.css` headed `/* <Component> — components/<Component> */`.
+2. Give it one token per visual property the component paints: background, border, text color, radius, height, padding, shadow, own font size. Roughly 6–12 tokens. Internal `--space-*` gaps, font families and `--motion-*` values may be read from Layer 2 directly.
+3. Every Layer-3 entry defaults to a Layer-2 role — `--fab-bg: var(--color-primary)`. A literal value means the component deliberately diverges, and it carries a comment saying why.
+4. Do not add a dark-mode override for a Layer-3 token. Layer 3 sits outside the light/dark split; it inherits mode-awareness through the Layer-2 role it points at. If a component needs a value that differs by mode and no role provides it, add the role to Layer 2 (all three blocks) instead.
+5. If a literal appears in two Layer-3 groups, promote it to a Layer-2 role and point both at it.
+6. Never reference another component's Layer-3 token. Give the second component its own, even if it defaults to the same role.
+7. Style `:focus-visible` explicitly — the browser default is never acceptable. Anything tappable is ≥44px, or is inside a group that is.
+8. Add a `<ComponentTokens prefix="--<component>-" />` block to the component's Storybook docs page so the token list stays self-documenting.
+
+Component-level design work follows `documentation/DESIGN-TOKENS-BY-COMPONENT.md`, which carries the per-component target values and migration order.
