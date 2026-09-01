@@ -738,11 +738,11 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carries token blocks and target values only. Before any of it is built, each primitive needs its own TASKS.md entry — otherwise the specs sit in a document with nothing scheduling them.
 
-- [ ] Write a TASKS.md entry per primitive, in this order: `Button`, `TextInput`, `Card`, then `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal`
-- [ ] Each entry gets: that document's § 4 token block, the props list, its § 5 checklist, and a Storybook story covering every visual state
-- [ ] Make each entry depend on § 22.1 above (the patch) — the primitives reference `--control-height-*`, `--radius-*`, `--focus-ring*` and `--motion-*`, none of which exist until it lands
-- [ ] Sequence `Button` first and hold the rest until it is reviewed — it settles the Layer-3 conventions the other nine repeat
-- [ ] For the seven table-only components in § 4.4, expand the row into a full token block as part of its own task, not up front
+- [x] Wrote a TASKS.md entry per primitive (§ 24.1–24.10, in order: `Button`, `TextInput`, `Card`, then `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal`)
+- [x] Each entry gets the § 4 token block (or, for the seven table-only ones, the § 4.4 row plus a note to expand it into a full block as part of that task — not up front), a props note, a pointer at the shared § 5 checklist (stated once rather than repeated ten times), and a Storybook-states bullet
+- [x] Each entry depends on § 22.1 — noted as already satisfied, since § 22.1 completed earlier in this same session
+- [x] Sequenced `Button` (§ 24.1) first; § 24.2–24.10 each explicitly depend on it being reviewed and approved first
+- [x] Table-only components (§ 24.4–24.10) note to expand their § 4.4 row into a full token block as part of their own task, not up front
 
 ---
 
@@ -766,6 +766,235 @@ Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`
 - [ ] Reconsider `timeOfDayTheme()`'s fixed 6am–6pm split at the same time — e.g. treat `Auto` as "time-of-day split" only when the user hasn't explicitly picked Light/Dark, or consider deriving real sunrise/sunset if that's ever worth the complexity
 
 **Trigger:** whenever a settings screen is needed for anything else, or the `window.switchTheme()` console workaround becomes annoying enough to fix.
+
+---
+
+## 24. New Tendril primitives (`tendril-primitives`)
+
+Scheduled by § 22.8 — `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carries the token blocks and target values only; these subsections are what actually schedules building them. **These are specifications, not implementations** — nothing below has a component file, a story, or a call site yet.
+
+**Depends on:** § 22.1 — satisfied (`--control-height-*`, `--radius-*`, `--focus-ring*`, `--motion-*` all landed in `tokens.css`).
+
+**Build order:** `Button` (§ 24.1) first, held for review before any of the other nine start — it settles the Layer-3 conventions the rest repeat. § 24.4–24.10 (the seven table-only components) additionally expand their `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 row into a full token block as part of their own task, not up front.
+
+**Per-component checklist** (from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 5 — apply to every subsection below rather than repeating it ten times):
+```
+- [ ] Layer-3 block added to tokens.css under a `/* <Component> — components/<Component> */` header
+- [ ] Every entry defaults to a Layer-2 role; each literal has a comment saying why
+- [ ] No new dark-mode override for a component token
+- [ ] Module CSS references ONLY --<component>-* (layer3.test.ts, added in § 22.6, checks this automatically once the group comment lands)
+- [ ] No literal hex, px radius, or px height left in the module CSS
+- [ ] :focus-visible styled; browser default suppressed
+- [ ] Anything tappable is ≥44px (or the group containing it is)
+- [ ] Hover and active states present for interactive elements
+- [ ] Transitions use --motion-fast/--motion-ease, not ad-hoc timings
+- [ ] Verified in light and dark, at 360pt width
+- [ ] Body text ≥4.5:1 on its own background in both modes
+- [ ] Stories cover every visual state, including disabled and error
+- [ ] Docs page gets a `<ComponentTokens prefix="--<component>-" />` block (component built in § 22.6) — also confirms layer3.test.ts's directory-match assertion passes
+```
+
+---
+
+### 24.1 Button (`primitive-button`)
+
+The most-needed missing primitive. Variants: `primary`, `secondary`, `ghost`, `destructive`. Sizes: `sm` 36, `md` 46, `icon` 44 square. Props: `variant`, `size`, `block`, `disabled`, `loading`.
+
+```css
+  /* Button — components/Button */
+  --button-height:            var(--control-height-lg);
+  --button-height-sm:         var(--control-height-sm);
+  --button-radius:            var(--radius-md);
+  --button-radius-sm:         var(--radius-sm);
+  --button-pad-x:             var(--space-5);
+  --button-pad-x-sm:          var(--space-3);
+  --button-size:              var(--font-size-body);
+  --button-weight:            500;
+
+  --button-primary-bg:        var(--color-primary);
+  --button-primary-bg-hover:  var(--color-primary-hover);
+  --button-primary-bg-active: var(--color-primary-active);
+  --button-primary-fg:        var(--color-text-on-primary);
+
+  --button-secondary-border:  var(--color-border-input);
+  --button-secondary-fg:      var(--color-text-body);
+  --button-secondary-bg-hover: var(--color-primary-tint);
+
+  --button-ghost-fg:          var(--color-primary);
+  --button-ghost-bg-hover:    var(--color-primary-tint);
+
+  --button-danger-border:     var(--color-error);
+  --button-danger-fg:         var(--color-error);
+
+  --button-bg-disabled:       var(--color-bg-disabled);
+  --button-fg-disabled:       var(--color-text-disabled);
+
+  --button-icon-size:         var(--control-height-md);
+  --button-icon-radius:       var(--radius-md);
+```
+
+Primary is a **fill**, not an outline — this app is Tendril throughout, the two systems (Tendril fills, Nocturne outlines) are never mixed. Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
+
+- [ ] Build `components/Button` per the checklist above
+- [ ] Stories: all four variants × both sizes, plus `block`, `disabled`, `loading`, and the icon-only 44px square variant
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.2 TextInput / Textarea (`primitive-text-input`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+The label/control/help triplet is one component with `label`, `help`, and `error` props — not three separate components. Error state changes the border and the help color; it does not change the background. Textarea shares the same token block; `--input-pad-y`/`--input-min-height` are textarea-only.
+
+```css
+  /* TextInput — components/TextInput */
+  --input-height:          var(--control-height-xl);
+  --input-radius:          var(--radius-md);
+  --input-pad-x:           var(--space-4);
+  --input-pad-y:           var(--space-3);      /* textarea only */
+  --input-min-height:      92px;                /* textarea only — tall enough
+                                                    for a few lines before the
+                                                    field scrolls; not tied to
+                                                    any existing role */
+  --input-bg:              var(--color-bg-surface);
+  --input-border:          var(--color-border-input);
+  --input-border-focus:    var(--color-primary);
+  --input-border-error:    var(--color-error);
+  --input-fg:              var(--color-text-strong);
+  --input-fg-placeholder:  var(--color-text-disabled);
+  --input-bg-disabled:     var(--color-bg-disabled);
+  --input-size:            var(--font-size-body);
+  --input-label-size:      var(--font-size-micro);
+  --input-label-fg:        var(--color-text-body);
+  --input-help-size:       var(--font-size-micro);
+  --input-help-fg:         var(--color-text-muted);
+  --input-help-fg-error:   var(--color-error);
+```
+
+- [ ] Build `components/TextInput` per the checklist above, sharing markup/tokens between the single-line and textarea variants
+- [ ] Props: `label`, `help`, `error`, plus the standard controlled-input set (`value`, `onChange`, `placeholder`, `disabled`, `type` for TextInput vs. `rows` for Textarea) — finalize exact prop names against artboard 05 at implementation time, not fixed here
+- [ ] Stories: default, focused, disabled, error (with `help` replaced by the error message), and the textarea variant at its `--input-min-height` floor
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.3 Card (`primitive-card`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+```css
+  /* Card — components/Card */
+  --card-bg:             var(--color-bg-surface);
+  --card-radius:         var(--radius-lg);
+  --card-pad:            var(--space-5);
+  --card-border:         var(--color-border);
+  --card-border-active:  var(--color-primary);
+  --card-shadow:         var(--shadow-sm);
+  --card-shadow-active:  none;            /* the active card is marked by its
+                                             border, not by lifting off the page */
+  --card-title-size:     var(--font-size-label);  /* 16px — reuses the existing
+                                                      role instead of repeating
+                                                      its value as a literal */
+  --card-title-fg:       var(--color-text-strong);
+  --card-meta-size:      var(--font-size-meta);
+  --card-meta-fg:        var(--color-text-muted);
+  --card-kicker-size:    9.5px;   /* smaller than every existing --font-size-*
+                                     role; the kicker sits above the title as
+                                     a label on a label, and nothing else in
+                                     the set needs this size */
+  --card-kicker-fg:      var(--color-primary);
+```
+
+Note: this is a distinct primitive from the existing `entity/TaskCard`, which predates this token model and still uses `--color-bg-page`/`--color-border` directly (see § 22.7's contrast findings). Whether `TaskCard` should eventually be rebuilt on top of this `Card` primitive, or stay separate, is an open question for whenever this task starts — not decided here.
+
+- [ ] Build `components/Card` per the checklist above. Exact prop shape (`title`, `meta`, `kicker`, `active`, children/content slot) isn't fixed here — derive from artboard 05 at implementation time
+- [ ] Stories: default, active (bordered, no shadow), with/without kicker, light and dark
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.4 Radio (`primitive-radio`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 gives the starting point only — expand into a full token block as part of this task: `--radio-*`, 22px, `--radius-full`, 11px inner dot at `--color-primary`.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Radio` per the checklist above
+- [ ] Stories: unchecked, checked, disabled, disabled+checked
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.5 Switch (`primitive-switch`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--switch-*`, 44×26 track `--radius-full`, 20px knob on `--color-bg-surface` + `--shadow-sm`.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Switch` per the checklist above
+- [ ] Stories: off, on, disabled, disabled+on
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.6 Chip (`primitive-chip`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--chip-*`, 34px, `--radius-xs`, selected = `--color-primary-tint` fill + `--color-primary` text, border transparent.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Chip` per the checklist above
+- [ ] Stories: unselected, selected, disabled
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.7 ListRow (`primitive-list-row`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--list-row-*`, 44px min, `--radius-md`, selected = `--color-primary-tint`, 8px leading dot.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/ListRow` per the checklist above
+- [ ] Stories: default, selected, with/without leading dot
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.8 SplitGroup (`primitive-split-group`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--split-*`, 44px, outer `--radius-md`, 1px `--color-border-input` seams, selected = `--color-primary-tint`.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/SplitGroup` per the checklist above
+- [ ] Stories: 2-way and 3-way splits, one segment selected, disabled
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.9 InlineMessage (`primitive-inline-message`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--message-*`, `--color-bg-surface`, `--radius-md`, 7px status dot in `--color-success` / `--color-error`.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/InlineMessage` per the checklist above
+- [ ] Stories: success, error
+- [ ] Review in Storybook — **approved**
+
+---
+
+### 24.10 Sheet / Modal (`primitive-sheet-modal`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--sheet-*`, `--radius-xl` top corners, `--shadow-lg`, `--motion-medium` entry.
+
+- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Sheet` per the checklist above
+- [ ] Stories: open/closed states, with a scrollable-content variant
+- [ ] Review in Storybook — **approved**
 
 ---
 
