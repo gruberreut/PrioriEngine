@@ -1,13 +1,24 @@
 import { NavLink, useLocation } from "react-router-dom";
+import { Icon } from "../Icon/Icon";
+import { Tendril } from "../../assets/icons/Tendril";
+import { ListChecks } from "../../assets/icons/ListChecks";
 import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
 import { useTheme } from "../../features/theme/useTheme";
 import styles from "./NavBar.module.css";
 
 interface NavBarProps {
   onNavigate?: (path: string) => void;
+  /** Hide the destination links, leaving only the theme control. Used by
+   *  blocking routes (e.g. /in-progress) where navigation is suppressed. */
+  linksHidden?: boolean;
 }
 
-export function NavBar({ onNavigate }: NavBarProps) {
+const destinations = [
+  { path: "/", label: "Rank", asset: Tendril, end: true },
+  { path: "/tasks", label: "Tasks", asset: ListChecks, end: false },
+];
+
+export function NavBar({ onNavigate, linksHidden = false }: NavBarProps) {
   const location = useLocation();
   const { theme, setTheme } = useTheme();
 
@@ -18,26 +29,28 @@ export function NavBar({ onNavigate }: NavBarProps) {
   }
 
   return (
-    <nav className={styles.nav}>
-      <NavLink
-        to="/"
-        end
-        className={({ isActive }) =>
-          `${styles.link} ${isActive ? styles.active : ""}`
-        }
-        onClick={() => handleClick("/")}
-      >
-        Rank
-      </NavLink>
-      <NavLink
-        to="/tasks"
-        className={({ isActive }) =>
-          `${styles.link} ${isActive ? styles.active : ""}`
-        }
-        onClick={() => handleClick("/tasks")}
-      >
-        Tasks
-      </NavLink>
+    <nav className={styles.nav} aria-label="Main">
+      {!linksHidden && (
+        <ul className={styles.list}>
+          {destinations.map(({ path, label, asset, end }) => (
+            <li key={path} className={styles.item}>
+              <NavLink
+                to={path}
+                end={end}
+                className={({ isActive }) =>
+                  `${styles.link} ${isActive ? styles.active : ""}`
+                }
+                onClick={() => handleClick(path)}
+              >
+                <span className={styles.glyph}>
+                  <Icon asset={asset} label={label} size={24} />
+                </span>
+                <span className={styles.label}>{label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      )}
       <div className={styles.themeToggle}>
         <ThemeToggle theme={theme} onChange={setTheme} />
       </div>
