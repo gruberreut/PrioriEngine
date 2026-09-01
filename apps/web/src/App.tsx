@@ -11,10 +11,11 @@ function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const showFAB = location.pathname !== "/tasks/new";
+  const linksHidden = location.pathname === "/in-progress";
 
   return (
     <>
-      <NavBar />
+      <NavBar linksHidden={linksHidden} />
       <Routes>
         <Route path="/" element={<RankingPage />} />
         <Route path="/in-progress" element={<InProgressPage />} />

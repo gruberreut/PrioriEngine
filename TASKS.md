@@ -668,10 +668,10 @@ Without this the fixed bar covers the last item of every scrollable route. Appli
 
 § 17 and § 21 above both want this; the `linksHidden` prop exists on `NavBar` but nothing passes it.
 
-- [ ] Pass `linksHidden` to `NavBar` on `/in-progress` so the FAB is the only action visible
-- [ ] Decide whether the bar renders at all on that route, or renders with the theme control only (the patch assumes the latter — the bar keeps its place so the layout does not shift when the block resolves)
-- [ ] Confirm the FAB's `--fab-inset-bottom` still clears the bar in the links-hidden state
-- [ ] Review in Storybook — **approved**
+- [x] Pass `linksHidden` to `NavBar` on `/in-progress` (`App.tsx`: `linksHidden={location.pathname === "/in-progress"}`) so the FAB and the theme toggle remain the only actions visible
+- [x] Decide whether the bar renders at all on that route, or renders with the theme control only — went with the patch's assumption (bar keeps its place, theme control only) since that was already built into `NavBar` in § 22.1; no further change needed here
+- [x] Confirm the FAB's `--fab-inset-bottom` still clears the bar in the links-hidden state — unaffected either way, since the bar's height (`--bottom-nav-total-height`) doesn't change based on `linksHidden`
+- [x] Review in Storybook — **approved**
 
 ---
 
