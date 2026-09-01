@@ -702,10 +702,10 @@ Kept in the bar's right slot so nothing else breaks, but a three-option segmente
 
 Makes the Layer-3 block self-documenting instead of a second thing to maintain.
 
-- [ ] Build `<ComponentTokens prefix="--bottom-nav-" />` on the existing `useTokenValue` hook — lists whatever is actually in `tokens.css`, resolved through the cascade, following the theme toolbar
-- [ ] Add it to the docs page of every migrated component
-- [ ] Add a lint or test assertion that no `*.module.css` references a Layer-2 token directly, with a failure message pointing at `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
-- [ ] Add a matching assertion that every `--<prefix>-*` group in Layer 3 has a `components/<Prefix>` directory, to catch tokens orphaned by a rename
+- [x] Built `<ComponentTokens prefix="--bottom-nav-" />` in `src/styles/ComponentTokens.tsx`, on the existing `useTokenValue`/`listTokens` — lists whatever is actually in `tokens.css`, resolved through the cascade, following the theme toolbar. Along the way, fixed an inconsistency the assertion below would otherwise have caught the reference implementation on: `NavBar`/`FAB` both referenced `--focus-ring`/`--focus-ring-offset` (Layer 2) directly in their `:focus-visible` rules — added `--bottom-nav-focus-ring` and `--fab-focus-ring-offset` (Layer 3, same resolved values, zero visual diff) so they route through Layer 3 like everything else
+- [x] Added it to the docs page of every migrated component — no per-component docs-page precedent existed yet (no `tags: ['autodocs']`, no component `.mdx` files), so added `NavBar.mdx`/`FAB.mdx` using `<Meta of={...Stories} />` to attach custom docs to the existing story files; this is the template future migrated components (§ 22.8) should follow
+- [x] Added a test assertion (`src/styles/layer3.test.ts`) that no `*.module.css` in a migrated component's directory references `--color-*`/`--radius-*`/`--shadow-*`/`--control-height-*`/`--focus-ring*` directly (the `--space-*`/font-family/`--motion-*` carve-out from CLAUDE.md stays allowed), failure message pointing at `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
+- [x] Added a matching assertion in the same file that every `/* Label — components/Dir */` group Layer 3 declares has a matching `src/components/Dir` directory on disk, to catch tokens orphaned by a rename. Both assertions discover their component set from `tokens.css`'s own Layer-3 group comments (currently `NavBar`, `FAB`), so they self-scale as more components migrate rather than needing a maintained list
 - [ ] Review in Storybook — **approved**
 
 ---

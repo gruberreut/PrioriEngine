@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as NavBarStories from './NavBar.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={NavBarStories} />
+
+# NavBar
+
+Fixed bottom navigation bar. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.5 for the design rationale.
+
+## Tokens
+
+Every `--bottom-nav-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--bottom-nav-" />

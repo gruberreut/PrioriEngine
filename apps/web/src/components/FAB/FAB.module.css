@@ -35,5 +35,5 @@
 
 .fab:focus-visible {
   outline: none;
-  box-shadow: var(--fab-shadow), var(--focus-ring-offset);
+  box-shadow: var(--fab-shadow), var(--fab-focus-ring-offset);
 }

@@ -294,6 +294,7 @@
   --bottom-nav-link-fg:           var(--color-text-muted);
   --bottom-nav-link-fg-hover:     var(--color-text-body);
   --bottom-nav-link-fg-active:    var(--color-primary);
+  --bottom-nav-focus-ring:        var(--focus-ring);
 
   /* FAB — components/FAB */
   --fab-size:           56px;
@@ -311,4 +312,5 @@
   /* sits above the bottom bar, clear of the home indicator */
   --fab-inset-bottom:   calc(var(--bottom-nav-total-height) + var(--space-3));
   --fab-z:              var(--z-fab);
+  --fab-focus-ring-offset: var(--focus-ring-offset);
 }

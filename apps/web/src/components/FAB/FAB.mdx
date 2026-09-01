@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as FABStories from './FAB.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={FABStories} />
+
+# FAB
+
+Fixed floating action button, positioned to clear the bottom nav bar. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.2 for the design rationale.
+
+## Tokens
+
+Every `--fab-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--fab-" />
