@@ -461,6 +461,17 @@ Surfaced while typechecking section 22's changes (`npx tsc -b --noEmit`) — unr
 
 ---
 
+### 10.3 Carousel active-dot tracking still feels laggy after a swipe
+
+Surfaced during § 22.7's Storybook review (the Carousel Layer-3 migration, which added the dot's elongate transition and made the lag noticeable).
+
+`Carousel.tsx`'s `handleScroll` debounces `onSlideChange` (which drives `activeIndex`, which drives the active dot) until scroll events stop — reduced from 100ms to 40ms as part of § 22.7, which helped but didn't fully fix it. User confirmed it's still perceptibly slow but chose not to invest further time now.
+
+- [ ] Investigate a fix that doesn't rely on a fixed post-scroll debounce — e.g. computing the nearest slide index continuously during scroll (`requestAnimationFrame` or the scroll event itself) so the dot tracks live rather than catching up after the fact
+- [ ] Re-check whether any further debounce reduction below 40ms is safe (risk: `onSlideChange` firing mid-scroll, which the debounce exists to prevent) before or alongside the above
+
+---
+
 ## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
 
 **Depends on:** section 10 (bugs fixed first).
@@ -714,10 +725,12 @@ Makes the Layer-3 block self-documenting instead of a second thing to maintain.
 
 The eight dark values are real now, so this is unblocked. Reconciled with § 14 above (context theming): the DB stores a `slide_index` per context, not a color value, and the frontend maps that index onto `--color-slide-{n}`, which is already theme-aware — one color system, not two.
 
-- [ ] Apply `background: var(--color-slide-{n})` per page, indexed from the context's `slide_index` (falls back to raw carousel-page position until § 14's DB column lands)
-- [ ] Give the Carousel a Layer-3 group (`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.7) and move `.dot` / `.dotActive` onto it, including the elongating active dot
-- [ ] Check that cards on a tinted page still read as cards in dark mode — a tint sits only ~1.03:1 from `--color-bg-surface` there, so a card without its hairline border merges into the page
-- [ ] Review in Storybook — **approved**
+- [x] `background: var(--color-slide-{n})` per page, indexed from raw carousel-page position, was already wired (`RankingPage.tsx`'s `SLIDE_PALETTE`) — this is the § 14 fallback path itself, so nothing to add here; will automatically switch to `slide_index`-based indexing once § 14's DB column lands
+- [x] Gave the Carousel a Layer-3 group (`--carousel-*`, `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.7) and moved `.dot`/`.dotActive`/`.hint` onto it — `.dot` 8×8 → `--carousel-dot-size` (6px), `.dotActive` gains a `width` transition to `--carousel-dot-size-active` (16px, elongates rather than resizing), `border-radius: 50%` → `--radius-full`, hint `color`/`font-size` → `--carousel-hint-fg`/`--carousel-hint-size`
+- [x] Replaced the dark slide tints' placeholder (`#221F1C` × 7, `#2A2622` × 1, deferred from § 22.1) with the patch's eight hand-tuned hues, resolving the color-story plan's own flagged-but-unconfirmed design question — decided in conversation (see below)
+- [x] Investigated "cards read as cards in dark mode" with real contrast numbers rather than eyeballing it: **every** candidate dark slide-tint design (current placeholder, the patch's 8 hues, a hypothetical single shared tint) gives near-identical ~1.0–1.2:1 contrast against `TaskCard`'s actual background (`--color-bg-page`, not `--color-bg-surface` as this doc's § 3.7 assumes — that assumption doesn't match the current `TaskCard` implementation). The hairline border was equally weak (~1.14–1.17:1 against the patch's 8 hues) — including in the *untinted* baseline case (1.31:1 against plain `--color-bg-page`), so this isn't a tint-specific problem. Fixed by strengthening `--tendril-d-hairline` from `#332E29` to `#786E5D` (empirically verified ≥3:1 against canvas, surface, and all eight dark slide tints) — a general dark-mode `--color-border` fix, not scoped to tinted-carousel cards, since the existing value was already too weak everywhere in dark mode
+- [x] Also reduced the active-dot `onSlideChange` debounce from 100ms to 40ms (`Carousel.tsx`'s `handleScroll`) after review flagged it as laggy — improved but not fully resolved; tracked as § 10.3 rather than pursued further now
+- [x] Review in Storybook — **approved**
 
 ---
 

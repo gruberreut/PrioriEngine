@@ -51,6 +51,10 @@ export function Carousel({
     setIsScrolling(true);
     if (!hintDismissed) setHintDismissed(true);
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
+    // Resets on every scroll event, so this only delays onSlideChange (and
+    // therefore the active dot) past when the browser's own momentum/snap
+    // scrolling has already settled - kept just long enough to avoid firing
+    // mid-scroll.
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
       const container = containerRef.current;
@@ -62,7 +66,7 @@ export function Carousel({
       if (logicalIndex !== activeIndex) {
         onSlideChange(logicalIndex);
       }
-    }, 100);
+    }, 40);
   }
 
   const orderedChildren = direction === "rtl" ? [...children].reverse() : children;

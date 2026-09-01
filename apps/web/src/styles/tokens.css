@@ -21,7 +21,12 @@
   /* dark ground */
   --tendril-d-canvas:      #1B1917;
   --tendril-d-surface:     #24211D;
-  --tendril-d-hairline:    #332E29;
+  /* #332E29 (1.1-1.3:1 against canvas/surface/any slide tint) was too close
+     to read as a boundary at all - a card relies on this border alone to
+     separate from a tinted page, since fill contrast there is only
+     ~1.0-1.2:1 by design (see the slide tints below). #786E5D empirically
+     clears 3:1 against canvas, surface, and all eight dark slide tints. */
+  --tendril-d-hairline:    #786E5D;
   --tendril-d-hairline-2:  #3E3833;
   --tendril-d-ink:         #EDE7DE;
   --tendril-d-ink-body:    #C9C1B7;
@@ -39,25 +44,32 @@
   --tendril-d-success: #7FA37E;
   --tendril-d-error:   #E0685A;
 
-  /* slide tints — eight steps of the warm ground at very low chroma */
-  --tendril-slide-params: #F6EDE1;
-  --tendril-slide-0: #EFE9DD;
-  --tendril-slide-1: #F0E7DE;
-  --tendril-slide-2: #ECE8E1;
-  --tendril-slide-3: #F1E8E0;
-  --tendril-slide-4: #EAE6DC;
-  --tendril-slide-5: #EFE5DE;
-  --tendril-slide-6: #F1EBDD;
-  --tendril-slide-7: #EBE8E2;
-  --tendril-d-slide-params: #221F1C;
-  --tendril-d-slide-0: #221F1C;
-  --tendril-d-slide-1: #221F1C;
-  --tendril-d-slide-2: #221F1C;
-  --tendril-d-slide-3: #221F1C;
-  --tendril-d-slide-4: #221F1C;
-  --tendril-d-slide-5: #221F1C;
-  --tendril-d-slide-6: #221F1C;
-  --tendril-d-slide-7: #2A2622;
+  /* slide tints — eight hues spread evenly around the wheel at 0.013–0.028
+     chroma, so they read as tinted paper rather than colour. The band from
+     8° to 48° is left empty: that is the accent's hue, so no carousel page
+     ever tints itself the colour of the one active priority.
+     Light and dark are separate sets by necessity (a lift above #F3EEE6 has
+     to be near-white; above #1B1917 it has to be near-black) but the hue
+     wheel and the order are identical, so page 3 is the same hue in both. */
+  --tendril-slide-0: #EFE9DD;   /* 60°  sand   */
+  --tendril-slide-1: #F0E7DE;   /* 100° olive  */
+  --tendril-slide-2: #ECE8E1;   /* 145° sage   */
+  --tendril-slide-3: #F1E8E0;   /* 190° teal   */
+  --tendril-slide-4: #EAE6DC;   /* 225° slate  */
+  --tendril-slide-5: #EFE5DE;   /* 262° iris   */
+  --tendril-slide-6: #F1EBDD;   /* 300° mauve  */
+  --tendril-slide-7: #EBE8E2;   /* 335° plum   */
+  --tendril-slide-params: #F6EDE1;   /* 42°, higher chroma — settings reads apart */
+
+  --tendril-d-slide-0: #2F2117;
+  --tendril-d-slide-1: #272516;
+  --tendril-d-slide-2: #1D281D;
+  --tendril-d-slide-3: #182827;
+  --tendril-d-slide-4: #19272D;
+  --tendril-d-slide-5: #1E2530;
+  --tendril-d-slide-6: #26222F;
+  --tendril-d-slide-7: #2D1F2A;
+  --tendril-d-slide-params: #371F19;
 }
 
 /* ---------- Layer 2: semantic roles — LIGHT (default) ---------- */
@@ -313,4 +325,16 @@
   --fab-inset-bottom:   calc(var(--bottom-nav-total-height) + var(--space-3));
   --fab-z:              var(--z-fab);
   --fab-focus-ring-offset: var(--focus-ring-offset);
+
+  /* Carousel — components/Carousel */
+  --carousel-dot-size:        6px;
+  --carousel-dot-size-active: 16px;   /* the active dot elongates rather than
+                                         changing size */
+  --carousel-dot-radius:      var(--radius-full);
+  --carousel-dot-bg:          var(--color-border-input);
+  --carousel-dot-bg-active:   var(--color-primary);
+  --carousel-dot-gap:         5px;
+  --carousel-hint-fg:         var(--color-text-muted);
+  --carousel-hint-size:       var(--font-size-meta);
+  --carousel-slide-pad:       var(--space-5);
 }

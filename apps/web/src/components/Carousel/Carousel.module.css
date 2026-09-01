@@ -1,3 +1,5 @@
+/* Tokens: --carousel-* (see styles/tokens.css) */
+
 .wrapper {
   height: 100%;
   display: flex;
@@ -34,23 +36,25 @@
 .dots {
   display: flex;
   justify-content: center;
-  gap: 6px;
+  gap: var(--carousel-dot-gap);
   padding: var(--space-2) 0;
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  width: var(--carousel-dot-size);
+  height: var(--carousel-dot-size);
+  border-radius: var(--carousel-dot-radius);
   border: none;
   padding: 0;
-  background: var(--color-border);
+  background: var(--carousel-dot-bg);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--motion-fast) var(--motion-ease),
+              width var(--motion-fast) var(--motion-ease);
 }
 
 .dotActive {
-  background: var(--color-primary);
+  width: var(--carousel-dot-size-active);
+  background: var(--carousel-dot-bg-active);
 }
 
 .hint {
@@ -59,8 +63,8 @@
   justify-content: center;
   gap: var(--space-1);
   padding: var(--space-2) 0;
-  color: var(--color-text-muted);
-  font-size: 0.8125rem;
+  color: var(--carousel-hint-fg);
+  font-size: var(--carousel-hint-size);
   animation: pulse 2s ease-in-out infinite;
 }
 
