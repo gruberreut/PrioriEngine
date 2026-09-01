@@ -626,10 +626,15 @@ Moved from `documentation/Tendril - applying the design to components.md` § 8 (
 
 Prerequisite for all the rest.
 
-- [ ] Copy `priori-patch/apps/web/src/**` over the matching repo paths
+**Strategy change:** the tree has since diverged from the patch's baseline with in-progress dark/light theme work (`useTheme`, `ThemeToggle`, per-slide dark tints). Treat `priori-patch/apps/web/src/**` as suggested diffs, not a blind copy — reconcile file-by-file, one component at a time, and only apply where there's no unresolved conflict. Discuss and resolve real conflicts before applying (e.g. `NavBar`'s existing theme-toggle wiring, which the patch's `NavBar` predates). Each slice: Storybook verification → commit → update this file before moving to the next.
+
+- [x] `tokens.css` foundation tokens reconciled and applied: spacing (`--space-5/6/7`), font sizes (`--font-size-body/meta/micro`), border radius rename + expansion (`--radius-xs/sm/md/lg/xl/full`, 6px/8px → 12px/16px), control heights, focus ring, motion, z-index, and the Layer-3 `--bottom-nav-*`/`--fab-*` groups. Dark slide tints (`--tendril-d-slide-*`) deliberately left as-is — deferred to § 22.7 where they're actually consumed; the color-story plan itself flags that design as unconfirmed (single tint vs. eight hues) and the patch offers a third, uncompared option.
+- [x] `DesignTokens.mdx` updated to match: Spacing/Border Radius sections now read values live via `useTokenValue` (previously hardcoded px labels, which had already gone stale on the radius rename) and list all the new tokens
+- [ ] Reconcile and apply `NavBar.tsx`/`NavBar.module.css` — needs a hand merge to preserve the existing `ThemeToggle`/`useTheme` wiring, which the patch's version doesn't know about
+- [ ] Reconcile and apply `FAB.module.css` (additive only, no known conflicts)
 - [ ] Confirm `--radius-sm` 6px → 12px and `--radius-md` 8px → 16px landed, then run the visual audit from `documentation/Tendril - applying the design to components.md` § 2 — the rename reaches roughly fifteen files beyond `Select`/`NavBar`/`ThemeToggle` (full list in that section)
-- [ ] `npm run typecheck` — the new `NavBar` imports `Icon`, `Tendril`, `ListChecks` and `useTheme`
-- [ ] Confirm `test/tokenParity.test.ts` still passes with the Layer-3 block present (verified — the test only extracts the `:root[data-theme='dark']` and `@media (prefers-color-scheme: dark)` blocks by selector, so the block is never inspected)
+- [ ] `npm run typecheck` (`apps/web` has no `typecheck` script — use `npx tsc -b`) — the new `NavBar` imports `Icon`, `Tendril`, `ListChecks` and `useTheme`. Note: `npx tsc -b` currently reports two pre-existing errors unrelated to this section (`Carousel.tsx` argument count, `vite.config.ts` `test` property) — confirm those are still the only ones once `NavBar` is reconciled
+- [x] Confirm `test/tokenParity.test.ts` still passes with the Layer-3 block present (verified — the test only extracts the `:root[data-theme='dark']` and `@media (prefers-color-scheme: dark)` blocks by selector, so the block is never inspected)
 - [ ] Review in Storybook — **approved**
 
 ---

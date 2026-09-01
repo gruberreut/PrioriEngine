@@ -1,32 +1,39 @@
 import { Meta } from '@storybook/addon-docs/blocks';
+import { useTokenValue } from './useTokenValue';
 
 <Meta title="Design System/Tokens" />
 
-export const SpacingBar = ({ token, px }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-    <div style={{ width: px, height: '20px', background: 'var(--color-primary)', borderRadius: '2px', flexShrink: 0 }} />
-    <div>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</span>
-      <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '8px' }}>{px}</span>
+export const SpacingBar = ({ token }) => {
+  const value = useTokenValue(token);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+      <div style={{ width: value, height: '20px', background: 'var(--color-primary)', borderRadius: '2px', flexShrink: 0 }} />
+      <div>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</span>
+        <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginLeft: '8px' }}>{value}</span>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-export const RadiusSwatch = ({ token, px }) => (
-  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-    <div style={{
-      width: '48px', height: '48px',
-      background: 'var(--color-border)',
-      border: '2px solid var(--color-primary)',
-      borderRadius: `var(${token})`,
-      flexShrink: 0
-    }} />
-    <div>
-      <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</div>
-      <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{px}</div>
+export const RadiusSwatch = ({ token }) => {
+  const value = useTokenValue(token);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+      <div style={{
+        width: '48px', height: '48px',
+        background: 'var(--color-border)',
+        border: '2px solid var(--color-primary)',
+        borderRadius: `var(${token})`,
+        flexShrink: 0
+      }} />
+      <div>
+        <div style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', fontWeight: 600 }}>{token}</div>
+        <div style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>{value}</div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 # Design Tokens
 
@@ -38,14 +45,21 @@ All component colors, spacing, and border-radius values must reference tokens de
 
 ## Spacing
 
-<SpacingBar token="--space-1" px="4px" />
-<SpacingBar token="--space-2" px="8px" />
-<SpacingBar token="--space-3" px="12px" />
-<SpacingBar token="--space-4" px="16px" />
+<SpacingBar token="--space-1" />
+<SpacingBar token="--space-2" />
+<SpacingBar token="--space-3" />
+<SpacingBar token="--space-4" />
+<SpacingBar token="--space-5" />
+<SpacingBar token="--space-6" />
+<SpacingBar token="--space-7" />
 
 ---
 
 ## Border Radius
 
-<RadiusSwatch token="--radius-sm" px="6px" />
-<RadiusSwatch token="--radius-md" px="8px" />
+<RadiusSwatch token="--radius-xs" />
+<RadiusSwatch token="--radius-sm" />
+<RadiusSwatch token="--radius-md" />
+<RadiusSwatch token="--radius-lg" />
+<RadiusSwatch token="--radius-xl" />
+<RadiusSwatch token="--radius-full" />
