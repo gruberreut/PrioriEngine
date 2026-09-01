@@ -8,7 +8,7 @@
   z-index: var(--bottom-nav-z);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: var(--bottom-nav-gap);
   height: var(--bottom-nav-total-height);
   padding-inline: var(--bottom-nav-pad-x);
@@ -78,11 +78,6 @@
 
 .label {
   line-height: 1;
-}
-
-.themeToggle {
-  display: flex;
-  margin-left: auto;
 }
 
 /* Labels are the first thing to go on a narrow screen — the icons and the

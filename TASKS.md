@@ -679,9 +679,12 @@ Without this the fixed bar covers the last item of every scrollable route. Appli
 
 Kept in the bar's right slot so nothing else breaks, but a three-option segmented control inside a bottom nav is crowded at 360pt and has no icon language of its own.
 
-- [ ] Decide: keep in the bar, collapse to a single cycling icon button, or move to a settings screen
-- [ ] If it moves, remove the `themeToggle` slot from `NavBar.module.css` and the `useTheme` call from `NavBar.tsx` — the component then needs no theme knowledge at all
-- [ ] If it stays, apply the segmented-control redesign in `documentation/Tendril - applying the design to components.md` § 3.3 so it stops looking like a bordered button row
+**Decision (superseded the three original options):** rather than keep a manual toggle anywhere right now, `auto` switches theme by time of day instead of OS preference (`timeOfDayTheme()` in `useTheme.ts` — see `documentation/ARCHITECTURE.md`). No UI at all for now; `window.switchTheme('light' | 'dark' | 'auto')` from the browser console is the only manual override until a real settings screen exists (tracked below, § 23, deferred/low priority).
+
+- [x] Decided: no manual control in the bar or anywhere else yet — see above
+- [x] Removed the `themeToggle` slot from `NavBar.module.css` and the `useTheme`/`ThemeToggle` imports from `NavBar.tsx` — the component now has no theme knowledge at all. `.nav`'s `justify-content` changed from `space-between` to `center` now that there's nothing to push to the right
+- [x] `useTheme()` still needs to run somewhere for its side effects (applying the theme, exposing `window.switchTheme`) even with no UI — mounted in `App.tsx`'s `AppShell` instead
+- [x] Fixed a flash-of-wrong-theme regression this introduced: `index.html`'s inline anti-flash script resolved `'auto'` via the CSS `prefers-color-scheme` fallback, which can now disagree with the JS-computed time-of-day value (e.g. OS set to dark mode at 3pm) — the script now duplicates the same hour split to resolve `'auto'` before first paint
 - [ ] Review in Storybook — **approved**
 
 ---
@@ -737,6 +740,19 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 - [ ] Confirm no remaining checklist item points at `priori-patch/`
 - [ ] Delete the `priori-patch/` directory
 - [ ] Review in Storybook — **approved**
+
+---
+
+## 23. Theme settings screen (`theme-settings-screen`) — deferred, low priority
+
+Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`timeOfDayTheme()` in `useTheme.ts`), and the only override is `window.switchTheme('light' | 'dark' | 'auto')` from the browser console. Build a real settings screen so a user can set this without the console.
+
+- [ ] Add a `/settings` route and page
+- [ ] Put `ThemeToggle` (`src/components/ThemeToggle/` — still exists, just unused since § 22.4) on that screen, wired to `useTheme`'s `setTheme`. Apply the segmented-control redesign in `documentation/Tendril - applying the design to components.md` § 3.3 while it's being touched, rather than keeping the bordered-button-group look
+- [ ] Add a way to reach `/settings` from the app — `NavBar` has no slot for it currently; decide whether it gets one or the entry point is elsewhere
+- [ ] Reconsider `timeOfDayTheme()`'s fixed 6am–6pm split at the same time — e.g. treat `Auto` as "time-of-day split" only when the user hasn't explicitly picked Light/Dark, or consider deriving real sunrise/sunset if that's ever worth the complexity
+
+**Trigger:** whenever a settings screen is needed for anything else, or the `window.switchTheme()` console workaround becomes annoying enough to fix.
 
 ---
 

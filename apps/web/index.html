@@ -2,8 +2,17 @@
 <html lang="en">
   <head>
     <script>
+      // Keep in sync with timeOfDayTheme() in src/features/theme/useTheme.ts -
+      // this can't import that module, so the day/night split is duplicated
+      // here to resolve 'auto' before first paint instead of flashing the
+      // CSS media-query fallback (system preference) then correcting to the
+      // JS-computed time-of-day value once React mounts.
       var t = localStorage.getItem('tendril-theme');
-      document.documentElement.dataset.theme = (t === 'light' || t === 'dark') ? t : 'auto';
+      if (t !== 'light' && t !== 'dark') {
+        var hour = new Date().getHours();
+        t = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+      }
+      document.documentElement.dataset.theme = t;
     </script>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

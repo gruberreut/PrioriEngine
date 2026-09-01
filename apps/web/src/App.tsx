@@ -6,12 +6,17 @@ import { InProgressPage } from "./features/ranking/InProgressPage/InProgressPage
 import { TasksPage } from "./features/tasks/TasksPage/TasksPage";
 import { TaskCreationPage } from "./features/tasks/TaskCreationPage/TaskCreationPage";
 import { TaskDetailPage } from "./features/tasks/TaskDetailPage/TaskDetailPage";
+import { useTheme } from "./features/theme/useTheme";
 
 function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const showFAB = location.pathname !== "/tasks/new";
   const linksHidden = location.pathname === "/in-progress";
+  // No UI yet (see TASKS.md for the planned settings screen) - this just
+  // applies the light/dark theme (time-of-day by default) and exposes
+  // window.switchTheme() as a dev-console escape hatch.
+  useTheme();
 
   return (
     <>

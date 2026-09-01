@@ -2,14 +2,13 @@ import { NavLink, useLocation } from "react-router-dom";
 import { Icon } from "../Icon/Icon";
 import { Tendril } from "../../assets/icons/Tendril";
 import { ListChecks } from "../../assets/icons/ListChecks";
-import { ThemeToggle } from "../ThemeToggle/ThemeToggle";
-import { useTheme } from "../../features/theme/useTheme";
 import styles from "./NavBar.module.css";
 
 interface NavBarProps {
   onNavigate?: (path: string) => void;
-  /** Hide the destination links, leaving only the theme control. Used by
-   *  blocking routes (e.g. /in-progress) where navigation is suppressed. */
+  /** Hide the destination links. Used by blocking routes (e.g. /in-progress)
+   *  where navigation is suppressed; the bar keeps its place (rendering
+   *  empty) so the layout doesn't shift when the block resolves. */
   linksHidden?: boolean;
 }
 
@@ -20,7 +19,6 @@ const destinations = [
 
 export function NavBar({ onNavigate, linksHidden = false }: NavBarProps) {
   const location = useLocation();
-  const { theme, setTheme } = useTheme();
 
   function handleClick(path: string) {
     if (location.pathname !== path) {
@@ -51,9 +49,6 @@ export function NavBar({ onNavigate, linksHidden = false }: NavBarProps) {
           ))}
         </ul>
       )}
-      <div className={styles.themeToggle}>
-        <ThemeToggle theme={theme} onChange={setTheme} />
-      </div>
     </nav>
   );
 }
