@@ -41,6 +41,10 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  /* reserves room for the fixed bottom nav so a route's own flex:1/
+     min-height:0/overflow-y:auto scroll region never renders content under
+     it — see NavBar.module.css and each route's .page rule */
+  padding-bottom: calc(var(--bottom-nav-total-height) + var(--space-4));
 }
 
 body {

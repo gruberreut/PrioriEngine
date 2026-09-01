@@ -644,11 +644,13 @@ Prerequisite for all the rest.
 
 Without this the fixed bar covers the last item of every scrollable route. Applies once on the shell rather than per page.
 
-- [ ] Add `padding-bottom: calc(var(--bottom-nav-total-height) + var(--space-4))` to the app shell's scroll container (the element wrapping `<Routes>`, not `body` — `body` does not scroll when a route owns its own overflow)
-- [ ] Audit each route for its own `height: 100%` / `overflow` rules that would defeat the shell padding: Rank, Tasks, Task Detail, Task Creation
-- [ ] Confirm the Carousel's dots and swipe hint clear the bar — they are in normal flow, so this padding is the whole fix; no `Carousel.module.css` change needed
-- [ ] Check on a device with a home indicator (or Chrome DevTools iPhone preset) that nothing sits under the inset
-- [ ] Review in Storybook — **approved**
+**Finding:** "applies once on the shell" didn't fully hold as written. `AppShell` is a Fragment (no DOM node) and `NavBar`/`FAB` are `position: fixed`, so `#root` (`index.css`) already *is* the element wrapping `<Routes>` — no new wrapper needed. But only Rank and Tasks were `flex: 1; min-height: 0`-constrained against it; Task Detail, Task Creation, and In-Progress (not in this checklist's original route list — added after it was written, same bug) had no height constraint at all and relied on native document scroll, so a shell-level padding would never have reached them. Discussed three options (shell+per-route patch / unify scroll architecture / no-cascade symmetric fix) — chose **unify**: bring all routes onto the same `flex: 1; min-height: 0; overflow-y: auto` pattern `TasksPage` already used, so one shell padding genuinely covers everyone and any future route follows the same self-enforcing convention.
+
+- [x] Added `padding-bottom: calc(var(--bottom-nav-total-height) + var(--space-4))` to `#root` in `index.css`
+- [x] Unified `TaskDetailPage`, `TaskCreationPage`, and `InProgressPage` onto `flex: 1; min-height: 0; overflow-y: auto` (matching `TasksPage`); `RankingPage`/`Carousel` already used the constrained pattern via `.page` → `.wrapper` (`height: 100%`) → `.carouselContainer` (`flex: 1`) → `.slide` (`height: 100%; overflow-y: auto`)
+- [x] Confirmed the Carousel's dots and swipe hint clear the bar — no `Carousel.module.css` change needed, confirmed correct. Also found and removed a now-redundant `padding-bottom: env(safe-area-inset-bottom, 0)` on `RankingPage.module.css`'s `.page`, left over from before the bottom-nav redesign — it double-counted the safe-area inset now already folded into `--bottom-nav-total-height`
+- [x] Checked in Chrome DevTools mobile emulation and Storybook — nothing sits under the inset. **Not verified on a physical device with a home indicator** — flag for a follow-up check when one's available
+- [x] Review in Storybook — **approved**
 
 ---
 
