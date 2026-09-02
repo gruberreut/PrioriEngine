@@ -11,13 +11,8 @@
   margin: 0;
 }
 
-.backButton {
+.backButtonWrapper {
+  display: flex;
+  justify-content: center;
   margin-top: var(--space-3);
-  padding: 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-primary);
-  background: none;
-  border: none;
-  cursor: pointer;
 }

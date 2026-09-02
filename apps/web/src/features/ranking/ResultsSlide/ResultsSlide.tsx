@@ -1,4 +1,6 @@
 import { ResultsPanel, type RankResultMode } from "../ResultsPanel/ResultsPanel";
+import { Card } from "../../../components/Card/Card";
+import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./ResultsSlide.module.css";
 
 export type SlideState = "idle" | "loading" | "loaded" | "error";
@@ -18,14 +20,14 @@ export function ResultsSlide({ label, state, result, backgroundColor, onStartTas
       {(state === "idle" || state === "loading") && (
         <div className={styles.skeletonList}>
           {[0, 1, 2].map((i) => (
-            <div key={i} className={styles.skeletonCard}>
+            <Card key={i}>
               <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
               <div className={`${styles.skeletonLine} ${styles.skeletonMeta}`} />
-            </div>
+            </Card>
           ))}
         </div>
       )}
-      {state === "error" && <p className={styles.error}>Failed to load results</p>}
+      {state === "error" && <InlineMessage status="error">Failed to load results</InlineMessage>}
       {state === "loaded" && <ResultsPanel result={result} onStartTask={onStartTask} />}
     </div>
   );

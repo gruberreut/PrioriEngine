@@ -257,6 +257,8 @@ Diff: `border-radius: 50%` → `var(--fab-radius)`; `width/height: 56px` → `va
 
 ### 3.3 ThemeToggle — `components/ThemeToggle`
 
+**Status:** `ThemeToggle` was deleted (TASKS.md § 24.8) once it became an unused wrapper with no real caller — § 24 built `SplitGroup` as the general seamed/joined segmented primitive (artboard's "Today / This week / Someday" example) instead, and `ThemeToggle` was migrated onto *that* rather than the distinct construction below. That was a shortcut, not a correction: this section's tinted-track-with-inset-pill design is what a real theme control was actually spec'd to look like, and it's never been built. Whoever picks up § 23 (theme settings screen) needs to decide then whether to build this properly or accept `SplitGroup`'s shape for simplicity — the token block and rationale below are kept for that decision, not superseded.
+
 Currently a bordered button group with negative-margin seams. The sheet's segmented control is a different construction: a tinted track, an inset selected pill, no shared borders. This is the one existing component whose markup changes shape.
 
 ```css

@@ -1,0 +1,83 @@
+/* Tokens: --switch-* (see styles/tokens.css) */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--switch-row-height);
+}
+
+.control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--switch-track-width);
+  height: var(--switch-track-height);
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.track {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: var(--switch-track-radius);
+  background: var(--switch-track-bg);
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+
+.knob {
+  position: absolute;
+  top: 50%;
+  left: var(--switch-knob-inset);
+  width: var(--switch-knob-size);
+  height: var(--switch-knob-size);
+  border-radius: var(--switch-track-radius);
+  background: var(--switch-knob-bg);
+  box-shadow: var(--switch-knob-shadow);
+  transform: translateY(-50%);
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.input:disabled + .track {
+  background: var(--switch-track-bg-disabled);
+}
+
+.input:checked + .track {
+  background: var(--switch-track-bg-on);
+}
+
+.input:checked + .track .knob {
+  transform: translateY(-50%)
+    translateX(
+      calc(var(--switch-track-width) - var(--switch-knob-size) - 2 * var(--switch-knob-inset))
+    );
+}
+
+.input:focus-visible + .track {
+  outline: none;
+  box-shadow: var(--switch-focus-ring);
+}
+
+.label {
+  font-size: var(--switch-label-size);
+  font-weight: 500;
+  color: var(--switch-label-fg);
+  cursor: pointer;
+}
+
+.labelDisabled {
+  color: var(--switch-label-fg-disabled);
+  cursor: not-allowed;
+}

@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Per `AGENTS.md`: do not execute implementation steps or make code changes unless the user explicitly approves. Default to planning/discussion only until approval is given.
 
+## Task Tracking
+
+`TASKS.md` tracks active and upcoming work. When every item in a top-level numbered section (`## N. ...`) is checked off with no open sub-items left anywhere in it, move that section's full content out of `TASKS.md` into `TASKS-DONE.md` (same repo root), appended in numeric order. Leave a single-line stub in `TASKS.md` in its place — `## N. Title — completed, see TASKS-DONE.md` — so section numbers and existing `§N` cross-references still resolve without opening the archive. Do not archive a section that has any unchecked item anywhere in it, even if most of it is done — a partially-complete section stays in `TASKS.md` in full, including its already-completed subsections.
+
 ## Architecture Documentation
 
 Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it.

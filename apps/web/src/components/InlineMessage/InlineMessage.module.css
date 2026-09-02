@@ -1,0 +1,31 @@
+/* Tokens: --message-* (see styles/tokens.css) */
+
+.message {
+  display: flex;
+  align-items: center;
+  gap: var(--message-gap);
+  padding: var(--message-pad-y) var(--message-pad-x);
+  border-radius: var(--message-radius);
+  background: var(--message-bg);
+  color: var(--message-fg);
+  font-size: var(--message-size);
+}
+
+.dot {
+  width: var(--message-dot-size);
+  height: var(--message-dot-size);
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.dotSuccess {
+  background: var(--message-dot-bg-success);
+}
+
+.dotError {
+  background: var(--message-dot-bg-error);
+}
+
+.dotInfo {
+  background: var(--message-dot-bg-info);
+}

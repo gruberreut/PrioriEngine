@@ -1,4 +1,5 @@
 import { EnergyIcon, type EnergyLevel } from "../EnergyIcon/EnergyIcon";
+import { SplitGroup } from "../../../components/SplitGroup/SplitGroup";
 import styles from "./EnergyPicker.module.css";
 
 export type { EnergyLevel };
@@ -13,24 +14,16 @@ export interface EnergyPickerProps {
 }
 
 export function EnergyPicker({ value, onChange, label, disabled = false }: EnergyPickerProps) {
+  const options = LEVELS.map((level) => ({
+    value: level,
+    label: level,
+    icon: <EnergyIcon level={level} size={20} />,
+  }));
+
   return (
     <div className={styles.container}>
       {label && <span className={styles.label}>{label}</span>}
-      <div className={styles.group} role="group" aria-label={label ?? "Energy level"}>
-        {LEVELS.map((level) => (
-          <button
-            key={level}
-            type="button"
-            onClick={() => onChange(level)}
-            disabled={disabled}
-            aria-pressed={value === level}
-            className={`${styles.button} ${value === level ? styles.selected : ""}`}
-          >
-            <EnergyIcon level={level} size={20} />
-            <span className={styles.levelLabel}>{level}</span>
-          </button>
-        ))}
-      </div>
+      <SplitGroup options={options} value={value} onChange={onChange} label={label ?? "Energy level"} disabled={disabled} />
     </div>
   );
 }

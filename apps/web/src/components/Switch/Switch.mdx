@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as SwitchStories from './Switch.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={SwitchStories} />
+
+# Switch
+
+A 44×26 track with a 20px knob, in a 44px tappable row. The native `<input type="checkbox" role="switch">` stays in the DOM (visually hidden) for accessibility; sibling `<span>`s render the track and knob, styled off the input's `:checked`/`:disabled`/`:focus-visible` state, same pattern as `Radio`. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 for the design rationale.
+
+## Tokens
+
+Every `--switch-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--switch-" />

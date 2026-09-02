@@ -10,7 +10,7 @@
   letter-spacing: 0.18px;
   color-scheme: light dark;
   color: var(--color-text-body);
-  background: var(--color-bg-surface);
+  background: var(--color-bg-page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

@@ -1,3 +1,4 @@
+import { SplitGroup } from "../../../components/SplitGroup/SplitGroup";
 import styles from "./DurationPicker.module.css";
 
 const OPTIONS = [10, 20, 30, 60] as const;
@@ -10,23 +11,18 @@ export interface DurationPickerProps {
 }
 
 export function DurationPicker({ value, onChange, label, disabled = false }: DurationPickerProps) {
+  const options = OPTIONS.map((option) => ({ value: String(option), label: `${option} min` }));
+
   return (
     <div className={styles.container}>
       {label && <span className={styles.label}>{label}</span>}
-      <div className={styles.group} role="group" aria-label={label ?? "Duration"}>
-        {OPTIONS.map((option) => (
-          <button
-            key={option}
-            type="button"
-            onClick={() => onChange(option)}
-            disabled={disabled}
-            aria-pressed={value === option}
-            className={`${styles.button} ${value === option ? styles.selected : ""}`}
-          >
-            {option} min
-          </button>
-        ))}
-      </div>
+      <SplitGroup
+        options={options}
+        value={String(value)}
+        onChange={(val) => onChange(Number(val))}
+        label={label ?? "Duration"}
+        disabled={disabled}
+      />
     </div>
   );
 }

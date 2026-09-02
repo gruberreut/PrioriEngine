@@ -38,7 +38,7 @@ const preview: Preview = {
   decorators: [
     (Story, ctx) => {
       document.documentElement.dataset.theme = ctx.globals.theme;
-      document.body.style.background = 'var(--color-bg-surface)';
+      document.body.style.background = 'var(--color-bg-page)';
       return Story();
     },
   ],

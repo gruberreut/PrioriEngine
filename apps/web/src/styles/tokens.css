@@ -337,4 +337,196 @@
   --carousel-hint-fg:         var(--color-text-muted);
   --carousel-hint-size:       var(--font-size-meta);
   --carousel-slide-pad:       var(--space-5);
+
+  /* Button — components/Button */
+  --button-height:            var(--control-height-lg);
+  --button-height-sm:         var(--control-height-sm);
+  --button-radius:            var(--radius-md);
+  --button-radius-sm:         var(--radius-sm);
+  --button-pad-x:             var(--space-5);
+  --button-pad-x-sm:          var(--space-3);
+  --button-size:              var(--font-size-body);
+  --button-weight:            500;
+
+  --button-primary-bg:        var(--color-primary);
+  --button-primary-bg-hover:  var(--color-primary-hover);
+  --button-primary-bg-active: var(--color-primary-active);
+  --button-primary-fg:        var(--color-text-on-primary);
+
+  --button-secondary-border:        var(--color-border-input);
+  --button-secondary-border-active: var(--color-primary-active);
+  --button-secondary-fg:            var(--color-text-body);
+  --button-secondary-bg-hover:      var(--color-primary-tint);
+
+  --button-ghost-fg:          var(--color-primary);
+  --button-ghost-fg-active:   var(--color-primary-active);
+  --button-ghost-bg-hover:    var(--color-primary-tint);
+
+  --button-danger-border:     var(--color-error);
+  --button-danger-fg:         var(--color-error);
+  /* no error-tint role exists yet (only Button needs one so far - CLAUDE.md
+     promotes a literal to Layer 2 once a second Layer-3 group needs it);
+     the accent wash is close enough in hue to read as a warm tint on an
+     error-colored outline rather than a mismatched color */
+  --button-danger-bg-hover:   var(--color-primary-tint);
+
+  --button-bg-disabled:       var(--color-bg-disabled);
+  --button-fg-disabled:       var(--color-text-disabled);
+
+  --button-icon-size:         var(--control-height-md);
+  --button-icon-radius:       var(--radius-md);
+
+  --button-focus-ring:        var(--focus-ring);
+  --button-focus-ring-offset: var(--focus-ring-offset);
+
+  /* no Layer-2 role sizes a spinner glyph; scaled to sit inside the sm
+     button's glyph area regardless of which size renders it */
+  --button-spinner-size:        18px;
+  --button-spinner-border-width: 2px;
+
+  /* TextInput — components/TextInput */
+  --input-height:          var(--control-height-xl);
+  --input-radius:          var(--radius-md);
+  --input-pad-x:           var(--space-4);
+  --input-pad-y:           var(--space-3);      /* textarea only */
+  --input-min-height:      92px;                /* textarea only — tall enough
+                                                    for a few lines before the
+                                                    field scrolls; not tied to
+                                                    any existing role */
+  --input-bg:              var(--color-bg-surface);
+  --input-border:          var(--color-border-input);
+  --input-border-focus:    var(--color-primary);
+  --input-border-error:    var(--color-error);
+  --input-fg:              var(--color-text-strong);
+  --input-fg-placeholder:  var(--color-text-disabled);
+  --input-fg-disabled:     var(--color-text-disabled);
+  --input-bg-disabled:     var(--color-bg-disabled);
+  --input-size:            var(--font-size-body);
+  /* artboard 05 renders the label bold and roughly body-sized, not the tiny
+     annotation-caption size the original spec snippet called for here -
+     --font-size-micro is correct for --input-help-size below instead */
+  --input-label-size:      var(--font-size-label);
+  --input-label-fg:        var(--color-text-strong);
+  --input-help-size:       var(--font-size-micro);
+  --input-help-fg:         var(--color-text-muted);
+  --input-help-fg-error:   var(--color-error);
+  --input-focus-ring:      var(--focus-ring);
+
+  /* Card — components/Card */
+  --card-bg:             var(--color-bg-surface);
+  --card-radius:         var(--radius-lg);
+  --card-pad:            var(--space-5);
+  --card-border:         var(--color-border);
+  --card-border-active:  var(--color-primary);
+  --card-shadow:         var(--shadow-sm);
+  --card-shadow-active:  none;            /* the active card is marked by its
+                                             border, not by lifting off the page */
+  --card-title-size:     var(--font-size-label);  /* 16px — reuses the existing
+                                                      role instead of repeating
+                                                      its value as a literal */
+  --card-title-fg:       var(--color-text-strong);
+  --card-meta-size:      var(--font-size-meta);
+  --card-meta-fg:        var(--color-text-muted);
+  --card-kicker-size:    9.5px;   /* smaller than every existing --font-size-*
+                                     role; the kicker sits above the title as
+                                     a label on a label, and nothing else in
+                                     the set needs this size */
+  --card-kicker-fg:      var(--color-primary);
+
+  /* Radio — components/Radio */
+  --radio-size:            22px;
+  --radio-dot-size:        11px;
+  --radio-radius:          var(--radius-full);
+  --radio-row-height:      var(--control-height-md);  /* 22px control, 44px
+                                                           tappable row */
+  --radio-bg:              var(--color-bg-surface);
+  --radio-bg-disabled:     var(--color-bg-disabled);
+  --radio-border:          var(--color-border-input);
+  --radio-border-checked:  var(--color-primary);
+  --radio-dot-bg:          var(--color-primary);
+  --radio-label-size:      var(--font-size-label);
+  --radio-label-fg:        var(--color-text-body);
+  --radio-label-fg-disabled: var(--color-text-disabled);
+  --radio-focus-ring:      var(--focus-ring);
+
+  /* Switch — components/Switch */
+  --switch-track-width:       44px;
+  --switch-track-height:      26px;
+  --switch-track-radius:      var(--radius-full);
+  --switch-track-bg:          var(--color-border-input);
+  --switch-track-bg-on:       var(--color-primary);
+  --switch-track-bg-disabled: var(--color-bg-disabled);
+  --switch-knob-size:         20px;
+  --switch-knob-inset:        3px;   /* (26 - 20) / 2 - centers the knob in
+                                        the track's cross-axis */
+  --switch-knob-bg:           var(--color-bg-surface);
+  --switch-knob-shadow:       var(--shadow-sm);
+  --switch-row-height:        var(--control-height-md);
+  --switch-label-size:        var(--font-size-label);
+  --switch-label-fg:          var(--color-text-body);
+  --switch-label-fg-disabled: var(--color-text-disabled);
+  --switch-focus-ring:        var(--focus-ring);
+
+  /* Chip — components/Chip */
+  --chip-height:           34px;
+  --chip-radius:           var(--radius-xs);
+  --chip-pad-x:            var(--space-3);
+  --chip-gap:              var(--space-1);
+  --chip-size:             var(--font-size-meta);
+  --chip-border:           var(--color-border-input);
+  --chip-bg:               transparent;
+  --chip-bg-hover:         var(--color-primary-tint);
+  --chip-fg:               var(--color-text-body);
+  --chip-bg-selected:      var(--color-primary-tint);
+  --chip-fg-selected:      var(--color-primary);
+  --chip-fg-disabled:      var(--color-text-disabled);
+  --chip-border-disabled:  var(--color-bg-disabled);
+  --chip-focus-ring:       var(--focus-ring);
+
+  /* ListRow — components/ListRow */
+  --list-row-min-height:       var(--control-height-md);
+  --list-row-radius:           var(--radius-md);
+  --list-row-pad-x:            var(--space-3);
+  --list-row-pad-y:            var(--space-2);
+  --list-row-gap:              var(--space-2);
+  --list-row-bg:               var(--color-bg-surface);
+  --list-row-border:           var(--color-border);
+  --list-row-border-selected:  var(--color-primary);
+  --list-row-border-disabled:  var(--color-bg-disabled);
+  --list-row-bg-selected:      var(--color-primary-tint);
+  --list-row-title-size:       var(--font-size-option);
+  --list-row-title-fg:         var(--color-text-strong);
+  --list-row-title-fg-disabled: var(--color-text-disabled);
+  --list-row-meta-size:        var(--font-size-meta);
+  --list-row-meta-fg:          var(--color-text-muted);
+  --list-row-dot-size:         8px;
+  --list-row-dot-bg:           var(--color-border-input);
+  --list-row-dot-bg-selected:  var(--color-primary);
+  --list-row-focus-ring:       var(--focus-ring);
+
+  /* SplitGroup — components/SplitGroup */
+  --split-height:           var(--control-height-md);
+  --split-radius:           var(--radius-md);
+  --split-seam:             var(--color-border-input);
+  --split-bg:               transparent;
+  --split-fg:               var(--color-text-muted);
+  --split-bg-selected:      var(--color-primary-tint);
+  --split-fg-selected:      var(--color-primary);
+  --split-fg-disabled:      var(--color-text-disabled);
+  --split-bg-disabled:      var(--color-bg-disabled);
+  --split-size:             var(--font-size-option);
+  --split-focus-ring:       var(--focus-ring);
+
+  /* InlineMessage — components/InlineMessage */
+  --message-bg:               var(--color-bg-surface);
+  --message-radius:           var(--radius-md);
+  --message-pad-x:            var(--space-3);
+  --message-pad-y:            var(--space-2);
+  --message-gap:              var(--space-2);
+  --message-dot-size:         7px;
+  --message-dot-bg-success:   var(--color-success);
+  --message-dot-bg-error:     var(--color-error);
+  --message-dot-bg-info:      var(--color-text-muted);
+  --message-fg:               var(--color-text-strong);
+  --message-size:             var(--font-size-body);
 }

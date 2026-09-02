@@ -1,5 +1,7 @@
-import { useId, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { Button } from "../../../components/Button/Button";
 import { Select } from "../../../components/Select/Select";
+import { TextInput } from "../../../components/TextInput/TextInput";
 import { EnergyPicker, type EnergyLevel } from "../../ranking/EnergyPicker/EnergyPicker";
 import { LocationPicker, type LocationRequirement } from "../../ranking/LocationPicker/LocationPicker";
 import { DurationPicker } from "../DurationPicker/DurationPicker";
@@ -36,9 +38,6 @@ export function TaskCreationForm({
   loading = false,
   defaultContextId,
 }: TaskCreationFormProps) {
-  const titleId = useId();
-  const newContextId = useId();
-
   const [title, setTitle] = useState("");
   const [titleError, setTitleError] = useState(false);
   const [addedContexts, setAddedContexts] = useState<ContextItem[]>([]);
@@ -112,25 +111,19 @@ export function TaskCreationForm({
 
   return (
     <form className={styles.form} onSubmit={handleSubmit} noValidate>
-      <div className={styles.field}>
-        <label htmlFor={titleId} className="sr-only">
-          Title
-        </label>
-        <input
-          id={titleId}
-          type="text"
-          value={title}
-          onChange={(e) => {
-            setTitle(e.target.value);
-            if (titleError) setTitleError(false);
-          }}
-          className={`${styles.titleInput} ${titleError ? styles.inputError : ""}`}
-          placeholder="What needs to be done?"
-          disabled={disabled}
-          autoFocus
-        />
-        {titleError && <span className={styles.errorText}>Title is required</span>}
-      </div>
+      <TextInput
+        label="Title"
+        hideLabel
+        value={title}
+        onChange={(val) => {
+          setTitle(val);
+          if (titleError) setTitleError(false);
+        }}
+        placeholder="What needs to be done?"
+        disabled={disabled}
+        error={titleError ? "Title is required" : undefined}
+        autoFocus
+      />
 
       <div className={styles.field}>
         <Select
@@ -143,36 +136,36 @@ export function TaskCreationForm({
         />
         {isCreatingContext && (
           <div className={styles.newContextRow}>
-            <input
-              id={newContextId}
-              type="text"
-              value={newContextName}
-              onChange={(e) => setNewContextName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); void handleAddContext(); }
-                if (e.key === "Escape") handleCancelNewContext();
-              }}
-              className={styles.newContextInput}
-              placeholder="Context name"
-              disabled={contextLoading}
-              autoFocus
-            />
-            <button
-              type="button"
+            <div className={styles.newContextField}>
+              <TextInput
+                label="Context name"
+                hideLabel
+                value={newContextName}
+                onChange={setNewContextName}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); void handleAddContext(); }
+                  if (e.key === "Escape") handleCancelNewContext();
+                }}
+                placeholder="Context name"
+                disabled={contextLoading}
+                autoFocus
+              />
+            </div>
+            <Button
+              size="sm"
               onClick={() => void handleAddContext()}
-              className={styles.addButton}
               disabled={contextLoading || !newContextName.trim()}
             >
               Add
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleCancelNewContext}
-              className={styles.cancelContextButton}
               disabled={contextLoading}
             >
               Cancel
-            </button>
+            </Button>
           </div>
         )}
       </div>
@@ -208,12 +201,12 @@ export function TaskCreationForm({
       />
 
       <div className={styles.actions}>
-        <button type="button" onClick={onCancel} className={styles.cancelButton} disabled={disabled}>
+        <Button variant="secondary" onClick={onCancel} disabled={disabled}>
           Cancel
-        </button>
-        <button type="submit" className={styles.submitButton} disabled={disabled}>
-          {loading ? "Saving…" : "Save task"}
-        </button>
+        </Button>
+        <Button type="submit" disabled={contextLoading} loading={loading}>
+          Save task
+        </Button>
       </div>
     </form>
   );

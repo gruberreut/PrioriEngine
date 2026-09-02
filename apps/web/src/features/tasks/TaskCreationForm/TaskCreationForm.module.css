@@ -12,96 +12,15 @@
   gap: var(--space-1);
 }
 
-.label {
-  font-size: var(--font-size-label);
-  font-weight: 500;
-  color: var(--color-text-body);
-}
-
-.titleInput {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-page);
-  font-size: var(--font-size-label);
-  color: var(--color-text-strong);
-  width: 100%;
-  box-sizing: border-box;
-  transition: border-color 0.15s;
-}
-
-.titleInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.titleInput:disabled {
-  background: var(--color-bg-disabled);
-  color: var(--color-text-disabled);
-  cursor: not-allowed;
-}
-
-.inputError {
-  border-color: var(--color-error);
-}
-
-.errorText {
-  font-size: 12px;
-  color: var(--color-error);
-}
-
 .newContextRow {
   display: flex;
+  align-items: center;
   gap: var(--space-2);
   margin-top: var(--space-1);
 }
 
-.newContextInput {
+.newContextField {
   flex: 1;
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-page);
-  font-size: var(--font-size-option);
-  color: var(--color-text-strong);
-}
-
-.newContextInput:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.addButton {
-  padding: var(--space-2) var(--space-3);
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-option);
-  font-weight: 500;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.addButton:disabled {
-  background: var(--color-primary-disabled);
-  cursor: not-allowed;
-}
-
-.cancelContextButton {
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-page);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-option);
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.cancelContextButton:disabled {
-  background: var(--color-bg-disabled);
-  cursor: not-allowed;
 }
 
 .actions {
@@ -112,35 +31,3 @@
   border-top: 1px solid var(--color-border);
 }
 
-.cancelButton {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-sm);
-  background: var(--color-bg-page);
-  color: var(--color-text-body);
-  font-size: var(--font-size-option);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.cancelButton:disabled {
-  background: var(--color-bg-disabled);
-  color: var(--color-text-disabled);
-  cursor: not-allowed;
-}
-
-.submitButton {
-  padding: var(--space-2) var(--space-4);
-  border: none;
-  border-radius: var(--radius-sm);
-  background: var(--color-primary);
-  color: var(--color-text-on-primary);
-  font-size: var(--font-size-option);
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.submitButton:disabled {
-  background: var(--color-primary-disabled);
-  cursor: not-allowed;
-}

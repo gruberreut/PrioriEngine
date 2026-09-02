@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { Task } from "../../../types/task";
 import { getTasks } from "../../../services/taskService";
 import { TaskTreeItem } from "../TaskTreeItem/TaskTreeItem";
+import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./TasksPage.module.css";
 
 type State =
@@ -34,7 +35,7 @@ export function TasksPage({ initialState }: TasksPageProps) {
   if (state.status === "error") {
     return (
       <div className={styles.page}>
-        <p className={`${styles.message} ${styles.error}`}>Could not load tasks: {state.message}</p>
+        <InlineMessage status="error">Could not load tasks: {state.message}</InlineMessage>
       </div>
     );
   }

@@ -4,44 +4,19 @@ Implementation tasks for the engine ↔ web integration.
 
 **Priority order:** at this point in development, work through sections in order: known bugs (10), then the OpenAPI documentation migration (11), then new feature work (12 onward).
 
----
-
-## 1. Engine API surface (`engine-api`)
-
-Extract browser-safe utilities and add a clean programmatic entry point so `apps/api` can import the engine without pulling in Node.js file-system code.
-
-- [x] Create `packages/engine/src/treeUtils.ts` — move `isLeafTask`, `flattenTaskTree`, and `asTaskArray` out of `taskLoader.ts` into this new file
-- [x] Update `taskLoader.ts` to import those three functions from `treeUtils.ts`
-- [x] Update `normalizer.ts` to import `isLeafTask` from `treeUtils.ts` (removes its dependency on `taskLoader.ts`)
-- [x] Add `packages/engine/src/api.ts` — exports `rankFromPayload(tasks: RawTask[], params: RuntimeParams): RankResult`, which chains `asTaskArray → flattenTaskTree → normalizeTasks → rankTasks`
-- [x] Add `packages/engine/src/index.ts` — barrel re-exporting `rankFromPayload`, `RawTask`, `RuntimeParams`, `RankResult`, `RankedTask`, `ScoreBreakdown`, `NormalizedTask`
-- [x] Add `"exports": { ".": "./src/index.ts" }` to `packages/engine/package.json`
-- [x] Add tests for `rankFromPayload` in `packages/engine/test/` using existing fixtures; maintain coverage thresholds
+Fully-completed top-level sections are moved to `TASKS-DONE.md` (see `CLAUDE.md` § Task Tracking), leaving a one-line stub in their place. A missing section number here means it's archived there, not deleted.
 
 ---
 
-## 2. API server (`api-server`)
-
-Plain Node.js `http` server in a new `apps/api` workspace package. Loads tasks once at startup; exposes three endpoints.
-
-- [x] Create `apps/api/` with `package.json` — name `@priori/api`, workspace dep on `@priori/engine`, dev dep on `tsx`
-- [x] `apps/api/src/server.ts` — `http.createServer`; reads `PRIORI_TASKS_PATH` env var (falls back to `packages/engine/test/data/tasks.example.json`); loads and parses tasks once at startup
-- [x] `POST /api/rank` — parse JSON body `{ context?, location?, availableTime, energyLevel, explain, limit? }`, call `rankFromPayload`, respond with `RankResult` JSON; set `Content-Type: application/json` and CORS header for `http://localhost:5173`
-- [x] `GET /api/contexts` — derive distinct context labels from the loaded tasks, respond as `string[]` JSON
-- [x] `GET /api/tasks` — respond with the raw loaded task array (needed by the future task browser in section 7)
-- [x] Add `"dev": "tsx watch src/server.ts"` script to `apps/api/package.json`
-- [x] Add `"dev:api": "npm run dev -w @priori/api"` and `"dev:web": "npm run dev -w @priori/web"` to root `package.json`
-- [x] Verify all three endpoints with `curl` before wiring the frontend
+## 1. Engine API surface — completed, see TASKS-DONE.md
 
 ---
 
-## 3. Web integration (`web-integration`) ✓
+## 2. API server — completed, see TASKS-DONE.md
 
-Wire `RankingPage` to the live API; replace all hardcoded mock data.
+---
 
-- [x] Add Vite dev proxy to `apps/web/vite.config.ts`: `/api` → `http://localhost:3001` (no CORS config needed in the browser)
-- [x] Create `apps/web/src/features/ranking/rankingService.ts` — exports `rank(params: RankParams): Promise<RankResultMode>` and `getContexts(): Promise<string[]>`; `rank` maps `RankParams → request body` (rename `energy → energyLevel`), calls `POST /api/rank`, maps the `RankResult` response to `RankResultMode` (rename `top → tasks`, map `NormalizedTask → TaskData` by picking the 7 fields `TaskData` needs; `ScoreBreakdown` fields match exactly)
-- [x] Update `RankingPage.tsx` — on mount call `getContexts()` and populate the `ParamsForm`; on submit call `rank(params)` (async, pass `loading` prop while pending); remove `MOCK_RESULT`; add an error state for when the API is unreachable
+## 3. Web integration — completed, see TASKS-DONE.md
 
 ---
 
@@ -184,80 +159,11 @@ _Note: `TaskCard` was moved from `src/features/ranking/` to `src/entity/` as par
 
 ---
 
-## 5. Location & Context Refactor (`location-context-refactor`)
-
-Separate the two roles that `contexts` currently plays. `contexts` becomes open-ended abstract mental-mode categories (starting set: `creativity`, `learning`, `admin`, `physical`) — new categories can be added to the JSON at any time without code changes. A new `location` field captures where the task physically requires you to be; its values are fixed and structural.
-
-**Location values:** `"home"` | `"in-person"` | `"anywhere"` (default: `"anywhere"`)
-**Context categories:** open-ended `string[]` — no fixed enum; starting set is `creativity`, `learning`, `admin`, `physical`
+## 5. Location & Context Refactor — completed, see TASKS-DONE.md
 
 ---
 
-### 5.1 Engine ✓
-
-- [x] `types.ts` — add `location: "home" | "in-person" | "anywhere"` to `RawTask` and `NormalizedTask`; add optional `location` to `RuntimeParams`; `contexts` remains `string[]` with no fixed enum
-- [x] `normalizer.ts` — inherit `location` up the parent chain; default to `"anywhere"` when unset; validate `location` against the three allowed values only (no context validation)
-- [x] `ranker.ts` — add hard location filter: when `RuntimeParams.location` is set, exclude tasks whose `location` does not match (tasks with `"anywhere"` always pass)
-- [x] `cliParse.ts` — add `--location` flag
-- [x] Update test fixtures in `test/fixtures/` to include `location`; add location-filter test cases; maintain 100% line/function/statement and 95% branch coverage thresholds
-- [x] `tasks.example.json` — rework all `contexts` from specific labels to abstract categories; add `location` to every task; remove location labels from `contexts` arrays
-
-### 5.2 Frontend ✓
-
-- [x] `ParamsForm` — add location selector (home / in-person / anywhere / no filter); update stories
-- [x] `TaskCard` — add location badge; update stories
-- [x] `RankingPage` — pass `location` through to the rank request
-
-### 5.3 Documentation
-
-- [x] `ARCHITECTURE.md` — update data model section and priority semantics table to reflect `location` field and revised context categories
-
----
-
-## 6. Task Browser (`task-browser`)
-
-A read-only page at `/tasks` that shows all tasks as an expandable tree. The collapsed view shows only titles and hierarchy; expanding a leaf reveals a dense `TaskCard` with its resolved field values. Parent nodes expand to reveal children only (no card — their fields exist to be inherited, not displayed standalone).
-
-**Field inheritance rule:** child tasks may omit fields that exist on an ancestor. Before rendering, each task's effective values are resolved by walking up the parent chain — the same `inheritedValue` logic the engine normalizer uses.
-
----
-
-### 6.1 Routing setup ✓
-
-- [x] Install `react-router-dom`
-- [x] Update `App.tsx` to wrap the app in `<BrowserRouter>` with two routes: `/` → `RankingPage`, `/tasks` → `TasksPage`
-- [x] Add a minimal `NavBar` component (`src/components/NavBar/`) with links to both routes; write stories
-
-### 6.2 `tasksService` ✓
-
-- [x] ~~Copy `packages/engine/test/data/tasks.example.json` to `apps/web/public/tasks.json`~~ (skipped — tasks are DB-backed)
-- [x] Create `apps/web/src/services/taskService.ts` — exports `getTasks(): Promise<Task[]>`; calls `GET /api/tasks`
-
-### 6.3 `resolveTask` utility ✓
-
-- [x] Create `apps/web/src/features/tasks/resolveTask.ts` — exports `resolveTask(task: RawTask, ancestors: RawTask[]): ResolvedTask`
-- [x] `ResolvedTask` carries: `id`, `title`, `duration`, `energyRequired`, `location`, `contexts`, `status` — all resolved by walking the ancestor chain with the same `inheritedValue` logic as the engine normalizer; no filtering
-
-### 6.4 `TaskCard` dense flavor ✓
-
-- [x] Add `"dense"` to the `flavor` union in `TaskCard`; dense reduces padding and font sizes, hides score breakdown and action bar regardless of props
-- [x] Update `TaskCard` stories: add Dense story
-
-### 6.5 `TaskTreeItem` component
-
-- [x] Create `apps/web/src/features/tasks/TaskTreeItem/`
-- [x] Props: `task: Task`, `ancestors: Task[]`, `depth: number`, `allTasks: Task[]` (needed to find children for recursive rendering)
-- [x] Collapsed state: one line — indent proportional to depth, chevron (parent) or bullet (leaf), title
-- [x] Leaf expanded: title row stays; dense `TaskCard` renders below using `resolveTask(task, ancestors)`
-- [x] Parent expanded: title row stays; children render as `TaskTreeItem` instances (no card for the parent itself)
-- [x] Write stories: LeafCollapsed, LeafExpanded, ParentCollapsed, ParentExpanded, DeepNesting
-
-### 6.6 `TasksPage` ✓
-
-- [x] Create `apps/web/src/features/tasks/TasksPage/`
-- [x] On mount, calls `tasksService.getTasks()`; shows loading state while pending, error state on failure
-- [x] Renders root-level `RawTask[]` as a list of `TaskTreeItem` components (depth 0)
-- [x] Write stories: Loading, Error, Populated
+## 6. Task Browser — completed, see TASKS-DONE.md
 
 ---
 
@@ -327,20 +233,7 @@ The seed script covers the single dev user. When real user accounts are added (a
 
 ---
 
-## 8. Task CRUD API (`task-crud-api`)
-
-**Depends on:** Section 7 complete (schema and DB connection must exist).
-
-`GET /api/tasks` and `GET /api/contexts` now read from the DB directly. `POST /api/rank` continues to use the JSON file until the ranking migration is planned. All new write endpoints are DB-backed.
-
-### Tasks
-
-- [x] `POST /api/tasks` — body: `{ id, parentId?, contextId?, title, priority, dueDate?, duration, energyRequired, location }`; `id` is a client-generated UUID; inserts into DB for the dev user; returns created task
-- [x] `GET /api/tasks` — returns all tasks for the dev user from DB as a flat array
-- [x] `POST /api/contexts` — body: `{ name }`; creates context for dev user; returns created context (409 if name already exists)
-- [x] `GET /api/contexts` — returns all contexts for dev user from DB as `{ id, userId, name, createdAt }[]`
-- [x] `POST /api/tasks/:id/split` — atomic transaction: (1) create new parent task from body `{ title }`; (2) set current task's `parent_id` to new parent's id; (3) create blank sibling task under same parent; returns `{ parent, original, sibling }`
-- [x] Update `apps/api/API.md` with all new endpoints
+## 8. Task CRUD API — completed, see TASKS-DONE.md
 
 ---
 
@@ -472,19 +365,17 @@ Surfaced during § 22.7's Storybook review (the Carousel Layer-3 migration, whic
 
 ---
 
-## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
+### 10.4 `PriorityPicker` overflows horizontally on small mobile widths
 
-**Depends on:** section 10 (bugs fixed first).
+Surfaced during § 24.2's Storybook/app review.
 
-`apps/api` is past the 5-endpoint threshold in `CLAUDE.md`'s own stated policy for upgrading from markdown to OpenAPI (7 endpoints today; section 12/13 add 2 more). This is docs-only for now — no request/response validation library is being introduced, and no schema-driven code generation. The spec is hand-authored and kept in sync manually, same discipline `API.md` used, just in a different format with an interactive external view.
+`PriorityPicker.module.css`'s `.group` lays out all five options (Urgent/Soon/Medium/Later/Ongoing) as a single-row segmented control (`.button { flex: 1; }` with fixed `padding: var(--space-2) var(--space-3)`), with no wrapping or min-width handling. At small mobile widths (e.g. 360pt) the five labels plus padding don't fit, and the row overflows rather than shrinking or wrapping.
 
-- [x] Add `apps/api/openapi.yaml` covering every endpoint currently in `API.md` (rank, tasks GET/POST/PUT/split, contexts GET/POST): full request/response schemas and examples, equivalent in content to what `API.md` has today
-- [x] Add `swagger-ui-dist` as an `apps/api` dependency (static assets only — no server framework needed)
-- [x] Serve the raw spec (e.g. `GET /openapi.yaml`) and Swagger UI (e.g. `GET /docs`, pointed at that spec) from `server.ts`
-- [x] Retire `apps/api/API.md` — replace its content with a short pointer to `/docs` (Swagger UI) and `openapi.yaml`, same superseded-doc pattern used for the snooze documentation cleanup, rather than deleting the file outright
-- [x] Update `CLAUDE.md`'s "API Documentation" section: change the standard from markdown/`API.md` to `openapi.yaml` + Swagger UI, and update the "must be documented before implementation is considered complete" rule to point at the spec instead
-- [x] Update `documentation/ARCHITECTURE.md`'s repo-layout listing (currently shows `API.md` as "endpoint documentation, kept in sync with every change") to reference `openapi.yaml` instead
-- [x] Update the still-open `API.md` references later in this file (sections 12 and 13's "update `API.md`" bullets) to say `openapi.yaml` — done in this pass so the plan stays internally consistent
+- [ ] Investigate a fix — candidates: smaller padding/font at narrow widths, wrapping onto two rows, or a horizontally scrollable row — and check whether `DurationPicker`/`EnergyPicker`/`LocationPicker` (same segmented-row pattern) have the same problem
+
+---
+
+## 11. API Documentation Migration to OpenAPI — completed, see TASKS-DONE.md
 
 ---
 
@@ -575,15 +466,7 @@ None of these are indicated by the project's current state — single dev user, 
 
 ---
 
-## 17. Bottom navigation bar (`bottom-nav`)
-
-Replace the current top `NavBar` (`src/components/NavBar/`) with a fixed bottom bar with icon links, matching the mobile-first patterns already used elsewhere in the app (FAB, swipeable carousel).
-
-- [ ] Redesign `NavBar` as a fixed-position bottom bar; icon-based links for Rank / Tasks (label optional depending on space)
-- [ ] Respect mobile safe-area insets (`env(safe-area-inset-bottom)`) so the bar sits above the home-indicator/gesture area on iOS/Android; add enough height/padding that icons aren't flush with the device edge
-- [ ] Check for overlap with the `FAB` (bottom-right) and the carousel's dots/swipe-hint (bottom-center) — adjust their positioning if the new bar collides with either
-- [ ] Update `NavBar` stories to reflect the new layout
-- [ ] Review in Storybook — **approved**
+## 17. Bottom navigation bar — completed, see TASKS-DONE.md
 
 ---
 
@@ -696,7 +579,7 @@ Kept in the bar's right slot so nothing else breaks, but a three-option segmente
 - [x] Removed the `themeToggle` slot from `NavBar.module.css` and the `useTheme`/`ThemeToggle` imports from `NavBar.tsx` — the component now has no theme knowledge at all. `.nav`'s `justify-content` changed from `space-between` to `center` now that there's nothing to push to the right
 - [x] `useTheme()` still needs to run somewhere for its side effects (applying the theme, exposing `window.switchTheme`) even with no UI — mounted in `App.tsx`'s `AppShell` instead
 - [x] Fixed a flash-of-wrong-theme regression this introduced: `index.html`'s inline anti-flash script resolved `'auto'` via the CSS `prefers-color-scheme` fallback, which can now disagree with the JS-computed time-of-day value (e.g. OS set to dark mode at 3pm) — the script now duplicates the same hour split to resolve `'auto'` before first paint
-- [ ] Review in Storybook — **approved**
+- [x] Review in Storybook — **approved**
 
 ---
 
@@ -717,7 +600,7 @@ Makes the Layer-3 block self-documenting instead of a second thing to maintain.
 - [x] Added it to the docs page of every migrated component — no per-component docs-page precedent existed yet (no `tags: ['autodocs']`, no component `.mdx` files), so added `NavBar.mdx`/`FAB.mdx` using `<Meta of={...Stories} />` to attach custom docs to the existing story files; this is the template future migrated components (§ 22.8) should follow
 - [x] Added a test assertion (`src/styles/layer3.test.ts`) that no `*.module.css` in a migrated component's directory references `--color-*`/`--radius-*`/`--shadow-*`/`--control-height-*`/`--focus-ring*` directly (the `--space-*`/font-family/`--motion-*` carve-out from CLAUDE.md stays allowed), failure message pointing at `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
 - [x] Added a matching assertion in the same file that every `/* Label — components/Dir */` group Layer 3 declares has a matching `src/components/Dir` directory on disk, to catch tokens orphaned by a rename. Both assertions discover their component set from `tokens.css`'s own Layer-3 group comments (currently `NavBar`, `FAB`), so they self-scale as more components migrate rather than needing a maintained list
-- [ ] Review in Storybook — **approved**
+- [x] Review in Storybook — **approved**
 
 ---
 
@@ -761,7 +644,7 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`timeOfDayTheme()` in `useTheme.ts`), and the only override is `window.switchTheme('light' | 'dark' | 'auto')` from the browser console. Build a real settings screen so a user can set this without the console.
 
 - [ ] Add a `/settings` route and page
-- [ ] Put `ThemeToggle` (`src/components/ThemeToggle/` — still exists, just unused since § 22.4) on that screen, wired to `useTheme`'s `setTheme`. Apply the segmented-control redesign in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.3 while it's being touched, rather than keeping the bordered-button-group look
+- [ ] `ThemeToggle` no longer exists — deleted in § 24.8 once it was confirmed to have zero real callers (it had briefly become just an unused wrapper around `SplitGroup`). Build the control fresh here instead of reviving it, and decide first: the tinted-track-with-inset-pill construction in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.3 (never actually built — that's what a theme toggle was originally spec'd to look like, distinct from `SplitGroup`'s joined-seam shape) vs. just using `SplitGroup` directly for simplicity. Either way, wire it to `useTheme`'s `setTheme`
 - [ ] Add a way to reach `/settings` from the app — `NavBar` has no slot for it currently; decide whether it gets one or the entry point is elsewhere
 - [ ] Reconsider `timeOfDayTheme()`'s fixed 6am–6pm split at the same time — e.g. treat `Auto` as "time-of-day split" only when the user hasn't explicitly picked Light/Dark, or consider deriving real sunrise/sunset if that's ever worth the complexity
 
@@ -776,6 +659,8 @@ Scheduled by § 22.8 — `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carr
 **Depends on:** § 22.1 — satisfied (`--control-height-*`, `--radius-*`, `--focus-ring*`, `--motion-*` all landed in `tokens.css`).
 
 **Build order:** `Button` (§ 24.1) first, held for review before any of the other nine start — it settles the Layer-3 conventions the rest repeat. § 24.4–24.10 (the seven table-only components) additionally expand their `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 row into a full token block as part of their own task, not up front.
+
+**Fixed during § 24.1/24.2 work, cross-cutting:** the user supplied the real design file (`documentation/Tendril components design.png`, dark theme) and flagged that the app/Storybook background had been set to `--color-bg-surface` — the artboard shows the opposite pairing: `--color-bg-page` (canvas) is the page everything sits on, `--color-bg-surface` is for things that lift off it (cards, inputs, menus, chips). Fixed the root in both places (`apps/web/src/index.css`'s `:root`, `.storybook/preview.ts`'s body background) to `--color-bg-page`. That surfaced the same pre-existing mistake in nine component files that were using `--color-bg-page` for their *own* elevated fill instead of `--color-bg-surface` (previously invisible because the page itself was wrongly the surface color, which accidentally gave some contrast) — fixed all of them: `TaskCard.module.css` (`.outlined`, `.dense`), `Select.module.css`, `LocationPicker.module.css`, `EnergyPicker.module.css`, `TaskCreationForm.module.css` (title input, new-context input), `TaskCreationPage.module.css`, `TaskTreeItem.module.css`, `DurationPicker.module.css`, `PriorityPicker.module.css` (pill button, date input), `ThemeToggle.module.css`. These are all still pre-migration components referencing Layer 2 directly — no Layer-3 groups were added here, that happens when each one gets its own § 24.x task.
 
 **Per-component checklist** (from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 5 — apply to every subsection below rather than repeating it ten times):
 ```
@@ -835,9 +720,12 @@ The most-needed missing primitive. Variants: `primary`, `secondary`, `ghost`, `d
 
 Primary is a **fill**, not an outline — this app is Tendril throughout, the two systems (Tendril fills, Nocturne outlines) are never mixed. Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
 
-- [ ] Build `components/Button` per the checklist above
-- [ ] Stories: all four variants × both sizes, plus `block`, `disabled`, `loading`, and the icon-only 44px square variant
-- [ ] Review in Storybook — **approved**
+- [x] Build `components/Button` per the checklist above
+- [x] Stories: all four variants × both sizes, plus `block`, `disabled`, `loading`, and the icon-only 44px square variant
+- [x] Review in Storybook — **approved**
+- [x] Integrate at existing call sites: `EmptyState.tsx`'s "← Back to parameters" button (now `ghost`/`sm`, wrapped in a centered `.backButtonWrapper` since Button doesn't take a `className`); `TaskCreationForm.tsx`'s Add/Cancel (inline context creation, `sm`), Cancel/Save task (form actions — Save now uses `Button`'s own `loading` spinner instead of swapping to "Saving…" text), removing the now-dead `.addButton`/`.cancelContextButton`/`.cancelButton`/`.submitButton` CSS
+- [x] Extended `Button` with optional `type` (`"button" | "submit"`, default `"button"`) and made `onClick` optional — needed for `TaskCreationForm`'s submit button, which relies on the enclosing `<form onSubmit>` rather than a click handler
+- [ ] **Decided (not integrated):** `TaskCard.tsx`'s complete/snooze/delete/start icon actions keep their existing bespoke markup/inline-color styling rather than moving to `Button` — the per-action pastel tints (`InProgressBlock.tsx`) don't fit the four fixed variants, and forcing them through `Button` now would mean picking colors without a real design pass. Revisit as its own task if/when TaskCard's action styling is redesigned.
 
 ---
 
@@ -872,10 +760,13 @@ The label/control/help triplet is one component with `label`, `help`, and `error
   --input-help-fg-error:   var(--color-error);
 ```
 
-- [ ] Build `components/TextInput` per the checklist above, sharing markup/tokens between the single-line and textarea variants
-- [ ] Props: `label`, `help`, `error`, plus the standard controlled-input set (`value`, `onChange`, `placeholder`, `disabled`, `type` for TextInput vs. `rows` for Textarea) — finalize exact prop names against artboard 05 at implementation time, not fixed here
-- [ ] Stories: default, focused, disabled, error (with `help` replaced by the error message), and the textarea variant at its `--input-min-height` floor
-- [ ] Review in Storybook — **approved**
+- [x] Build `components/TextInput` per the checklist above, sharing markup/tokens between the single-line and textarea variants — one internal `FieldChrome` renders the label/control/help triplet for both `TextInput` and `Textarea` via a render-prop, so the a11y wiring (`id`, `aria-describedby`, `aria-invalid`) isn't duplicated
+- [x] Props: `label`, `help`, `error`, `hideLabel` (visually hides the label via the app's existing global `.sr-only`, needed for `TaskCreationForm`'s title field which has no visible label today), plus the standard controlled-input set (`value`, `onChange`, `placeholder`, `disabled`, `type` for TextInput vs. `rows` for Textarea) — no artboard was available to check exact naming against, so these are a best-effort match to the task's own stated set; open to renaming on review
+- [x] Stories: default, focused (autofocus via a small ref-based wrapper, no interaction-test addon in use elsewhere in this repo), disabled, help, error (with `help` replaced by the error message), and the textarea variant at its `--input-min-height` floor
+- [x] User supplied the real artboard (`documentation/Tendril text input design.png`) after the component was built from the § 4 spec snippet alone. Checked against it and fixed two real mismatches: `--input-label-size` was `--font-size-micro` (11px) but the artboard's field labels render bold and body-sized — `--font-size-micro` is correct for `--input-help-size` (the small gray annotation captions) instead, not the label; `--input-label-fg` was `--color-text-body` but the artboard's labels read as strong/dark ink, not muted. Also added `--input-fg-disabled` (`--color-text-disabled`) — the disabled example's value text is visibly faded, which nothing in the original spec snippet accounted for (only the background was specified as changing). Background, border, focus ring (3px tint ring + accent border), error styling, placeholder color, and textarea's 12px padding all matched the artboard as originally built.
+- [x] Review in Storybook — **approved**
+- [x] Integrate at existing call sites: `TaskCreationForm.tsx`'s task-title input (its `titleError` boolean now maps to `error="Title is required"`) and its inline "new context name" input (kept its Enter/Escape `onKeyDown` and `autoFocus`); `PriorityPicker.tsx`'s `<input type="date">`. Removing the raw markup left `.titleInput`/`.inputError`/`.errorText`/`.newContextInput` (TaskCreationForm) and `.dateInput` (PriorityPicker) dead — deleted.
+- [x] Extended `TextInput` with `autoFocus` and `onKeyDown` (both pass straight through to the underlying `<input>`) — needed by the two `TaskCreationForm` call sites (autofocus on mount; Enter submits the new context, Escape cancels it), neither anticipated when the component was built in isolation
 
 ---
 
@@ -906,11 +797,13 @@ The label/control/help triplet is one component with `label`, `help`, and `error
   --card-kicker-fg:      var(--color-primary);
 ```
 
-Note: this is a distinct primitive from the existing `entity/TaskCard`, which predates this token model and still uses `--color-bg-page`/`--color-border` directly (see § 22.7's contrast findings). Whether `TaskCard` should eventually be rebuilt on top of this `Card` primitive, or stay separate, is an open question for whenever this task starts — not decided here.
+Note: this is a distinct primitive from the existing `entity/TaskCard`, which predates this token model and (as of the cross-cutting background-token fix earlier in § 24) now uses `--color-bg-surface`/`--color-border` directly rather than going through `--card-*`. Whether `TaskCard` should eventually be rebuilt on top of this `Card` primitive, or stay separate, is an open question for whenever this task starts — not decided here.
 
-- [ ] Build `components/Card` per the checklist above. Exact prop shape (`title`, `meta`, `kicker`, `active`, children/content slot) isn't fixed here — derive from artboard 05 at implementation time
-- [ ] Stories: default, active (bordered, no shadow), with/without kicker, light and dark
-- [ ] Review in Storybook — **approved**
+- [x] Build `components/Card` per the checklist above. Props landed as `title`, `kicker?`, `meta?`, `active?`, and a `children` content slot (for e.g. action buttons) — derived from the dark-theme artboard's "NEXT / Ring the bike shop about the wheel / Ten minutes… / [Done] [Later]" example (`documentation/Tendril components design.png`, CARD · LIST ROW section), no separate artboard 05 was available. Card itself is presentational only (no `onClick`/focus handling) — the artboard's own interactive elements inside a card are separate `Button`s
+- [x] Stories: default (no kicker), with kicker, active (with `Done`/`Later` `Button` children, bordered, no shadow)
+- [x] Review in Storybook — **approved**
+- [x] Made `title` optional (children render as the entire content when omitted) — neither flagged call site has title/meta text of its own: `InProgressBlock` wraps a nested `TaskCard` + a prompt string, and `ResultsSlide`'s skeleton renders shimmer placeholder bars, not real text. Added a `ChromeOnly` story demonstrating this mode.
+- [x] Integrate at existing call sites: `InProgressBlock.tsx`'s bordered/padded container (deleted `.container` CSS) and `ResultsSlide.tsx`'s `.skeletonCard` (deleted its CSS) both now use `Card` in chrome-only mode, both at `Card`'s single default radius (`--radius-lg`) — briefly added a second `radius="compact"` variant to match the skeleton to `TaskCard`'s separate `--radius-md`, then reverted per user feedback: not worth two radius variants on the primitive just to paper over `TaskCard` predating it. The mismatch stays exactly what it already was — the tracked open question above about whether `TaskCard` moves onto `Card`
 
 ---
 
@@ -920,9 +813,12 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 gives the starting point only — expand into a full token block as part of this task: `--radio-*`, 22px, `--radius-full`, 11px inner dot at `--color-primary`.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Radio` per the checklist above
-- [ ] Stories: unchecked, checked, disabled, disabled+checked
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Radio` per the checklist above. Single controlled radio (`checked`/`onChange`/`label`/`disabled`), same minimal shape as the existing (pre-migration, unstyled-native) `Checkbox` — not a `RadioGroup`, since nothing consumes this yet and building group/exclusivity management with no caller would be speculative. Unlike `Checkbox`, the native `<input>` is visually hidden and a sibling `<span>` renders the custom 22px ring + 11px dot (`:checked`/`:disabled`/`:focus-visible` driven off the real input via sibling selectors), since the artboard's radio is fully custom-styled, not the browser default `Checkbox` left in place
+- [x] Stories: unchecked, checked, disabled, disabled+checked
+- [x] Fixed a click bug found in Storybook review: `.dot` (the visual circle, absolutely positioned over the real input) had no `pointer-events: none`, so it intercepted every click before it reached the actual `<input>` — nothing ever toggled when clicking the visible circle itself. Clicking the label text still worked (native `label[for]` behavior bypasses the stacking order), which is why this wasn't obvious from the code alone.
+- [x] User then found they could check but not uncheck a radio in Storybook — expected native behavior (a lone radio can only go unchecked→checked by click; it's only ever unchecked by a *different* radio in the same group getting checked), but exposed a real gap: `Radio` had no `name` prop at all, so it couldn't form a real native group even if two were rendered side by side. Added `name?: string` (passed straight to the `<input>`) and a `Group` story (two `Radio`s sharing a `name`, local `useState` picking between them) so the exclusive-selection behavior is actually verifiable in Storybook
+- [x] Review in Storybook — **approved**
+- [ ] No existing raw `<input type="radio">` or circular-radio UI found in the app to integrate — the closest existing analogs (`EnergyPicker`, `LocationPicker`, `DurationPicker`, `PriorityPicker`) are pill-shaped single-select groups that map to Chip (§ 24.6) instead. Leave unintegrated until a real call site needs this shape.
 
 ---
 
@@ -932,9 +828,10 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--switch-*`, 44×26 track `--radius-full`, 20px knob on `--color-bg-surface` + `--shadow-sm`.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Switch` per the checklist above
-- [ ] Stories: off, on, disabled, disabled+on
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Switch` per the checklist above. Same hidden-native-input + styled-sibling pattern as `Radio` (applied the `pointer-events: none` fix on the visual layer from the start, learned from Radio's Storybook bug) — `<input type="checkbox" role="switch">` for correct a11y semantics, sibling `track`/`knob` spans driven off `:checked`/`:disabled`/`:focus-visible`
+- [x] Stories: off, on, disabled, disabled+on
+- [x] Review in Storybook — **approved**
+- [ ] No existing toggle-switch markup found in the app to integrate. Leave unintegrated until a real call site needs one.
 
 ---
 
@@ -944,9 +841,10 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--chip-*`, 34px, `--radius-xs`, selected = `--color-primary-tint` fill + `--color-primary` text, border transparent.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Chip` per the checklist above
-- [ ] Stories: unselected, selected, disabled
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Chip` per the checklist above. Unlike `Radio`/`Switch`, this is a plain `<button>` (no native form-control equivalent for a chip, and the existing pill-picker call sites already use `<button aria-pressed>`) — props are `label`, `selected`, `onClick`, `disabled`, plus an optional `icon` slot since the real call sites (`EnergyPicker`, `LocationPicker`) render an icon beside the label
+- [x] Stories: unselected, selected, disabled
+- [x] Review in Storybook — **approved**
+- [x] **Finding:** on closer inspection, `EnergyPicker.tsx`/`DurationPicker.tsx`/`PriorityPicker.tsx` render a *joined segmented row* (buttons butted together, `margin-left: -1px`, only first/last corners rounded, one shared border ring, always exactly one selected) — structurally and semantically `SplitGroup` (§ 24.8, "mutually exclusive"), not `Chip` (separate gapped pills, "pick any"). Only `LocationPicker.tsx` (deselectable — can toggle off to none) actually matches `Chip`'s shape. Per user decision, deferred all four together rather than integrating `LocationPicker` alone at the time — resolved once `SplitGroup` was built: see § 24.8 for the actual integration of all four (three onto `SplitGroup`, `LocationPicker` onto `Chip`)
 
 ---
 
@@ -956,9 +854,11 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--list-row-*`, 44px min, `--radius-md`, selected = `--color-primary-tint`, 8px leading dot.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/ListRow` per the checklist above
-- [ ] Stories: default, selected, with/without leading dot
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/ListRow` per the checklist above. Props: `title`, `meta?`, `selected?`, `onClick`, `disabled?`. **Correction after user re-checked the artboard:** the leading dot isn't selected-only — every row has one, just muted (`--color-border-input`) when unselected and recolored to accent (`--color-primary`) when selected; originally built as conditional-on-selected only, fixed to always render and just swap `--list-row-dot-bg`/`--list-row-dot-bg-selected`
+- [x] Stories: default, selected, with/without leading dot (now both stories show the dot, just recolored), plus a no-meta variant
+- [x] Review in Storybook — **approved**
+- [x] **Finding:** `TaskTreeItem.tsx`'s row turned out not to match `ListRow`'s shape — no selection state at all, a leading expand/collapse chevron instead of a selection dot, and trailing inline progress text ("12 / 30 min") instead of a meta line stacked below the title. `TaskCreationPage.tsx`'s `CreatedTaskRow` (parent-task picker) is the clean fit — title/meta/`selected` matches the artboard's own "1 selected" example almost exactly. Per user decision: integrate `CreatedTaskRow` only; `TaskTreeItem` stays as its own thing rather than stretching `ListRow`'s API with generic leading/trailing slots to force a fit. See § 24.12 for reconsidering `TaskTreeItem`'s own design instead.
+- [x] Integrate `ListRow` into `TaskCreationPage.tsx`'s `CreatedTaskRow` — now a thin wrapper composing the priority/duration/energy/context fields into `ListRow`'s single `meta` string. Deleted the now-dead `.taskRow`/`.taskRow:hover`/`.taskRowSelected`/`.taskTitle`/`.taskMeta` CSS.
 
 ---
 
@@ -968,9 +868,13 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--split-*`, 44px, outer `--radius-md`, 1px `--color-border-input` seams, selected = `--color-primary-tint`.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/SplitGroup` per the checklist above
-- [ ] Stories: 2-way and 3-way splits, one segment selected, disabled
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/SplitGroup` per the checklist above. Generic over a string-literal type (`SplitGroupOption<T>[]`, `value: T`, `onChange: (value: T) => void`) so it slots into each picker's own value type (`EnergyLevel`, priority number-as-string, etc.) without a cast. Same joined-segment CSS technique as the existing (pre-migration) `EnergyPicker`/`DurationPicker`/`PriorityPicker` — negative-margin overlap, first/last-child radius — since that's exactly the shape being formalized
+- [x] Stories: 2-way and 3-way splits, one segment selected, disabled
+- [x] User checked whether icon+label segments (as in `EnergyPicker`'s real pills) would work — they didn't yet: `SplitGroupOption` had no icon field. Added an optional `icon` (rendered above the label, matching `EnergyPicker`'s current vertical icon-over-text layout), switched `.segment` from a fixed 44px `height` to `min-height` so icon segments can grow past it, and added a `WithIcons` story
+- [x] Review in Storybook — **approved**
+- [x] Integrate at existing call sites: `ThemeToggle.tsx`'s 3-way Light/Auto/Dark control — first made into a thin wrapper around `SplitGroup`, then deleted outright per user follow-up once it was clearly zero-value (no real caller, not atomic). **Finding while deleting it:** `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.3 shows `ThemeToggle` was originally spec'd as a *different* construction entirely — a tinted track with an inset selected pill, no shared borders — distinct from `SplitGroup`'s joined-seam shape; that design was never actually built, and wrapping `ThemeToggle` around `SplitGroup` used the wrong one. No live impact today since there's no caller, but flagged in § 23 and § 3.3 for whoever builds the real theme control. `ThemePreviewToggle.tsx`'s 2-way Light/Dark toggle is Storybook-docs tooling only, not app UI — left as-is, optional/lower priority.
+- [x] Also (found during § 24.6's `Chip` integration pass): `EnergyPicker.tsx`, `DurationPicker.tsx`, and `PriorityPicker.tsx` were joined segmented rows — the same shape as this component, not `Chip`. Integrated all three onto `SplitGroup` here instead. `DurationPicker`/`PriorityPicker`'s `value` is a `number`; `SplitGroup` is generic over `T extends string`, so both map `String(value)`/`Number(val)` at the boundary rather than widening the primitive to accept numbers for two callers. `EnergyPicker` supplies its existing `EnergyIcon` per option via `SplitGroup`'s new `icon` slot. Deleted the now-dead joined-segment CSS (`.group`/`.button`/`.selected`/`.levelLabel` and friends) from all three
+- [x] `LocationPicker.tsx` (the one genuine `Chip` call site among the four) integrated onto `Chip` at the same time. Note: this is a real visual change, not just a token swap — `LocationPicker` previously rendered the same *joined* segmented shape as the other three (icon-above-label, taller pills), but `Chip`'s artboard shape is a fixed 34px single-row pill, so the icon moved from above the label to beside it and the pills are now separate with gaps instead of joined seams. This follows directly from `LocationPicker` being the deselectable/"pick any" one — flag if the shorter, gapped-pill look doesn't read right at this call site.
 
 ---
 
@@ -980,9 +884,14 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 
 `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 starting point: `--message-*`, `--color-bg-surface`, `--radius-md`, 7px status dot in `--color-success` / `--color-error`.
 
-- [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/InlineMessage` per the checklist above
-- [ ] Stories: success, error
-- [ ] Review in Storybook — **approved**
+- [x] Expand the § 4.4 row into a full Layer-3 token block, then build `components/InlineMessage` per the checklist above. Props: `status` (`"success" | "error"`), `children: ReactNode` (not `string` — `TaskCreationPage`'s "Adding as subtask of **X**" call site needs embedded markup, not plain text). `role="alert"` for error, `role="status"` for success
+- [x] Stories: success, error
+- [x] Review in Storybook — **approved**
+- [x] Added a third `status: "info"` (muted dot, `role="status"`) — two of the six flagged call sites (`TaskCreationPage`'s subtask notice, `InProgressBlock`'s prompt) turned out to be neutral banners, not success/error, which the § 4.4 spec's two-status design didn't cover
+- [x] `TaskCreationForm.tsx`'s "Title is required" is **not** an `InlineMessage` call site after all — it's rendered through `TextInput`'s own `error` prop (§ 24.2), which is the correct place for a field-level validation message (linked via `aria-describedby`); wrapping it separately would duplicate/conflict with that
+- [x] Integrated: `ResultsSlide.tsx`'s "Failed to load results" (error); `InProgressPage.tsx`'s fetch-failure message (error); `TaskDetailPage.tsx`'s top-level fetch-error and the `actionError` start/split-failure banner (both error; the "Loading…" text stayed plain, not a status message); `TaskCreationPage.tsx`'s save-failure error and "Adding as subtask of…" banner (now `info` — previously an ad hoc `--color-primary-tint` pill, now the standard surface+dot treatment, a real visual change worth a look) — wrapped both in a small `.notice` div since `InlineMessage` doesn't take a `className` and the old classes carried the bottom margin. Also found and fixed `TasksPage.tsx`'s identical fetch-error text, which wasn't in the original candidate list.
+- [x] **Left `InProgressBlock.tsx`'s "Finish this task or mark it complete…" prompt as plain text, not integrated:** it renders inside a `Card`, and `Card`/`InlineMessage` share the same `--color-bg-surface` background — nesting one inside the other would make the message pill invisible (no contrast against its own container). Revisit if `Card` or `InlineMessage` ever gets a way to differentiate nested surface levels.
+- [x] Deleted now-dead `.error`/`.subtaskNotice` CSS from every touched file (`ResultsSlide`, `InProgressPage`, `TaskDetailPage`, `TaskCreationPage`, `TasksPage`)
 
 ---
 
@@ -995,6 +904,45 @@ Note: this is a distinct primitive from the existing `entity/TaskCard`, which pr
 - [ ] Expand the § 4.4 row into a full Layer-3 token block, then build `components/Sheet` per the checklist above
 - [ ] Stories: open/closed states, with a scrollable-content variant
 - [ ] Review in Storybook — **approved**
+- [ ] No dedicated overlay markup exists yet. `TaskDetailPage.tsx`'s Split action uses a native `window.prompt("Name the new parent task:")` — the nearest analog, but replacing it means designing the input flow inside a sheet, not just swapping a container. Treat as a follow-up decision when this task starts, not a mechanical integration.
+
+---
+
+### 24.11 Skeleton (`primitive-skeleton`)
+
+**Depends on:** § 24.1 (`Button`) reviewed and approved first.
+
+Added after § 24.3 (`Card`): `ResultsSlide.tsx`'s loading placeholder (shimmer bars inside a `Card`) is currently one-off, feature-local CSS (`ResultsSlide.module.css`'s `.skeletonLine`/`.skeletonTitle`/`.skeletonMeta` + `@keyframes shimmer`) rather than a shared primitive — formalize it so any future loading state reuses the same shimmer treatment instead of re-implementing it.
+
+Not in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` — no artboard reference for this one; derive the token block from `ResultsSlide`'s existing shimmer implementation (gradient sweep over `--color-border`, `1.4s` cycle) rather than a design doc.
+
+- [ ] Design the token block (line height(s), radius, shimmer base/highlight colors, cycle duration) and add it to `tokens.css` under `/* Skeleton — components/Skeleton */`
+- [ ] Build `components/Skeleton` per the checklist above — likely a single bar primitive (`width`/`height` props) that `ResultsSlide` composes multiple of, same shape as its current two stacked lines
+- [ ] Stories: single bar at a few widths, and a composed multi-line example matching `ResultsSlide`'s current title+meta pair
+- [ ] Review in Storybook — **approved**
+- [ ] Integrate at existing call site: `ResultsSlide.tsx`'s skeleton lines — delete `.skeletonLine`/`.skeletonTitle`/`.skeletonMeta`/`@keyframes shimmer` from `ResultsSlide.module.css` once replaced. Also update `Atomic/Card`'s `Skeleton` story (added during § 24.3 review) to use the new primitive instead of its static inline-styled bars
+
+---
+
+### 24.12 Reconsider `TaskTreeItem`'s row design (`task-tree-item-redesign`)
+
+Added during § 24.7 (`ListRow`): `TaskTreeItem.tsx`'s expandable row (leading chevron, title, trailing inline progress, no selection state) doesn't match `ListRow`'s shape (leading dot, title + stacked meta, selectable) or any other migrated primitive, so it was deliberately left out of that integration rather than force-fit. Since it's the only remaining un-migrated "row" in the task list/tree UI, decide whether it should be redesigned to align with `ListRow` (or a variant of it) or is legitimately a distinct shape (a disclosure row, not a selectable list item) that just needs its own Layer-3 tokens.
+
+- [ ] Compare `TaskTreeItem`'s row against `ListRow` and the artboard and decide: adapt `ListRow` (e.g. generic leading/trailing slots), give `TaskTreeItem` its own small token-driven primitive, or leave it as a pre-migration component like `TaskCard`
+- [ ] Whichever direction — migrate `TaskTreeItem.module.css`'s `.row`/`.indicator`/`.title`/`.progress` off direct Layer-2 references
+
+---
+
+### 24.13 Redesign `Select` (`select-redesign`) — blocked on a mobile design
+
+Added after user review of the DROPDOWN/SELECT artboard section. `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.4 already anticipated this and lays out two options that were never turned into a task: (a) keep the native `<select>`, migrate only the closed-field styling onto `--select-*` tokens (cheap, no custom open-menu — the doc's own "correct choice for now"); (b) replace it with a fully custom listbox matching the artboard's open state exactly (18px radius menu, 40px rows, `--color-primary-tint` selected row, `--shadow-md`) — real cost: keyboard handling, focus trapping, positioning.
+
+User wants a third direction beyond either of those: the **same** `Select` component opening as a dropdown on desktop and as a **bottom sheet** on mobile. There is no design for the mobile bottom-sheet variant yet — do not invent one. This also depends on § 24.10 (`Sheet`/`Modal`), which doesn't exist yet either.
+
+- [ ] **Blocked:** get or create a design for the mobile bottom-sheet variant of `Select` before implementation starts
+- [ ] Once designed, sequence this after § 24.10 (`Sheet`/`Modal`) is built, since the mobile variant presumably composes it
+- [ ] Decide the responsive-switch mechanism (viewport breakpoint via CSS/JS, or a shared hook) and whether `Select`'s external API (`options`/`value`/`onChange`/`label`/`placeholder`/`disabled`) needs to change to support both presentations
+- [ ] Migrate the closed-field styling onto `--select-*` tokens (§ 3.4 option (a)'s block) regardless of which open-state direction wins — that part isn't blocked on the above
 
 ---
 

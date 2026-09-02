@@ -4,6 +4,8 @@ import { TaskCreationForm, type TaskCreationPayload } from "../TaskCreationForm/
 import { getContextItems, type ContextItem } from "../../../services/contextService";
 import { createTask, createContext } from "../../../services/taskCreationService";
 import type { Task } from "../../../types/task";
+import { ListRow } from "../../../components/ListRow/ListRow";
+import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./TaskCreationPage.module.css";
 
 const PRIORITY_LABELS: Record<number, string> = {
@@ -27,20 +29,9 @@ function CreatedTaskRow({
 }) {
   const contextName = contexts.find((c) => c.id === task.contextId)?.name;
   const priorityLabel = PRIORITY_LABELS[task.priority] ?? `P${task.priority}`;
+  const meta = `${priorityLabel} · ${task.duration} min · ${task.energyRequired}${contextName ? ` · ${contextName}` : ""}`;
 
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`${styles.taskRow} ${selected ? styles.taskRowSelected : ""}`}
-    >
-      <span className={styles.taskTitle}>{task.title}</span>
-      <span className={styles.taskMeta}>
-        {priorityLabel} · {task.duration} min · {task.energyRequired}
-        {contextName ? ` · ${contextName}` : ""}
-      </span>
-    </button>
-  );
+  return <ListRow title={task.title} meta={meta} selected={selected} onClick={onClick} />;
 }
 
 export function TaskCreationPage() {
@@ -92,11 +83,17 @@ export function TaskCreationPage() {
     <div className={styles.page}>
       <h1 className={styles.heading}>Add tasks</h1>
       {parentTitle && (
-        <p className={styles.subtaskNotice}>
-          Adding as subtask of <strong>{parentTitle}</strong>
-        </p>
+        <div className={styles.notice}>
+          <InlineMessage status="info">
+            Adding as subtask of <strong>{parentTitle}</strong>
+          </InlineMessage>
+        </div>
       )}
-      {error && <p className={styles.error}>{error}</p>}
+      {error && (
+        <div className={styles.notice}>
+          <InlineMessage status="error">{error}</InlineMessage>
+        </div>
+      )}
       <TaskCreationForm
         key={formKey}
         contexts={contexts}

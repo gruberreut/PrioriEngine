@@ -1,3 +1,4 @@
+import { Button } from "../../../components/Button/Button";
 import styles from "./EmptyState.module.css";
 
 export interface EmptyStateProps {
@@ -17,9 +18,11 @@ export function EmptyState({ context, message, onBack }: EmptyStateProps) {
     <div className={styles.container}>
       <p className={styles.message}>{text}</p>
       {onBack && (
-        <button className={styles.backButton} onClick={onBack}>
-          ← Back to parameters
-        </button>
+        <div className={styles.backButtonWrapper}>
+          <Button variant="ghost" size="sm" onClick={onBack}>
+            ← Back to parameters
+          </Button>
+        </div>
       )}
     </div>
   );

@@ -1,0 +1,63 @@
+/* Tokens: --input-* (see styles/tokens.css) */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--input-label-size);
+  font-weight: 500;
+  color: var(--input-label-fg);
+}
+
+.control {
+  height: var(--input-height);
+  padding: 0 var(--input-pad-x);
+  border: 1px solid var(--input-border);
+  border-radius: var(--input-radius);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  font-family: inherit;
+  font-size: var(--input-size);
+  transition: border-color var(--motion-fast) var(--motion-ease),
+              box-shadow var(--motion-fast) var(--motion-ease);
+}
+
+.control::placeholder {
+  color: var(--input-fg-placeholder);
+}
+
+.control:disabled {
+  background: var(--input-bg-disabled);
+  color: var(--input-fg-disabled);
+  cursor: not-allowed;
+}
+
+.control:focus-visible {
+  outline: none;
+  border-color: var(--input-border-focus);
+  box-shadow: var(--input-focus-ring);
+}
+
+.controlError {
+  border-color: var(--input-border-error);
+}
+
+.textarea {
+  height: auto;
+  min-height: var(--input-min-height);
+  padding: var(--input-pad-y) var(--input-pad-x);
+  font-family: inherit;
+  resize: vertical;
+}
+
+.help {
+  font-size: var(--input-help-size);
+  color: var(--input-help-fg);
+}
+
+.helpError {
+  color: var(--input-help-fg-error);
+}

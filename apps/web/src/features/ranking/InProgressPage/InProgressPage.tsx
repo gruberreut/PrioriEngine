@@ -4,6 +4,7 @@ import type { Task } from "../../../types/task";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
 import { getTasksByStatus } from "../../../services/taskService";
 import { resolveTask } from "../../tasks/resolveTask";
+import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./InProgressPage.module.css";
 
 type State =
@@ -46,7 +47,7 @@ export function InProgressPage({ initialState }: InProgressPageProps) {
   if (state.status === "error") {
     return (
       <div className={styles.page}>
-        <p className={`${styles.message} ${styles.error}`}>{state.message}</p>
+        <InlineMessage status="error">{state.message}</InlineMessage>
       </div>
     );
   }

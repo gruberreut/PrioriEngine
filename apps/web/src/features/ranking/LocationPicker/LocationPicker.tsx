@@ -1,4 +1,5 @@
 import { LocationIcon, LOCATION_LABELS, type LocationRequirement } from "../LocationIcon/LocationIcon";
+import { Chip } from "../../../components/Chip/Chip";
 import styles from "./LocationPicker.module.css";
 
 export type { LocationRequirement };
@@ -18,17 +19,14 @@ export function LocationPicker({ value, onChange, label, disabled = false }: Loc
       {label && <span className={styles.label}>{label}</span>}
       <div className={styles.group} role="group" aria-label={label ?? "Location"}>
         {LOCATIONS.map((loc) => (
-          <button
+          <Chip
             key={loc}
-            type="button"
+            label={LOCATION_LABELS[loc]}
+            icon={<LocationIcon location={loc} size={16} />}
+            selected={value === loc}
             onClick={() => onChange(value === loc ? undefined : loc)}
             disabled={disabled}
-            aria-pressed={value === loc}
-            className={`${styles.button} ${value === loc ? styles.selected : ""}`}
-          >
-            <LocationIcon location={loc} size={20} />
-            <span className={styles.levelLabel}>{LOCATION_LABELS[loc]}</span>
-          </button>
+          />
         ))}
       </div>
     </div>

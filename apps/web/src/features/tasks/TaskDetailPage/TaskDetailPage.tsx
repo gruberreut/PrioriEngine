@@ -6,6 +6,7 @@ import { Icon } from "../../../components/Icon/Icon";
 import { Play } from "../../../assets/icons/Play";
 import { getTasks, updateTask, splitTask } from "../../../services/taskService";
 import { resolveTask, getAncestors } from "../resolveTask";
+import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./TaskDetailPage.module.css";
 
 type State =
@@ -52,7 +53,7 @@ export function TaskDetailPage({ taskId: propTaskId, initialState }: TaskDetailP
   if (state.status === "error") {
     return (
       <div className={styles.page}>
-        <p className={`${styles.message} ${styles.error}`}>{state.message}</p>
+        <InlineMessage status="error">{state.message}</InlineMessage>
       </div>
     );
   }
@@ -127,7 +128,7 @@ export function TaskDetailPage({ taskId: propTaskId, initialState }: TaskDetailP
 
   return (
     <div className={styles.page}>
-      {actionError && <p className={`${styles.message} ${styles.error}`}>{actionError}</p>}
+      {actionError && <InlineMessage status="error">{actionError}</InlineMessage>}
       <TaskCard
         task={cardTask}
         flavor="outlined"

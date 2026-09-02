@@ -4,6 +4,7 @@ import { Moon } from "../../../assets/icons/Moon";
 import { Trash } from "../../../assets/icons/Trash";
 import type { Task } from "../../../types/task";
 import { TaskCard, type TaskAction } from "../../../entity/TaskCard/TaskCard";
+import { Card } from "../../../components/Card/Card";
 import styles from "./InProgressBlock.module.css";
 
 const ACTIONS: TaskAction[] = [
@@ -19,11 +20,11 @@ export interface InProgressBlockProps {
 
 export function InProgressBlock({ task, onAction }: InProgressBlockProps) {
   return (
-    <div className={styles.container}>
+    <Card>
       <TaskCard task={{ ...task, status: "in_progress" }} flavor="flat" actions={ACTIONS} onAction={onAction} />
       <div className={styles.prompt}>
         Finish this task or mark it complete to get new suggestions.
       </div>
-    </div>
+    </Card>
   );
 }

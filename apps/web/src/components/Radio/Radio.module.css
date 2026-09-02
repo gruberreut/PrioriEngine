@@ -1,0 +1,80 @@
+/* Tokens: --radio-* (see styles/tokens.css) */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--radio-row-height);
+}
+
+.control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: var(--radio-size);
+  height: var(--radio-size);
+}
+
+.input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.input:disabled {
+  cursor: not-allowed;
+}
+
+.dot {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 2px solid var(--radio-border);
+  border-radius: var(--radio-radius);
+  background: var(--radio-bg);
+  transition: border-color var(--motion-fast) var(--motion-ease);
+}
+
+.dot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--radio-dot-size);
+  height: var(--radio-dot-size);
+  border-radius: var(--radio-radius);
+  background: var(--radio-dot-bg);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.input:disabled + .dot {
+  background: var(--radio-bg-disabled);
+}
+
+.input:checked + .dot {
+  border-color: var(--radio-border-checked);
+}
+
+.input:checked + .dot::after {
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.input:focus-visible + .dot {
+  outline: none;
+  box-shadow: var(--radio-focus-ring);
+}
+
+.label {
+  font-size: var(--radio-label-size);
+  font-weight: 500;
+  color: var(--radio-label-fg);
+  cursor: pointer;
+}
+
+.labelDisabled {
+  color: var(--radio-label-fg-disabled);
+  cursor: not-allowed;
+}

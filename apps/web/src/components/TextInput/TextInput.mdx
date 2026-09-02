@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as TextInputStories from './TextInput.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={TextInputStories} />
+
+# TextInput
+
+One label/control/help triplet, shared between `TextInput` (single-line) and `Textarea` (multiline) — not three separate components. An `error` message replaces `help` and swaps the border/help color; it never changes the field's background. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.2 for the design rationale.
+
+## Tokens
+
+Every `--input-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--input-" />

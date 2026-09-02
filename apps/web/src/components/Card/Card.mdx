@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as CardStories from './Card.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={CardStories} />
+
+# Card
+
+A titled content block with an optional uppercase `kicker` label above the title, an optional `meta` description line, and an optional content slot for actions. `active` swaps the resting shadow for an accent border instead of lifting the card off the page. Distinct from `entity/TaskCard`, which predates this token model — see `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.3 for the design rationale and the open question about whether `TaskCard` eventually moves onto this primitive.
+
+## Tokens
+
+Every `--card-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--card-" />

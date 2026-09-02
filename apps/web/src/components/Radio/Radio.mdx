@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as RadioStories from './Radio.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={RadioStories} />
+
+# Radio
+
+A single controlled radio control (not a group) — 22px circular indicator with an 11px inner dot, in a 44px tappable row. The native `<input type="radio">` stays in the DOM (visually hidden) for accessibility/keyboard behavior; a sibling `<span>` renders the custom circle, styled off the input's `:checked`/`:disabled`/`:focus-visible` state. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 for the design rationale.
+
+## Tokens
+
+Every `--radio-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--radio-" />

@@ -1,0 +1,64 @@
+/* Tokens: --split-* (see styles/tokens.css) */
+
+.group {
+  display: flex;
+}
+
+.segment {
+  position: relative;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  flex: 1;
+  min-height: var(--split-height);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--split-seam);
+  background: var(--split-bg);
+  color: var(--split-fg);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease),
+              color var(--motion-fast) var(--motion-ease);
+}
+
+.segment + .segment {
+  margin-left: -1px;
+}
+
+.segment:first-child {
+  border-radius: var(--split-radius) 0 0 var(--split-radius);
+}
+
+.segment:last-child {
+  border-radius: 0 var(--split-radius) var(--split-radius) 0;
+}
+
+.segment:disabled {
+  background: var(--split-bg-disabled);
+  color: var(--split-fg-disabled);
+  cursor: not-allowed;
+}
+
+.segment:focus-visible {
+  outline: none;
+  z-index: 1;
+  box-shadow: var(--split-focus-ring);
+}
+
+.segment.selected {
+  z-index: 1;
+  background: var(--split-bg-selected);
+  color: var(--split-fg-selected);
+}
+
+.icon {
+  display: inline-flex;
+}
+
+.label {
+  font-size: var(--split-size);
+  font-weight: 500;
+}

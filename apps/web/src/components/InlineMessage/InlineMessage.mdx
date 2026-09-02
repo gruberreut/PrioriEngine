@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as InlineMessageStories from './InlineMessage.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={InlineMessageStories} />
+
+# InlineMessage
+
+A `--color-bg-surface` pill with a small 7px status dot (`--color-success` / `--color-error`) and message text. `status="error"` uses `role="alert"`; `status="success"` uses `role="status"`. See `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4 for the design rationale.
+
+## Tokens
+
+Every `--message-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--message-" />

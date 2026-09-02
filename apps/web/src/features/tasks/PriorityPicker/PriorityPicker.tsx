@@ -1,3 +1,5 @@
+import { TextInput } from "../../../components/TextInput/TextInput";
+import { SplitGroup } from "../../../components/SplitGroup/SplitGroup";
 import styles from "./PriorityPicker.module.css";
 
 function getTomorrow(): string {
@@ -31,31 +33,26 @@ export function PriorityPicker({
   label,
   disabled = false,
 }: PriorityPickerProps) {
+  const options = OPTIONS.map((option) => ({ value: String(option.value), label: option.label }));
+
   return (
     <div className={styles.container}>
       {label && <span className={styles.label}>{label}</span>}
-      <div className={styles.group} role="group" aria-label={label ?? "Priority"}>
-        {OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            disabled={disabled}
-            aria-pressed={value === option.value}
-            className={`${styles.button} ${value === option.value ? styles.selected : ""}`}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+      <SplitGroup
+        options={options}
+        value={String(value)}
+        onChange={(val) => onChange(Number(val))}
+        label={label ?? "Priority"}
+        disabled={disabled}
+      />
       {value === 1 && (
-        <input
+        <TextInput
+          label="Due date"
+          hideLabel
           type="date"
-          className={styles.dateInput}
           value={dueDate ?? getTomorrow()}
-          onChange={(e) => onDueDateChange?.(e.target.value)}
+          onChange={(val) => onDueDateChange?.(val)}
           disabled={disabled}
-          aria-label="Due date"
         />
       )}
     </div>
