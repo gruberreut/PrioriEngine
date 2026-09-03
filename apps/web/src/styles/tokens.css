@@ -175,6 +175,7 @@
   /* Stacking order — kept together so collisions are visible in one place */
   --z-bottom-nav: 90;
   --z-fab:        100;
+  --z-modal:      200;
 }
 
 /* ---------- Layer 2: semantic roles — DARK ----------
@@ -529,6 +530,17 @@
   --message-dot-bg-info:      var(--color-text-muted);
   --message-fg:               var(--color-text-strong);
   --message-size:             var(--font-size-body);
+
+  /* ConfirmDialog — components/ConfirmDialog
+     Chrome (kicker/title/meta, accent border, no shadow) is the Card
+     component's own `active` state, reused as-is - this group only covers
+     what the backdrop/positioning wrapper paints itself. */
+  --confirm-dialog-z:                var(--z-modal);
+  /* no Layer-2 role for a translucent scrim - only this component needs one */
+  --confirm-dialog-backdrop-bg:      rgb(0 0 0 / .45);
+  --confirm-dialog-backdrop-pad:     var(--space-5);
+  --confirm-dialog-panel-max-width:  360px;
+  --confirm-dialog-actions-gap:      var(--space-2);
 
   /* LoadingScreen — features/loading/LoadingScreen */
   --loading-screen-bg:              var(--color-bg-page);

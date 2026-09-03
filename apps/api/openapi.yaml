@@ -82,6 +82,7 @@ paths:
                       energyRequired: high
                       location: anywhere
                       contexts: [creativity]
+                      hasChildren: false
                     exclusions: []
         '400':
           description: Invalid request body
@@ -190,6 +191,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+    delete:
+      tags: [tasks]
+      summary: Delete a task, handling children
+      description: >
+        Deletes the task in a single call. A task with no children is simply
+        removed. A task with direct children requires deciding what happens
+        to them via `childAction` in the request body: `"reparent"` sets
+        each direct child's `parentId` to `null`, then deletes the task;
+        `"delete"` recursively removes the task and all its descendants in
+        one transaction. If the task has children and no `childAction` is
+        supplied, it defaults to `"reparent"`. The request body is optional
+        when the task has no children.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                childAction:
+                  type: string
+                  enum: [delete, reparent]
+            example:
+              childAction: reparent
+      responses:
+        '204':
+          description: Task (and, depending on childAction, its descendants) deleted
+        '400':
+          description: childAction is not one of delete, reparent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Task not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/tasks/{id}/snooze:
+    post:
+      tags: [tasks]
+      summary: Snooze a task
+      description: >
+        Sets `lastSuggestedAt` to now. If the task's current status is
+        `in_progress`, also reverts it to `pending` (any other status is
+        left as-is) so it stops blocking ranking. Does not touch `priority`,
+        `priorityUpdatedAt`, or `contextId` — see the Task status section of
+        `documentation/ARCHITECTURE.md` for the full semantics.
+      parameters:
+        - $ref: '#/components/parameters/TaskId'
+      responses:
+        '200':
+          description: Updated task
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
         '404':
           description: Task not found
           content:
@@ -327,7 +395,9 @@ components:
 
     Task:
       type: object
-      description: A task row as stored in the database.
+      description: >
+        A task row as stored in the database, plus the computed hasChildren
+        field.
       properties:
         id:
           type: string
@@ -375,6 +445,9 @@ components:
         updatedAt:
           type: string
           format: date-time
+        hasChildren:
+          type: boolean
+          description: Whether any other task has this task's id as its parentId.
       example:
         id: 550e8400-e29b-41d4-a716-446655440000
         userId: 5c9d3b1a-1111-2222-3333-444455556666
@@ -391,6 +464,7 @@ components:
         lastSuggestedAt: null
         createdAt: '2024-01-01T00:00:00.000Z'
         updatedAt: '2024-01-01T00:00:00.000Z'
+        hasChildren: false
 
     CreateTaskRequest:
       type: object
@@ -493,6 +567,12 @@ components:
             type: string
         priority:
           type: integer
+        hasChildren:
+          type: boolean
+          description: >
+            Only present on inProgressTask in the in_progress_block
+            response — merged in by the rank handler from the DB rows it
+            already has in scope.
 
     ScoreBreakdown:
       type: object

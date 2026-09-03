@@ -4,9 +4,16 @@ import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
 import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
 import { rank } from "../../../services/rankingService";
 import { getContexts } from "../../../services/contextService";
-import { updateTask } from "../../../services/taskService";
+import { updateTask, snoozeTask, deleteTask } from "../../../services/taskService";
+import { ConfirmDialog } from "../../../components/ConfirmDialog/ConfirmDialog";
+import type { Task } from "../../../types/task";
 import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 import styles from "./RankingPage.module.css";
+
+const DELETE_CHILDREN_OPTIONS = [
+  { label: "Keep subtasks", value: "reparent" as const, variant: "primary" as const },
+  { label: "Delete subtasks too", value: "delete" as const, variant: "secondary" as const },
+];
 
 interface SlideData {
   label: string;
@@ -40,6 +47,7 @@ export function RankingPage() {
   });
   const paramsVersionRef = useRef(0);
   const slidesRef = useRef<SlideData[]>([]);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
     getContexts().then(setContexts).catch(() => {});
@@ -122,10 +130,47 @@ export function RankingPage() {
     refreshAfterMutation();
   }
 
-  async function handleInProgressAction(actionId: string, taskId: string) {
-    if (actionId !== "complete") return;
+  async function handleInProgressAction(actionId: string, task: Task) {
+    if (actionId === "complete") {
+      try {
+        await updateTask(task.id, { status: "completed" });
+      } catch {
+        return;
+      }
+      refreshAfterMutation();
+      return;
+    }
+
+    if (actionId === "snooze") {
+      try {
+        await snoozeTask(task.id);
+      } catch {
+        return;
+      }
+      refreshAfterMutation();
+      return;
+    }
+
+    if (actionId === "delete") {
+      if (task.hasChildren) {
+        setPendingDeleteId(task.id);
+        return;
+      }
+      try {
+        await deleteTask(task.id);
+      } catch {
+        return;
+      }
+      refreshAfterMutation();
+    }
+  }
+
+  async function handleDeleteChildrenChoice(childAction: string) {
+    const taskId = pendingDeleteId;
+    setPendingDeleteId(null);
+    if (!taskId) return;
     try {
-      await updateTask(taskId, { status: "completed" });
+      await deleteTask(taskId, childAction as "delete" | "reparent");
     } catch {
       return;
     }
@@ -164,6 +209,14 @@ export function RankingPage() {
           />
         ))}
       </Carousel>
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="This task has subtasks"
+        description="What should happen to them?"
+        options={DELETE_CHILDREN_OPTIONS}
+        onSelect={handleDeleteChildrenChoice}
+        onCancel={() => setPendingDeleteId(null)}
+      />
     </div>
   );
 }

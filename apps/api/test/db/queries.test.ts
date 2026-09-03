@@ -33,6 +33,18 @@ describe("queryTasks", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0]!.id).toBe(active.id);
   });
+
+  it("marks hasChildren true for a task with children and false for a leaf", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Parent" });
+    await seedTask(user.id, { title: "Child", parentId: parent.id });
+
+    const rows = await queryTasks(db, user.id);
+    const parentRow = rows.find((r) => r.id === parent.id)!;
+    const childRow = rows.find((r) => r.title === "Child")!;
+    expect(parentRow.hasChildren).toBe(true);
+    expect(childRow.hasChildren).toBe(false);
+  });
 });
 
 describe("groupTasksByParent", () => {

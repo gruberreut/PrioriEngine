@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as ConfirmDialogStories from './ConfirmDialog.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={ConfirmDialogStories} />
+
+# ConfirmDialog
+
+A generic question + button-options popup: a full-viewport backdrop (`--confirm-dialog-backdrop-bg`, the one component-level literal — no Layer-2 role exists for a translucent scrim) centering `Card`'s own `active` state — kicker, title, meta, accent border, no shadow — reused as-is rather than re-implemented, with a `size="sm"` `Button` row (one per `options` entry) as the card's children. Dismissing (backdrop click or `Escape`) calls `onCancel`; tapping a button calls `onSelect(value)` immediately — the caller decides what each `value` means. Rendered with `role="alertdialog"` and `aria-modal="true"`; the panel takes focus on open.
+
+## Tokens
+
+Every `--confirm-dialog-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--confirm-dialog-" />

@@ -190,3 +190,138 @@ describe("POST /api/tasks/:id/split", () => {
     expect((res.body() as { error: string }).error).toBe("Title is required");
   });
 });
+
+describe("POST /api/tasks/:id/snooze", () => {
+  it("sets lastSuggestedAt and returns the updated task", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Water plants" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${task.id}/snooze`);
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { id: string; lastSuggestedAt: string; priority: number };
+    expect(body.id).toBe(task.id);
+    expect(body.lastSuggestedAt).not.toBeNull();
+    expect(body.priority).toBe(task.priority);
+  });
+
+  it("reverts an in-progress task's status to pending", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Ring the bike shop", status: "in_progress" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${task.id}/snooze`);
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { status: string };
+    expect(body.status).toBe("pending");
+  });
+
+  it("leaves a pending task's status untouched", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Water plants", status: "pending" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${task.id}/snooze`);
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { status: string };
+    expect(body.status).toBe("pending");
+  });
+
+  it("returns 404 for an unknown task id", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "POST", `/api/tasks/${randomUUID()}/snooze`);
+    expect(res.statusCode).toBe(404);
+  });
+});
+
+describe("DELETE /api/tasks/:id", () => {
+  it("deletes a leaf task with no children", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Solo task" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "DELETE", `/api/tasks/${task.id}`);
+
+    expect(res.statusCode).toBe(204);
+    const rows = await db.select().from(tasksTable).where(eq(tasksTable.id, task.id));
+    expect(rows).toHaveLength(0);
+  });
+
+  it("returns 404 for an unknown task id", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "DELETE", `/api/tasks/${randomUUID()}`);
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("reparents direct children to null when childAction is reparent", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Parent" });
+    const child = await seedTask(user.id, { title: "Child", parentId: parent.id });
+    const grandchild = await seedTask(user.id, { title: "Grandchild", parentId: child.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "DELETE",
+      `/api/tasks/${parent.id}`,
+      JSON.stringify({ childAction: "reparent" })
+    );
+
+    expect(res.statusCode).toBe(204);
+    const [parentRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, parent.id));
+    expect(parentRow).toBeUndefined();
+
+    const [childRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, child.id));
+    expect(childRow!.parentId).toBeNull();
+
+    const [grandchildRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, grandchild.id));
+    expect(grandchildRow!.parentId).toBe(child.id);
+  });
+
+  it("defaults to reparent when the task has children and no childAction is supplied", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Parent" });
+    const child = await seedTask(user.id, { title: "Child", parentId: parent.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "DELETE", `/api/tasks/${parent.id}`);
+
+    expect(res.statusCode).toBe(204);
+    const [childRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, child.id));
+    expect(childRow!.parentId).toBeNull();
+  });
+
+  it("recursively deletes all descendants when childAction is delete", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Parent" });
+    const child = await seedTask(user.id, { title: "Child", parentId: parent.id });
+    const grandchild = await seedTask(user.id, { title: "Grandchild", parentId: child.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "DELETE",
+      `/api/tasks/${parent.id}`,
+      JSON.stringify({ childAction: "delete" })
+    );
+
+    expect(res.statusCode).toBe(204);
+    const remaining = await db.select().from(tasksTable).where(eq(tasksTable.userId, user.id));
+    expect(remaining).toHaveLength(0);
+    expect(remaining.map((r) => r.id)).not.toContain(child.id);
+    expect(remaining.map((r) => r.id)).not.toContain(grandchild.id);
+  });
+
+  it("returns 400 for an invalid childAction", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Task" });
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "DELETE", `/api/tasks/${task.id}`, JSON.stringify({ childAction: "bogus" }));
+    expect(res.statusCode).toBe(400);
+  });
+});

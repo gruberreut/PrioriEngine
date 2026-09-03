@@ -73,7 +73,16 @@ export function createRankHandler(db: Db, userId: string) {
           limit: Number(body.limit ?? 3),
         };
 
-        json(res, 200, rankFromPayload(rawTasks, params));
+        const result = rankFromPayload(rawTasks, params);
+        if (result.mode === "in_progress_block" && result.inProgressTask) {
+          const row = taskRows.find((t) => t.id === result.inProgressTask!.id);
+          json(res, 200, {
+            ...result,
+            inProgressTask: { ...result.inProgressTask, hasChildren: row?.hasChildren ?? false },
+          });
+        } else {
+          json(res, 200, result);
+        }
       } catch {
         json(res, 400, { error: "Invalid request body" });
       }

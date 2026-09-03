@@ -31,6 +31,9 @@ function toTask(t: Record<string, unknown>): Task {
   if (Array.isArray(t.ancestors)) {
     task.ancestors = t.ancestors as { id: string; title: string }[];
   }
+  if (typeof t.hasChildren === "boolean") {
+    task.hasChildren = t.hasChildren;
+  }
   return task;
 }
 

@@ -295,31 +295,7 @@ Surfaced during § 24.2's Storybook/app review.
 
 ---
 
-## 12. Task Actions (`task-actions`)
-
-Wire up the `Complete` / `Snooze` / `Delete` actions on `InProgressBlock` (shown on the ranking page when a task is `in_progress`) — the buttons and `onAction`/`onInProgressAction` plumbing already exist in the component tree but nothing calls the API yet. `TaskDetailPage`'s action set (Add another / Add subtask / Split / Start) is unchanged for this pass.
-
-- [x] Consolidate conflicting snooze-semantics documentation across `ARCHITECTURE.md`, `PRIORI_ENGINE_MVP_TECHNICAL_DESIGN.md`, `POST_ENGINE_NEXT_STEPS.md`, `user_experience_process.md` — `ARCHITECTURE.md` is now the canonical description (`lastSuggestedAt = now` only); the others point back to it. (Note: `documentation/` is gitignored, so this edit isn't tracked by git.)
-
-### Backend
-
-- [ ] `queryTasks(db, userId)` — compute `hasChildren: boolean` per row using `groupTasksByParent` (section 10.1): `hasChildren = grouped.has(row.id)`; no extra query; flows through to every consumer (`GET /api/tasks`, `routes/rank.ts`)
-- [ ] `routes/rank.ts` — merge `hasChildren` onto `inProgressTask` in the `in_progress_block` response using the `taskRows` it already has in scope
-- [ ] `POST /api/tasks/:id/snooze` — new endpoint; sets `lastSuggestedAt = now()` only (per `ARCHITECTURE.md` § Task status); returns the updated row; 404 if not found
-- [ ] `DELETE /api/tasks/:id` — single-call endpoint; optional body `{ childAction?: "delete" | "reparent" }`; `"delete"` recursively removes the task and all descendants in a transaction; `"reparent"` sets each direct child's `parentId = null` then deletes the task; a task with children but no `childAction` supplied (race condition) defaults to `"reparent"`; 404 if the task doesn't exist
-- [ ] Update `apps/api/openapi.yaml` with both new endpoints and the `hasChildren` field (same commit)
-- [ ] Update `ARCHITECTURE.md` recording the delete/reparent decision and `hasChildren` becoming a standard field on `Task` (same commit)
-- [ ] Real-DB integration tests: snooze sets `lastSuggestedAt`; delete with no children; delete with children via `"delete"`; delete with children via `"reparent"`; delete on a nonexistent id → 404
-
-### Frontend
-
-- [ ] Add `hasChildren: boolean` to `Task` (`src/types/task.ts`)
-- [x] `taskService.ts` — reuse `updateTask` for complete
-- [ ] `taskService.ts` — add `snoozeTask(id)` and `deleteTask(id, childAction?)`
-- [ ] New `ConfirmDialog` component (`src/components/ConfirmDialog/`) — generic question + button-options popup. One component at a time; Storybook story required; review/approval needed before it's wired in
-- [x] Wire `RankingPage` → `ResultsPanel.onInProgressAction` and `InProgressPage`'s `InProgressBlock.onAction`: `complete` calls `updateTask(id, { status: "completed" })` then re-runs ranking (`RankingPage`) or navigates back to `/` (`InProgressPage`)
-- [ ] Wire `snooze`: call `snoozeTask` then re-run ranking
-- [ ] Wire `delete`: check `task.hasChildren` — if true, opens `ConfirmDialog` first — then calls `deleteTask` exactly once with the decision (if any) already included, then re-runs ranking
+## 12. Task Actions — completed, see TASKS-DONE.md
 
 ---
 
@@ -907,6 +883,18 @@ Add the ability to search tasks. MVP scope is search by label (task title text m
 - [ ] Design the filter model once the MVP ships and real usage patterns are known — candidate fields: `context`, `priority`, `energyRequired`, `duration` (range), `location`, `status`, `dueDate` (range)
 - [ ] Decide whether this reuses/extends the label search's query mechanism (e.g. combinable query params) or is a separate structured filter UI
 - [ ] Revisit whether pagination becomes necessary at this point, per `§26`'s dataset-growth concern
+
+---
+
+## 28. Task status transition audit (`transition-audit`)
+
+Prompted by the snooze bug found and fixed in §12 (`POST /api/tasks/:id/snooze` set `lastSuggestedAt` but left `status: "in_progress"` untouched, so the in-progress block never actually cleared — silently contradicting `ARCHITECTURE.md`'s own User Flow doc, which lists snooze as a way to resolve the block). Audit every action that changes a task's status or otherwise affects the in-progress block, to catch similar gaps before they ship rather than after.
+
+- [ ] `Start` (`PUT /api/tasks/:id` → `status: "in_progress"`, wired from `TaskDetailPage` and `RankingPage.handleStartTask`) — confirm every call site is blocked when another task is already `in_progress`, and that no path can leave two tasks `in_progress` at once
+- [ ] `Snooze` (`POST /api/tasks/:id/snooze`) — verify the fix end-to-end from both `RankingPage` and `InProgressPage`: the block clears on the next `/api/rank` call, and the task is correctly suppressed for the recency window afterward rather than immediately re-suggested
+- [ ] `Complete` (`PUT /api/tasks/:id` → `status: "completed"`) — verify completing the in-progress task clears the block immediately on the next `/api/rank` call; re-check once §13 (Cascading Task Completion) lands, since a cascade could interact with this
+- [ ] `Delete` (`DELETE /api/tasks/:id`, both `childAction` values, with and without children) — verify deleting the currently in-progress task clears the block, and that no child is left with a `parentId` pointing at a deleted task
+- [ ] Record the resulting status-transition expectations (status before → action → status after, and whether the in-progress block clears) in `ARCHITECTURE.md`'s Task status section, so future actions can be checked against a written table instead of re-discovered by testing
 
 ---
 

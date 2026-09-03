@@ -22,6 +22,21 @@ export async function updateTask(id: string, updates: { status: Task["status"] }
   return res.json() as Promise<Task>;
 }
 
+export async function snoozeTask(id: string): Promise<Task> {
+  const res = await fetch(`/api/tasks/${id}/snooze`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to snooze task");
+  return res.json() as Promise<Task>;
+}
+
+export async function deleteTask(id: string, childAction?: "delete" | "reparent"): Promise<void> {
+  const res = await fetch(`/api/tasks/${id}`, {
+    method: "DELETE",
+    headers: childAction ? { "Content-Type": "application/json" } : undefined,
+    body: childAction ? JSON.stringify({ childAction }) : undefined,
+  });
+  if (!res.ok) throw new Error("Failed to delete task");
+}
+
 export async function splitTask(id: string, title: string): Promise<{ parent: Task; original: Task; sibling: Task }> {
   const res = await fetch(`/api/tasks/${id}/split`, {
     method: "POST",

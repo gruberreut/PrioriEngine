@@ -8,7 +8,9 @@ type Db = NodePgDatabase<typeof schema>;
 export async function queryTasks(db: Db, userId: string, options?: { status?: string }) {
   const conditions = [eq(tasks.userId, userId)];
   if (options?.status) conditions.push(eq(tasks.status, options.status));
-  return db.select().from(tasks).where(and(...conditions));
+  const rows = await db.select().from(tasks).where(and(...conditions));
+  const grouped = groupTasksByParent(rows);
+  return rows.map((row) => ({ ...row, hasChildren: grouped.has(row.id) }));
 }
 
 export function groupTasksByParent<T extends { id: string; parentId: string | null }>(

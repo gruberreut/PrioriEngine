@@ -15,4 +15,5 @@ export interface Task {
   createdAt?: string;
   updatedAt?: string;
   ancestors?: { id: string; title: string }[];
+  hasChildren?: boolean;
 }

@@ -1,6 +1,7 @@
 import { ResultsPanel, type RankResultMode } from "../ResultsPanel/ResultsPanel";
 import { Card } from "../../../components/Card/Card";
 import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
+import type { Task } from "../../../types/task";
 import styles from "./ResultsSlide.module.css";
 
 export type SlideState = "idle" | "loading" | "loaded" | "error";
@@ -11,7 +12,7 @@ export interface ResultsSlideProps {
   result?: RankResultMode;
   backgroundColor?: string;
   onStartTask?: (taskId: string) => void;
-  onInProgressAction?: (actionId: string, taskId: string) => void;
+  onInProgressAction?: (actionId: string, task: Task) => void;
 }
 
 export function ResultsSlide({ label, state, result, backgroundColor, onStartTask, onInProgressAction }: ResultsSlideProps) {

@@ -243,6 +243,34 @@ Shown immediately after task creation and reachable at `/tasks/:id`.
 
 ---
 
+## 12. Task Actions (`task-actions`)
+
+Wire up the `Complete` / `Snooze` / `Delete` actions on `InProgressBlock` (shown on the ranking page when a task is `in_progress`) — the buttons and `onAction`/`onInProgressAction` plumbing already exist in the component tree but nothing calls the API yet. `TaskDetailPage`'s action set (Add another / Add subtask / Split / Start) is unchanged for this pass.
+
+- [x] Consolidate conflicting snooze-semantics documentation across `ARCHITECTURE.md`, `PRIORI_ENGINE_MVP_TECHNICAL_DESIGN.md`, `POST_ENGINE_NEXT_STEPS.md`, `user_experience_process.md` — `ARCHITECTURE.md` is now the canonical description (`lastSuggestedAt = now` only); the others point back to it. (Note: `documentation/` is gitignored, so this edit isn't tracked by git.)
+
+### Backend
+
+- [x] `queryTasks(db, userId)` — compute `hasChildren: boolean` per row using `groupTasksByParent` (section 10.1): `hasChildren = grouped.has(row.id)`; no extra query; flows through to every consumer (`GET /api/tasks`, `routes/rank.ts`)
+- [x] `routes/rank.ts` — merge `hasChildren` onto `inProgressTask` in the `in_progress_block` response using the `taskRows` it already has in scope
+- [x] `POST /api/tasks/:id/snooze` — new endpoint; sets `lastSuggestedAt = now()` only (per `ARCHITECTURE.md` § Task status); returns the updated row; 404 if not found
+- [x] `DELETE /api/tasks/:id` — single-call endpoint; optional body `{ childAction?: "delete" | "reparent" }`; `"delete"` recursively removes the task and all descendants in a transaction; `"reparent"` sets each direct child's `parentId = null` then deletes the task; a task with children but no `childAction` supplied (race condition) defaults to `"reparent"`; 404 if the task doesn't exist
+- [x] Update `apps/api/openapi.yaml` with both new endpoints and the `hasChildren` field (same commit)
+- [x] Update `ARCHITECTURE.md` recording the delete/reparent decision and `hasChildren` becoming a standard field on `Task` (same commit)
+- [x] Real-DB integration tests: snooze sets `lastSuggestedAt`; delete with no children; delete with children via `"delete"`; delete with children via `"reparent"`; delete on a nonexistent id → 404
+
+### Frontend
+
+- [x] Add `hasChildren: boolean` to `Task` (`src/types/task.ts`)
+- [x] `taskService.ts` — reuse `updateTask` for complete
+- [x] `taskService.ts` — add `snoozeTask(id)` and `deleteTask(id, childAction?)`
+- [x] New `ConfirmDialog` component (`src/components/ConfirmDialog/`) — generic question + button-options popup. One component at a time; Storybook story required; review/approval needed before it's wired in
+- [x] Wire `RankingPage` → `ResultsPanel.onInProgressAction` and `InProgressPage`'s `InProgressBlock.onAction`: `complete` calls `updateTask(id, { status: "completed" })` then re-runs ranking (`RankingPage`) or navigates back to `/` (`InProgressPage`)
+- [x] Wire `snooze`: call `snoozeTask` then re-run ranking
+- [x] Wire `delete`: check `task.hasChildren` — if true, opens `ConfirmDialog` first — then calls `deleteTask` exactly once with the decision (if any) already included, then re-runs ranking
+
+---
+
 ## 17. Bottom navigation bar (`bottom-nav`)
 
 Replace the current top `NavBar` (`src/components/NavBar/`) with a fixed bottom bar with icon links, matching the mobile-first patterns already used elsewhere in the app (FAB, swipeable carousel).

@@ -2,10 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Task } from "../../../types/task";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
-import { getTasksByStatus, updateTask } from "../../../services/taskService";
+import { getTasksByStatus, updateTask, snoozeTask, deleteTask } from "../../../services/taskService";
 import { resolveTask } from "../../tasks/resolveTask";
 import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
+import { ConfirmDialog } from "../../../components/ConfirmDialog/ConfirmDialog";
 import styles from "./InProgressPage.module.css";
+
+const DELETE_CHILDREN_OPTIONS = [
+  { label: "Keep subtasks", value: "reparent" as const, variant: "primary" as const },
+  { label: "Delete subtasks too", value: "delete" as const, variant: "secondary" as const },
+];
 
 type State =
   | { status: "loading" }
@@ -19,6 +25,7 @@ interface InProgressPageProps {
 export function InProgressPage({ initialState }: InProgressPageProps) {
   const navigate = useNavigate();
   const [state, setState] = useState<State>(initialState ?? { status: "loading" });
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   useEffect(() => {
     if (initialState) return;
@@ -35,6 +42,20 @@ export function InProgressPage({ initialState }: InProgressPageProps) {
         setState({ status: "error", message: err instanceof Error ? err.message : "Unknown error" })
       );
   }, [initialState, navigate]);
+
+  async function refreshTask() {
+    try {
+      const [task] = await getTasksByStatus("in_progress");
+      if (!task) {
+        navigate("/", { replace: true });
+        return;
+      }
+      const cardTask: Task = { ...task, ...resolveTask(task, []) };
+      setState({ status: "loaded", task: cardTask });
+    } catch (err) {
+      setState({ status: "error", message: err instanceof Error ? err.message : "Unknown error" });
+    }
+  }
 
   if (state.status === "loading") {
     return (
@@ -53,9 +74,48 @@ export function InProgressPage({ initialState }: InProgressPageProps) {
   }
 
   async function handleAction(actionId: string) {
-    if (actionId !== "complete" || state.status !== "loaded") return;
+    if (state.status !== "loaded") return;
+    const task = state.task;
+
+    if (actionId === "complete") {
+      try {
+        await updateTask(task.id, { status: "completed" });
+      } catch {
+        return;
+      }
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (actionId === "snooze") {
+      try {
+        await snoozeTask(task.id);
+      } catch {
+        return;
+      }
+      await refreshTask();
+      return;
+    }
+
+    if (actionId === "delete") {
+      if (task.hasChildren) {
+        setPendingDelete(true);
+        return;
+      }
+      try {
+        await deleteTask(task.id);
+      } catch {
+        return;
+      }
+      navigate("/", { replace: true });
+    }
+  }
+
+  async function handleDeleteChildrenChoice(childAction: string) {
+    setPendingDelete(false);
+    if (state.status !== "loaded") return;
     try {
-      await updateTask(state.task.id, { status: "completed" });
+      await deleteTask(state.task.id, childAction as "delete" | "reparent");
     } catch {
       return;
     }
@@ -65,6 +125,14 @@ export function InProgressPage({ initialState }: InProgressPageProps) {
   return (
     <div className={styles.page}>
       <InProgressBlock task={state.task} onAction={handleAction} />
+      <ConfirmDialog
+        open={pendingDelete}
+        title="This task has subtasks"
+        description="What should happen to them?"
+        options={DELETE_CHILDREN_OPTIONS}
+        onSelect={handleDeleteChildrenChoice}
+        onCancel={() => setPendingDelete(false)}
+      />
     </div>
   );
 }

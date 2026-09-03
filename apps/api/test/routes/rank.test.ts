@@ -57,9 +57,10 @@ describe("POST /api/rank", () => {
     const res = await rank(handler, { availableTime: 60, energyLevel: "medium", limit: 3 });
 
     expect(res.statusCode).toBe(200);
-    const body = res.body() as { mode: string; inProgressTask: { title: string } };
+    const body = res.body() as { mode: string; inProgressTask: { title: string; hasChildren: boolean } };
     expect(body.mode).toBe("in_progress_block");
     expect(body.inProgressTask.title).toBe("Active task");
+    expect(body.inProgressTask.hasChildren).toBe(false);
   });
 
   it("reconstructs hierarchy from parentId: excludes the in_progress parent and ranks the child with populated ancestors", async () => {

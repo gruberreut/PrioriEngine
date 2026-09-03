@@ -260,6 +260,53 @@ describe("toTask field mapping", () => {
     expect(result.tasks[0].task.ancestors).toBeUndefined();
   });
 
+  it("attaches hasChildren when present on inProgressTask", async () => {
+    const apiTask = {
+      id: "ip2",
+      title: "Parent task",
+      duration: 60,
+      energyRequired: "high",
+      location: "home",
+      status: "in_progress",
+      contexts: [],
+      priority: 1,
+      priorityUpdatedAt: "2024-06-01T00:00:00Z",
+      dueDate: null,
+      lastSuggestedAt: null,
+      hasChildren: true,
+    };
+
+    mockFetch({ mode: "in_progress_block", top: [], inProgressTask: apiTask });
+
+    const result = await rank(baseParams, undefined);
+
+    if (result.mode !== "in_progress_block") throw new Error("wrong mode");
+    expect(result.task.hasChildren).toBe(true);
+  });
+
+  it("omits hasChildren when not present in the API response", async () => {
+    const apiTask = {
+      id: "t3b",
+      title: "Top-level task",
+      duration: 30,
+      energyRequired: "medium",
+      location: "anywhere",
+      status: "pending",
+      contexts: [],
+      priority: 5,
+      priorityUpdatedAt: "2024-01-01T00:00:00Z",
+      dueDate: null,
+      lastSuggestedAt: null,
+    };
+
+    mockFetch({ mode: "recommendations", top: [{ task: apiTask, breakdown: {} }] });
+
+    const result = await rank(baseParams, undefined);
+
+    if (result.mode !== "recommendations") throw new Error("wrong mode");
+    expect(result.tasks[0].task.hasChildren).toBeUndefined();
+  });
+
   it("defaults contexts to empty array when absent from API response", async () => {
     const apiTask = {
       id: "t4",

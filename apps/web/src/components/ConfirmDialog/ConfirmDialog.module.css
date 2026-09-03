@@ -1,0 +1,24 @@
+/* Tokens: --confirm-dialog-* (see styles/tokens.css) */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--confirm-dialog-backdrop-pad);
+  background: var(--confirm-dialog-backdrop-bg);
+  z-index: var(--confirm-dialog-z);
+}
+
+.panelWrap {
+  width: 100%;
+  max-width: var(--confirm-dialog-panel-max-width);
+  outline: none;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--confirm-dialog-actions-gap);
+}

@@ -152,6 +152,8 @@ Each route file exports a factory function `create<Entity>Handler(db, userId)` t
 | `GET` | `/api/tasks` | List all tasks for dev user |
 | `POST` | `/api/tasks` | Create a task |
 | `PUT` | `/api/tasks/:id` | Update a task's status |
+| `DELETE` | `/api/tasks/:id` | Delete a task, handling children (see below) |
+| `POST` | `/api/tasks/:id/snooze` | Snooze a task (`lastSuggestedAt = now`) |
 | `POST` | `/api/tasks/:id/split` | Atomically split a task into parent + original + blank sibling |
 | `GET` | `/api/contexts` | List all contexts for dev user |
 | `POST` | `/api/contexts` | Create a context |
@@ -160,6 +162,10 @@ Each route file exports a factory function `create<Entity>Handler(db, userId)` t
 | `GET` | `/docs` | Swagger UI, reading `/openapi.yaml` |
 
 No URL versioning (`/api/v1/...`) — paths are plain `/api/...`. If a breaking API change is needed, versioning can be added at that point.
+
+**Delete semantics.** `DELETE /api/tasks/:id` is a single call, not a two-step "check then delete" — the caller may pass `{ childAction: "delete" | "reparent" }` up front. `"reparent"` sets each direct child's `parentId` to `null` (children become root tasks) then deletes the task; `"delete"` recursively removes the task and every descendant in one DB transaction. If the task has children and the caller sends no `childAction` (a race — the client's `hasChildren` read is stale, or it skipped the confirm step), the server defaults to `"reparent"` rather than `"delete"`, since silently destroying a subtree on an ambiguous request is the more dangerous failure mode; the confirm-dialog UX (TASKS.md § 12) is expected to always supply an explicit choice when it knows children exist, so the default is a safety net, not the primary path. Rejected alternative: a separate `GET .../children` check before delete — rejected because it's a TOCTOU race (children could be added between the check and the delete) that the single-call-with-optional-childAction design avoids entirely by deciding at delete time, inside the same transaction that reads the current children.
+
+**`hasChildren`.** `queryTasks` (`apps/api/src/db/queries.ts`) computes `hasChildren: boolean` on every returned row from the rows it already fetched — `grouped.has(row.id)` via `groupTasksByParent`, no extra query. This flows through unchanged to `GET /api/tasks` and is merged onto `inProgressTask` in the `/api/rank` `in_progress_block` response (`routes/rank.ts`, looked up from the same `taskRows` already in scope). Note: because the engine's normalizer filters non-leaf tasks out of ranking candidacy entirely (see Engine Pipeline § above), a task with children can never actually be surfaced as `inProgressTask` — so `hasChildren` on that field will always read `false` in current practice. The merge is implemented as specified for forward compatibility (and because `queryTasks` computing it is free), but this is a latent inconsistency: if a task gains a child while it's `in_progress`, the next `/api/rank` call stops finding it as the blocking task at all, rather than reporting it with `hasChildren: true`. Not fixed here — flagged for whoever picks up TASKS.md § 13 (Cascading Task Completion) or a future pass on in-progress-task semantics, since fixing it means deciding what "in progress" should mean for a non-leaf task, not just a query change.
 
 ### Documentation
 
@@ -275,7 +281,7 @@ Tasks are stored as a nested JSON tree for CLI use. All fields are optional on `
 
 `pending` → `in_progress` → `completed`
 
-Snooze is not a status. It sets `lastSuggestedAt = now` only — `priorityUpdatedAt` (and priority/context) are untouched. This is the mechanism `ranker.ts`'s `isRecentlySuggested`/`recurrenceWindowHours` already implement: the task is suppressed from ranking until the recurrence-based window (default 24h) elapses. This is the canonical description of snooze semantics — other documents in `documentation/` that describe a different mechanism predate this decision and have been marked superseded in place.
+Snooze is not a status. It sets `lastSuggestedAt = now` and, if the task's current status is `in_progress`, also reverts it to `pending` (any other status is left untouched); `priorityUpdatedAt` (and priority/context) are untouched either way. The recency suppression is the mechanism `ranker.ts`'s `isRecentlySuggested`/`recurrenceWindowHours` already implement: the task is suppressed from ranking until the recurrence-based window (default 24h) elapses. **Superseded:** an earlier version of this decision set *only* `lastSuggestedAt`, with status left alone. That was incomplete — `ranker.ts`'s in-progress check (`tasks.find(t => t.status === "in_progress")`) is a plain status lookup, unaffected by `lastSuggestedAt`, so snoozing the currently in-progress task left it blocking ranking indefinitely, contradicting User Flow § 4/6 below (snooze listed as one of the ways to resolve the block). The status revert closes that gap. This is the canonical description of snooze semantics — other documents in `documentation/` that describe a different mechanism predate this decision and have been marked superseded in place.
 
 ---
 
