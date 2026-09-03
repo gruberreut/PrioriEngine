@@ -2,6 +2,8 @@ import { useState } from "react";
 import { useArgs } from "storybook/preview-api";
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Radio } from "./Radio";
+import { Icon } from "../Icon/Icon";
+import { FlameMedium } from "../../assets/icons/FlameMedium";
 
 const defaultArgs = {
   checked: false,
@@ -52,6 +54,11 @@ export const Disabled: Story = {
 
 export const DisabledChecked: Story = {
   args: { ...defaultArgs, checked: true, disabled: true, label: "Show everything" },
+  render,
+};
+
+export const WithIcon: Story = {
+  args: { ...defaultArgs, icon: <Icon asset={FlameMedium} label="Medium" size={20} /> },
   render,
 };
 

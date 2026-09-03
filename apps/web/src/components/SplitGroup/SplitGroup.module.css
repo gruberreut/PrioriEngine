@@ -1,7 +1,30 @@
 /* Tokens: --split-* (see styles/tokens.css) */
 
-.group {
+/* The pill row is the intended design and takes over at the 320px breakpoint
+   below (a plain literal - custom properties aren't supported in media query
+   conditions). Below it, a vertical Radio list (Radio's own --radio-* tokens)
+   stands in - calibrated to where the widest consumer (PriorityPicker's 5
+   options) stops fitting on one line. Devices are assumed fixed-width, so
+   this is a viewport breakpoint rather than a content-measuring
+   (ResizeObserver) switch. */
+.radioGroup {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.group {
+  display: none;
+}
+
+@media (width >= 320px) {
+  .radioGroup {
+    display: none;
+  }
+
+  .group {
+    display: flex;
+  }
 }
 
 .segment {

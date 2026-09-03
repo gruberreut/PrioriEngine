@@ -67,6 +67,11 @@
   box-shadow: var(--radio-focus-ring);
 }
 
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
 .label {
   font-size: var(--radio-label-size);
   font-weight: 500;

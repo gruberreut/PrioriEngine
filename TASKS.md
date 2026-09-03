@@ -287,7 +287,7 @@ Surfaced during § 24.2's Storybook/app review.
 
 `PriorityPicker.module.css`'s `.group` lays out all five options (Urgent/Soon/Medium/Later/Ongoing) as a single-row segmented control (`.button { flex: 1; }` with fixed `padding: var(--space-2) var(--space-3)`), with no wrapping or min-width handling. At small mobile widths (e.g. 360pt) the five labels plus padding don't fit, and the row overflows rather than shrinking or wrapping.
 
-- [ ] Investigate a fix — candidates: smaller padding/font at narrow widths, wrapping onto two rows, or a horizontally scrollable row — and check whether `DurationPicker`/`EnergyPicker`/`LocationPicker` (same segmented-row pattern) have the same problem
+- [x] Investigate a fix — candidates: smaller padding/font at narrow widths, wrapping onto two rows, or a horizontally scrollable row — and check whether `DurationPicker`/`EnergyPicker`/`LocationPicker` (same segmented-row pattern) have the same problem. Resolved: overflow lives in the shared `SplitGroup` primitive (covers `PriorityPicker`/`DurationPicker`/`EnergyPicker`), not per-picker CSS. `SplitGroup` now shows a vertical `Radio` list (mobile-first base, `Radio` gained an `icon` slot) with the pill row layered on via `@media (width >= 320px)` — breakpoint set by explicit user choice, below the ~480px point the 5-option row actually starts overflowing, so the fallback is a deliberate rare/edge-case path for now (see `ARCHITECTURE.md`). `LocationPicker`'s separate `Chip`-based row got a defensive `flex-wrap: wrap` only.
 
 ---
 
