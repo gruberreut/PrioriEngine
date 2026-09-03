@@ -898,6 +898,60 @@ Prompted by the snooze bug found and fixed in §12 (`POST /api/tasks/:id/snooze`
 
 ---
 
+## 29. Delete action in the tasks list — completed, see TASKS-DONE.md
+
+---
+
+## 30. `RankingPage` optimistic updates (`ranking-optimistic-updates`)
+
+Today `RankingPage.handleInProgressAction`/`handleStartTask`/
+`handleDeleteChildrenChoice` all call `refreshAfterMutation()`, which resets
+every slide back to `idle` and re-runs `/api/rank` for the active slide —
+a full reload rather than a local update. `TasksPage`'s delete action
+(§29) instead updates local state optimistically and only
+refetches if the backend call fails. Review whether `RankingPage`'s
+complete/snooze/delete/start actions should move to the same pattern
+instead of the current reload-every-slide approach.
+
+- [ ] Decide what "optimistic" means for a ranked result set specifically (removing a completed/deleted/started task from the currently-displayed slide is straightforward; snoozing changes ranking order, which arguably still needs a re-rank) — this isn't a 1:1 copy of `TasksPage`'s simpler flat-list case
+- [ ] Depends on §31 (a general failed-backend-call mechanism) landing first, or at least being designed, so this doesn't duplicate the same "what happens when the optimistic update turns out wrong" problem §29's MVP delete is deliberately punting on
+- [ ] Apply the chosen pattern consistently to complete/snooze/delete/start, replacing `refreshAfterMutation()` per-action rather than leaving a mix
+
+---
+
+## 31. General failed-backend-call handling (`backend-error-handling`)
+
+Prompted by `TasksPage`'s optimistic delete (§29): rather
+than build a bespoke "something went wrong, click OK to refresh" flow per
+page/action, the app needs one general mechanism for handling a backend call
+that fails (whether following an optimistic update or any other unexpected
+failure) — notify the user once, in one consistent way, and refresh the
+current page's data afterward.
+
+- [ ] Design where this mechanism lives — a shared hook (e.g. `useBackendCall`/`useMutation`-style wrapper other pages/actions call through), a top-level error boundary/interceptor, or a shared notice component + a small utility both `TasksPage` and (eventually) `RankingPage` call into
+- [ ] Decide the notification UX: a modal/dialog requiring acknowledgment before refresh (current `TasksPage` MVP behavior) vs. a dismissible toast that refreshes in the background
+- [ ] Decide what "refresh the current page" means generically across different pages (each page currently owns its own fetch — `getTasks()`, `rank()`, etc.) — likely each page needs to expose/register its own refetch function to this mechanism
+- [ ] Migrate `TasksPage`'s bespoke failure handling onto this mechanism once built, and revisit §30 (`RankingPage` optimistic updates) against it
+- [ ] Update `ARCHITECTURE.md` recording the decision
+
+---
+
+## 32. Analytics and error tracking setup (`analytics-setup`) — deferred, low priority
+
+Not needed while the app has a single dev user and no production
+deployment. Once production deployment is under consideration, add a way
+to track usage events and errors (e.g. a client-side analytics/error-
+tracking SDK, or a lightweight self-hosted event log) so real usage
+patterns and failures are visible instead of only discoverable by manual
+testing.
+
+- [ ] Decide on a provider/approach once this becomes relevant (a hosted product analytics tool, a self-hosted event log, or piggybacking on whatever error-tracking service is chosen for the backend) — no research done yet, intentionally deferred
+- [ ] Once §31 (general failed-backend-call handling) exists, wire it to also emit an error event through this mechanism, so failures are visible in aggregate and not just shown to the one user who hit them
+
+**Trigger:** production deployment is actually being planned, or the "single dev user" assumption elsewhere in this file stops holding.
+
+---
+
 ## Open Issues
 
 Issues that came up during implementation but were deferred to keep scope focused.

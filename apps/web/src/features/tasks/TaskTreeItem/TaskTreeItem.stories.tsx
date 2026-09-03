@@ -46,6 +46,9 @@ const defaultArgs = {
 const meta: Meta<typeof TaskTreeItem> = {
   title: "Features/Tasks/TaskTreeItem",
   component: TaskTreeItem,
+  argTypes: {
+    onDelete: { action: "onDelete" },
+  },
 };
 
 export default meta;

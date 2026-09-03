@@ -295,3 +295,31 @@ Add a standalone route/page for the in-progress task, separate from the ranking 
 - [x] Hide the top `NavBar` (Rank / Tasks) on `/in-progress` — the `FAB` should be the only button visible on this route
 
 ---
+
+## 29. Delete action in the tasks list (`task-list-delete`)
+
+Adds delete for the plain task-browsing list (`TasksPage` → `TaskTreeItem`),
+reusing the `DELETE /api/tasks/:id` endpoint and `ConfirmDialog`
+children-choice flow already built in §12 for the in-progress block. Full
+design in `documentation/techDesign/task-list-delete/design.md`.
+
+Leaf rows switch off `TaskCard`'s `dense` flavor (which blocked its
+`actions` prop) onto the normal `TaskCard`, since more per-task actions are
+expected later (add-to-project, reparent) and should reuse the same
+mechanism `InProgressBlock`/`TaskDetailPage` already use rather than a
+one-off. That mechanism's button is extracted into a shared `ActionButton`
+(`src/components/ActionButton/`) so the tree's project/parent rows (not
+`TaskCard` at all) can show the same delete affordance. The delete itself is
+optimistic — removes the task locally and calls the API in the background,
+only resyncing from the server if that call fails — deliberately scoped to
+this one page rather than building a general mechanism now (see §30/§31).
+
+- [x] Extract `ActionButton` (`src/components/ActionButton/`) from `TaskCard`'s inline action-button rendering; `TaskCard.tsx` now composes it
+- [x] Drop `TaskCard`'s `dense` flavor (was only used by `TaskTreeItem`) — removed from the prop union, CSS, and the `Dense` story
+- [x] Move `getDescendants` from `TaskTreeItem.tsx` into the shared `resolveTask.ts`; added test coverage
+- [x] `TaskTreeItem.tsx` — leaf rows render `flavor="outlined"` with a `delete` action; project/parent rows get a single `ActionButton` delete affordance; `onDelete` threaded through recursion
+- [x] `TasksPage.tsx` — optimistic delete: `removeLocally`/`reparentLocally` update state immediately; `deleteTask(...).catch(...)` only triggers a "something went wrong" `ConfirmDialog` on failure, whose OK calls `getTasks()` to resync
+- [x] `resolveTask.test.ts`, `tsc -b --noEmit`, `vitest run`, `eslint`, `stylelint` all clean
+- [x] Review in Storybook — `Atomic/ActionButton`, `Entity/TaskCard`, `Features/Tasks/TaskTreeItem`, `Features/Tasks/TasksPage` — **approved**
+
+---

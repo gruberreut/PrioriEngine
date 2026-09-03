@@ -77,14 +77,9 @@ export const Flavors: StoryObj<typeof TaskCard> = {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       <TaskCard {...args} flavor="outlined" />
       <TaskCard {...args} flavor="flat" />
-      <TaskCard {...args} flavor="dense" />
     </div>
   ),
   args: defaultArgs,
-};
-
-export const Dense: StoryObj<typeof TaskCard> = {
-  args: { ...defaultArgs, flavor: "dense" },
 };
 
 // State

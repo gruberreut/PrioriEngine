@@ -5,6 +5,7 @@ import { LocationIcon } from "../../features/ranking/LocationIcon/LocationIcon";
 import { Icon } from "../../components/Icon/Icon";
 import { SpinnerArc } from "../../assets/icons/SpinnerArc";
 import { Breadcrumbs } from "../../components/Breadcrumbs/Breadcrumbs";
+import { ActionButton } from "../../components/ActionButton/ActionButton";
 import styles from "./TaskCard.module.css";
 
 export interface TaskAction {
@@ -18,7 +19,7 @@ export interface TaskCardProps {
   task: Task;
   breakdown?: ScoreBreakdownData;
   explain?: boolean;
-  flavor?: "flat" | "outlined" | "dense";
+  flavor?: "flat" | "outlined";
   selected?: boolean;
   actions?: TaskAction[];
   showActionLabels?: boolean;
@@ -28,10 +29,9 @@ export interface TaskCardProps {
 
 export function TaskCard({ task, breakdown, explain = false, flavor = "outlined", selected = false, actions, showActionLabels = false, onSelect, onAction }: TaskCardProps) {
   const inProgress = task.status === "in_progress";
-  const isDense = flavor === "dense";
   return (
     <div
-      className={`${styles.container} ${isDense ? styles.dense : flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress ? styles.withSpinner : ""}`}
+      className={`${styles.container} ${flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress ? styles.withSpinner : ""}`}
       onClick={onSelect}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
@@ -42,31 +42,30 @@ export function TaskCard({ task, breakdown, explain = false, flavor = "outlined"
         {task.ancestors && task.ancestors.length > 0 && (
           <Breadcrumbs ancestors={task.ancestors} />
         )}
-        <div className={`${styles.title} ${isDense ? styles.denseTitle : ""}`}>{task.title}</div>
-        <div className={`${styles.meta} ${isDense ? styles.denseMeta : ""}`}>
+        <div className={styles.title}>{task.title}</div>
+        <div className={styles.meta}>
           <span>{task.duration} min</span>
           <span className={styles.context}>{task.energyRequired} energy</span>
           {task.contexts.length > 0 && <span>{task.contexts.join(", ")}</span>}
           {task.location && (
             <span className={styles.locationMeta}>
-              <LocationIcon location={task.location} size={isDense ? 14 : 18} />
+              <LocationIcon location={task.location} size={18} />
             </span>
           )}
         </div>
-        {!isDense && explain && breakdown && <ScoreBreakdown breakdown={breakdown} />}
+        {explain && breakdown && <ScoreBreakdown breakdown={breakdown} />}
       </div>
-      {!isDense && actions && actions.length > 0 && (
+      {actions && actions.length > 0 && (
         <div className={styles.actions}>
           {actions.map((action) => (
-            <button
+            <ActionButton
               key={action.id}
-              className={styles.actionButton}
-              style={action.color ? { backgroundColor: action.color, borderColor: action.color } : undefined}
-              onClick={(e) => { e.stopPropagation(); onAction?.(action.id); }}
-            >
-              <span className={styles.actionIcon}>{action.icon}</span>
-              {showActionLabels && action.label && <span className={styles.actionLabel}>{action.label}</span>}
-            </button>
+              icon={action.icon}
+              label={action.label}
+              color={action.color}
+              showLabel={showActionLabels}
+              onClick={() => onAction?.(action.id)}
+            />
           ))}
         </div>
       )}

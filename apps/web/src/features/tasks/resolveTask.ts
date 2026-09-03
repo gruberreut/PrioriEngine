@@ -36,6 +36,17 @@ export function getAncestors(task: Task, allTasks: Task[]): Task[] {
   return ancestors;
 }
 
+export function getDescendants(taskId: string, allTasks: Task[]): Task[] {
+  const result: Task[] = [];
+  const queue = allTasks.filter((t) => t.parentId === taskId);
+  while (queue.length > 0) {
+    const t = queue.shift()!;
+    result.push(t);
+    queue.push(...allTasks.filter((c) => c.parentId === t.id));
+  }
+  return result;
+}
+
 export function resolveTask(task: Task, ancestors: Task[]): ResolvedTask {
   return {
     id: task.id,

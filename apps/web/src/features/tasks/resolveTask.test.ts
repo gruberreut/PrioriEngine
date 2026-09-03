@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { resolveTask } from "./resolveTask";
+import { resolveTask, getDescendants } from "./resolveTask";
 import type { Task } from "../../types/task";
 
 function makeTask(overrides: Partial<Task>): Task {
@@ -141,5 +141,42 @@ describe("resolveTask", () => {
     const result = resolveTask(task, []);
     expect(result.title).toBe("Solo task");
     expect(result.duration).toBe(10);
+  });
+});
+
+describe("getDescendants", () => {
+  it("returns an empty array for a task with no children", () => {
+    const task = makeTask({ id: "t1" });
+    expect(getDescendants("t1", [task])).toEqual([]);
+  });
+
+  it("returns direct children", () => {
+    const parent = makeTask({ id: "p" });
+    const child1 = makeTask({ id: "c1", parentId: "p" });
+    const child2 = makeTask({ id: "c2", parentId: "p" });
+
+    const result = getDescendants("p", [parent, child1, child2]);
+
+    expect(result.map((t) => t.id).sort()).toEqual(["c1", "c2"]);
+  });
+
+  it("returns nested descendants across multiple levels", () => {
+    const root = makeTask({ id: "root" });
+    const mid = makeTask({ id: "mid", parentId: "root" });
+    const leaf = makeTask({ id: "leaf", parentId: "mid" });
+
+    const result = getDescendants("root", [root, mid, leaf]);
+
+    expect(result.map((t) => t.id).sort()).toEqual(["leaf", "mid"]);
+  });
+
+  it("does not include unrelated tasks", () => {
+    const parent = makeTask({ id: "p" });
+    const child = makeTask({ id: "c", parentId: "p" });
+    const other = makeTask({ id: "other" });
+
+    const result = getDescendants("p", [parent, child, other]);
+
+    expect(result.map((t) => t.id)).toEqual(["c"]);
   });
 });
