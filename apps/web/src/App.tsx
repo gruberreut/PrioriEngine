@@ -36,11 +36,11 @@ function AppShell() {
 
 function App() {
   return (
-    <LoadingGate>
-      <BrowserRouter>
+    <BrowserRouter>
+      <LoadingGate>
         <AppShell />
-      </BrowserRouter>
-    </LoadingGate>
+      </LoadingGate>
+    </BrowserRouter>
   );
 }
 

@@ -166,3 +166,16 @@ Replace the current top `NavBar` (`src/components/NavBar/`) with a fixed bottom 
 - [x] Review in Storybook — **approved** (§ 22.1)
 
 ---
+
+## 21. Dedicated in-progress task route (`in-progress-route`)
+
+**Depends on:** none — only needs the Start action (already done), not Complete/Snooze/Delete. The page can render with those buttons unwired, same as they are today in the ranking carousel's `InProgressBlock`; they'll light up once section 12 lands.
+
+Add a standalone route/page for the in-progress task, separate from the ranking carousel, so section 20 has somewhere real to redirect to.
+
+- [x] Add a new route (e.g. `/in-progress`) and page component
+- [x] Reuse the existing `InProgressBlock` component (Complete/Snooze/Delete remain unwired until section 12 lands)
+- [x] Register the route in `App.tsx`
+- [x] Hide the top `NavBar` (Rank / Tasks) on `/in-progress` — the `FAB` should be the only button visible on this route
+
+---

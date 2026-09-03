@@ -7,6 +7,7 @@ export function LoadingScreen() {
     <div className={styles.screen}>
       <Icon asset={Tendril} label="Priori" size={96} />
       <span className={styles.wordmark}>Priori</span>
+      <span className={styles.footer}>Powered by Priori Engine</span>
     </div>
   );
 }

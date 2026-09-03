@@ -537,4 +537,6 @@
                                                --font-size-* role: a full-screen
                                                splash reads as its own scale,
                                                not body copy */
+  --loading-screen-footer-fg:       var(--color-text-muted);
+  --loading-screen-footer-size:     var(--font-size-micro);
 }
