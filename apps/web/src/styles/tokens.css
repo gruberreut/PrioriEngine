@@ -529,4 +529,12 @@
   --message-dot-bg-info:      var(--color-text-muted);
   --message-fg:               var(--color-text-strong);
   --message-size:             var(--font-size-body);
+
+  /* LoadingScreen — features/loading/LoadingScreen */
+  --loading-screen-bg:              var(--color-bg-page);
+  --loading-screen-fg:              var(--color-text-strong);
+  --loading-screen-wordmark-size:   22px;   /* larger than every existing
+                                               --font-size-* role: a full-screen
+                                               splash reads as its own scale,
+                                               not body copy */
 }

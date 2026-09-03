@@ -484,12 +484,13 @@ A broader visual/UX pass across the app. Not scoped yet — needs a walkthrough 
 
 Currently the app renders straight into its routes on mount — there's no single point where cross-cutting startup concerns (auth, authorization, blocking-state checks) can run before the rest of the app appears. Build a generic bootstrap mechanism for that, independent of what the individual steps end up being (those are separate tasks — see 20).
 
-- [ ] Create a `LoadingPage` / bootstrap gate component that runs on app mount, wraps the router, and renders before any route
+- [x] Create a `LoadingPage` / bootstrap gate component that runs on app mount, wraps the router, and renders before any route
 - [ ] Design the gate as an ordered sequence of async steps; each step can pass through, redirect, or block until resolved
 - [ ] Add a placeholder authentication step (no-op today; ties into section 7's deferred "User provisioning" design work), just to give the sequence the right shape for when auth exists
 - [ ] Add a placeholder authorization step (no-op today), same reasoning
-- [ ] Show a loading state while steps are in flight
-- [ ] Update `ARCHITECTURE.md` documenting the gate as the app's bootstrap sequence
+- [x] Show a loading state while steps are in flight
+- [x] Update `ARCHITECTURE.md` documenting the gate as the app's bootstrap sequence
+- [ ] Replace `LoadingScreen`'s placeholder visual design (enlarged `Tendril` icon + wordmark on a plain background) with a considered design once the app's visual language for this screen is decided
 
 ---
 

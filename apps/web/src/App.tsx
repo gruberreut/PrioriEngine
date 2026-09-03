@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { LoadingGate } from "./features/loading/LoadingGate/LoadingGate";
 import { NavBar } from "./components/NavBar/NavBar";
 import { FAB } from "./components/FAB/FAB";
 import { RankingPage } from "./features/ranking/RankingPage/RankingPage";
@@ -35,9 +36,11 @@ function AppShell() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <AppShell />
-    </BrowserRouter>
+    <LoadingGate>
+      <BrowserRouter>
+        <AppShell />
+      </BrowserRouter>
+    </LoadingGate>
   );
 }
 
