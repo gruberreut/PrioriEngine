@@ -11,9 +11,10 @@ export interface ResultsSlideProps {
   result?: RankResultMode;
   backgroundColor?: string;
   onStartTask?: (taskId: string) => void;
+  onInProgressAction?: (actionId: string, taskId: string) => void;
 }
 
-export function ResultsSlide({ label, state, result, backgroundColor, onStartTask }: ResultsSlideProps) {
+export function ResultsSlide({ label, state, result, backgroundColor, onStartTask, onInProgressAction }: ResultsSlideProps) {
   return (
     <div className={styles.slide} style={backgroundColor ? { backgroundColor } : undefined}>
       <h2 className={styles.heading}>{label}</h2>
@@ -28,7 +29,7 @@ export function ResultsSlide({ label, state, result, backgroundColor, onStartTas
         </div>
       )}
       {state === "error" && <InlineMessage status="error">Failed to load results</InlineMessage>}
-      {state === "loaded" && <ResultsPanel result={result} onStartTask={onStartTask} />}
+      {state === "loaded" && <ResultsPanel result={result} onStartTask={onStartTask} onInProgressAction={onInProgressAction} />}
     </div>
   );
 }

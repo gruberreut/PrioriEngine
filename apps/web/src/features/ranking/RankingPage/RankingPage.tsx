@@ -102,12 +102,7 @@ export function RankingPage() {
     }
   }
 
-  async function handleStartTask(taskId: string) {
-    try {
-      await updateTask(taskId, { status: "in_progress" });
-    } catch {
-      return;
-    }
+  function refreshAfterMutation() {
     paramsVersionRef.current++;
     const next = slidesRef.current.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
     slidesRef.current = next;
@@ -116,6 +111,25 @@ export function RankingPage() {
     if (slideIndex >= 0) {
       loadSlide(slideIndex);
     }
+  }
+
+  async function handleStartTask(taskId: string) {
+    try {
+      await updateTask(taskId, { status: "in_progress" });
+    } catch {
+      return;
+    }
+    refreshAfterMutation();
+  }
+
+  async function handleInProgressAction(actionId: string, taskId: string) {
+    if (actionId !== "complete") return;
+    try {
+      await updateTask(taskId, { status: "completed" });
+    } catch {
+      return;
+    }
+    refreshAfterMutation();
   }
 
   function handleSlideChange(index: number) {
@@ -146,6 +160,7 @@ export function RankingPage() {
             result={slide.result}
             backgroundColor={SLIDE_PALETTE[i % SLIDE_PALETTE.length]}
             onStartTask={handleStartTask}
+            onInProgressAction={handleInProgressAction}
           />
         ))}
       </Carousel>

@@ -237,91 +237,7 @@ The seed script covers the single dev user. When real user accounts are added (a
 
 ---
 
-## 9. Task entry UI (`task-entry-ui`)
-
-FAB-triggered creation flow and post-creation task detail page.
-
-**Depends on:** Section 6.1 (routing skeleton must exist before pages can be wired); Section 8 (API endpoints must exist before the form and detail page can talk to the server). Components 9.1 and 9.2 are pure UI and can be built ahead of the API.
-
-One component at a time; Storybook review required before the next begins.
-
----
-
-### 9.1 `DurationPicker` ✓
-
-**Depends on:** none — pure component, no API dependency.
-
-4-button segmented control; identical structure and CSS pattern to `EnergyPicker`. No icons — text labels only.
-
-- [x] Props: `value: number`, `onChange: (value: number) => void`, `label?: string`, `disabled?: boolean`
-- [x] Options: `10` / `20` / `30` / `60` minutes; default `20`
-- [x] Write stories: Default (20 selected), Each option selected, Disabled
-- [x] Review in Storybook — **approved**
-
----
-
-### 9.2 `PriorityPicker` ✓
-
-**Depends on:** none — pure component, no API dependency.
-
-5-button segmented control; same button/CSS pattern as `EnergyPicker`. Selecting Urgent reveals an inline due date input below the picker.
-
-- [x] Props: `value: number`, `onChange: (value: number) => void`, `dueDate?: string`, `onDueDateChange?: (date: string) => void`, `label?: string`, `disabled?: boolean`
-- [x] Options and mappings: Urgent → 1, Soon → 3, Medium → 6, Later → 8, Ongoing → 10; default Soon (3)
-- [x] Due date input appears inline beneath the picker only when Urgent is selected; defaults to tomorrow's date
-- [x] Write stories: Default (Soon), Urgent selected (due date visible), Each option, Disabled
-- [x] Review in Storybook — **approved**
-
----
-
-### 9.3 `TaskCreationForm` ✓
-
-**Depends on:** 9.1, 9.2, Section 8 (`POST /api/tasks`, `GET /api/contexts?source=db`, `POST /api/contexts`), Section 6.1 (routing — form lives at `/tasks/new`).
-
-Composes all pickers into a single creation form. Submits via `POST /api/tasks` with a client-generated UUID.
-
-- [x] Fields: title (text input, required), context (`Select` populated from `GET /api/contexts?source=db`; includes an inline "New context…" option that calls `POST /api/contexts` and appends the result to the list), `PriorityPicker` (default Soon), `DurationPicker` (default 20 min), `EnergyPicker` (default medium), `LocationPicker` (default anywhere)
-- [x] On success: navigates to `/tasks/:id`
-- [x] Props: `onSubmit`, `onCancel`, `loading`, `contexts: ContextItem[]` (uses ContextItem with id+name rather than plain strings)
-- [x] Write stories: Default, Loading, WithExistingContexts
-- [x] Review in Storybook — **approved**
-
----
-
-### 9.4 `FAB` ✓
-
-**Depends on:** Section 6.1 (needs routes to exist so the render condition can reference `/tasks/new`).
-
-Fixed-position `+` button. Not rendered on the `/tasks/new` route (controlled at the router level, not via a prop).
-
-- [x] Props: `onClick`
-- [x] Write story: Default
-- [x] Review in Storybook — **approved**
-
----
-
-### 9.5 `TaskDetailPage`
-
-**Depends on:** 9.3 (tasks must be creatable before a detail page is useful), Section 8 (`GET /api/tasks?source=db`, `POST /api/tasks/:id/split`, `PUT /api/tasks/:id`), Section 6.1 (routing — page lives at `/tasks/:id`).
-
-Shown immediately after task creation and reachable at `/tasks/:id`.
-
-- [x] Fetches task by id from `GET /api/tasks?source=db`; shows loading and error states
-- [x] Renders `TaskCard` with `showActionLabels={true}`, `flavor="outlined"`, and four actions:
-  - **Add another** — navigates to `/tasks/new`
-  - **Add subtask** — navigates to `/tasks/new?parentId=:id&parentTitle=:title`; `TaskCreationPage` reads search params to pre-fill parent
-  - **Split** — calls `POST /api/tasks/:id/split` (prompts for parent title via `window.prompt`); navigates to the new parent's `/tasks/:parentId`
-  - **Start** — calls `PUT /api/tasks/:id` with `{ status: "in_progress" }`; disabled when any task already has `status: "in_progress"` (checked from the loaded task list)
-- [x] Added `PUT /api/tasks/:id` API endpoint and documented in `API.md`
-- [x] Write stories: Default, Start disabled (in-progress exists), Loading, Error
-- [ ] Review in Storybook — **approved**
-
-### 9.6 Routing expansion
-
-**Depends on:** Section 6.1, 9.3, 9.4, 9.5 all complete.
-
-- [x] Expand `App.tsx` routes (from 6.1) to add: `/tasks/new` → `TaskCreationPage`, `/tasks/:id` → `TaskDetailPage`
-- [x] Render `FAB` on all routes except `/tasks/new`
+## 9. Task entry UI — completed, see TASKS-DONE.md
 
 ---
 
@@ -398,9 +314,12 @@ Wire up the `Complete` / `Snooze` / `Delete` actions on `InProgressBlock` (shown
 ### Frontend
 
 - [ ] Add `hasChildren: boolean` to `Task` (`src/types/task.ts`)
-- [ ] `taskService.ts` — add `snoozeTask(id)` and `deleteTask(id, childAction?)`; reuse `updateTask` for complete
+- [x] `taskService.ts` — reuse `updateTask` for complete
+- [ ] `taskService.ts` — add `snoozeTask(id)` and `deleteTask(id, childAction?)`
 - [ ] New `ConfirmDialog` component (`src/components/ConfirmDialog/`) — generic question + button-options popup. One component at a time; Storybook story required; review/approval needed before it's wired in
-- [ ] Wire `RankingPage` → `ResultsPanel.onInProgressAction`: `complete`/`snooze` call their service function then re-run ranking; `delete` checks `task.hasChildren` — if true, opens `ConfirmDialog` first — then calls `deleteTask` exactly once with the decision (if any) already included, then re-runs ranking
+- [x] Wire `RankingPage` → `ResultsPanel.onInProgressAction` and `InProgressPage`'s `InProgressBlock.onAction`: `complete` calls `updateTask(id, { status: "completed" })` then re-runs ranking (`RankingPage`) or navigates back to `/` (`InProgressPage`)
+- [ ] Wire `snooze`: call `snoozeTask` then re-run ranking
+- [ ] Wire `delete`: check `task.hasChildren` — if true, opens `ConfirmDialog` first — then calls `deleteTask` exactly once with the decision (if any) already included, then re-runs ranking
 
 ---
 
@@ -935,6 +854,59 @@ User wants a third direction beyond either of those: the **same** `Select` compo
 - [ ] Once designed, sequence this after § 24.10 (`Sheet`/`Modal`) is built, since the mobile variant presumably composes it
 - [ ] Decide the responsive-switch mechanism (viewport breakpoint via CSS/JS, or a shared hook) and whether `Select`'s external API (`options`/`value`/`onChange`/`label`/`placeholder`/`disabled`) needs to change to support both presentations
 - [ ] Migrate the closed-field styling onto `--select-*` tokens (§ 3.4 option (a)'s block) regardless of which open-state direction wins — that part isn't blocked on the above
+
+---
+
+## 25. Centralized message service (`message-service`)
+
+`InlineMessage` (`src/components/InlineMessage/`) is currently rendered inline, per-page, wherever a page needs to show a status/error/success message — each of `InProgressPage`, `ResultsSlide`, `TaskDetailPage`, `TasksPage`, and `TaskCreationPage` owns its own local state and renders its own `<InlineMessage>` independently. This works today but doesn't manage the case where a page (or an action within a page) might want to fire multiple messages in quick succession — there's no shared mechanism to queue them, dedupe, or prevent one message's render from stomping another's.
+
+Evaluate whether `InlineMessage` should stay page-local or move behind a central message/toast service — a single place that owns a message queue, decides what's currently visible, and exposes a simple `notify(status, text)`-style API that any page or feature can call instead of managing its own local state.
+
+- [ ] Audit every current `InlineMessage` call site (`InProgressPage`, `ResultsSlide`, `TaskDetailPage`, `TasksPage`, `TaskCreationPage`) and characterize each usage: is it a one-shot page-load error, a transient action-result toast, or something that could plausibly overlap with another message on the same page?
+- [ ] Decide whether a central queueing service is actually warranted yet, or whether it's premature given current usage is all single-message-per-page — per `CLAUDE.md`'s "smallest footprint" guidance, this should be raised as an explicit trade-off (uncertainty about future needs) rather than assumed
+- [ ] If warranted: design the service's shape (a React context + provider vs. a standalone singleton store), its queue/collision behavior (replace, stack, or dismiss-then-show-next), and how a page opts in to firing a message through it (a hook, e.g. `useMessageQueue()` or `notify()`)
+- [ ] If warranted: migrate existing call sites one at a time, removing each page's local message state as it's migrated
+- [ ] Update `documentation/ARCHITECTURE.md` recording the decision either way (centralize now, or explicitly defer with the reasoning)
+
+---
+
+## 26. Completed tasks in the tasks list (`completed-tasks-list`)
+
+**Current state (confirmed by reading the code):** `queryTasks(db, userId, options)` (`apps/api/src/db/queries.ts`) only filters by status when a caller passes `options.status` — `GET /api/tasks` with no `?status=` query param returns tasks of every status, completed included. Both `TasksPage.tsx` and `TaskDetailPage.tsx` call `getTasks()` with no status argument, so completed tasks are already present in the tree today. `TaskTreeItem.tsx` uses each descendant's `status === "completed"` only to compute a parent's aggregate `completedMinutes / totalMinutes` progress line — a completed row itself has no visual marking (no strikethrough, badge, dimming) distinguishing it from a pending one.
+
+Decide the intended UX for completed tasks inside a project tree — per-user request, this shouldn't default to silently hiding them, since the user may want to view completed tasks in the context of their project (e.g. reviewing what's been done on a project so far).
+
+**Growth concern:** because `GET /api/tasks` returns every status with no pagination, the response grows unbounded as a user accumulates completed tasks over time — every `TasksPage`/`TaskDetailPage` load re-fetches the user's entire completed history whether or not it's shown. This pushes toward filtering completed tasks out **server-side by default** (not a client-side filter over an ever-growing unfiltered payload) and fetching them on demand — e.g. scoped to one project/parent, possibly paginated — only when the user actually asks to see them, rather than loading them eagerly with everything else.
+
+- [ ] Decide default visibility. Candidate approach: default `GET /api/tasks` load includes a completed *leaf* task only when it belongs to an *active* project (i.e. has an ancestor project that is not itself fully completed) — so recently-finished work still shows in context under a project the user is actively working — but excludes (a) completed tasks with no parent (standalone, not part of any project) and (b) entire projects that are fully completed (root + all descendants `completed`, per §13's cascade). This bounds default load growth to "active project" completions rather than the full historical set, while still answering the user's "view completed in project context" ask for the common case.
+- [ ] If the above is adopted, decide the query shape needed to express it server-side: e.g. `queryTasks` needs to know, per row, whether its root ancestor project is fully completed (likely via `groupTasksByParent`, walking each candidate row's ancestor chain, or precomputing a `projectCompleted` flag) — this is nontrivial to do efficiently in one query and needs its own design pass, not just a `WHERE status != 'completed'`
+- [ ] Decide how the user reaches the excluded set (standalone completed tasks + fully-completed projects) — two options raised, not mutually exclusive: (a) a checkbox/toggle in `TasksPage` that re-fetches with completed+archived projects included; (b) a dedicated Archive page/route for browsing completed tasks and completed projects separately from the active list. Pick one for v1 or decide both are worth building and sequence them
+- [ ] Whichever fetch-on-demand shape is chosen (toggle vs. archive page), decide the query shape: `?status=completed&parentId=` for a scoped per-project fetch, a dedicated endpoint, or pagination (`limit`/`cursor`) if a single project can itself accumulate many completed tasks over time
+- [ ] Add a visual indicator for `status: "completed"` on individual task rows in `TaskTreeItem` (and any other place a completed leaf task can appear in a list, e.g. `TaskCard`) — e.g. strikethrough title, muted color, checkmark badge — using existing design tokens, not new literals
+- [ ] If a "show completed" toggle/action is added, decide where it lives (per-project, global to `TasksPage`) and whether the state should persist (e.g. across navigations/sessions)
+- [ ] Reconcile with `TaskTreeItem`'s existing `completedMinutes / totalMinutes` progress line — decide whether that number can still be computed cheaply (e.g. a server-side count) once completed descendants are no longer fetched by default alongside everything else
+- [ ] Cross-check against §13 (Cascading Task Completion, not yet built) — once a parent can auto-complete when its last child completes, confirm the chosen display behaves sensibly for a fully-completed subtree (e.g. does the whole branch collapse, stay expanded and greyed out, etc.)
+
+---
+
+## 27. Task search (`task-search`)
+
+Add the ability to search tasks. MVP scope is search by label (task title text match); a later pass extends this to more complex parameters (context, priority, energy, duration, location, status, date range, combined/multi-field criteria).
+
+### MVP: search by label
+
+- [ ] Decide where the search entry point lives (e.g. a search input on `TasksPage`) and whether it searches the currently-loaded task list client-side, or issues a server query — consider `§26`'s growth concern (the task list won't always be fully loaded client-side once completed/archived tasks are excluded by default) when deciding
+- [ ] If server-side: add a `?q=` (or similarly named) param to `GET /api/tasks` doing a case-insensitive substring/partial match against `title`; update `queryTasks` and `apps/api/openapi.yaml`
+- [ ] Decide match behavior against the task tree: does matching a child task also surface its ancestor chain (so the result reads in project context, similar to `TaskCard`'s `ancestors` breadcrumb), or is it a flat list of matches?
+- [ ] Write real-DB integration test(s) for the search query if server-side (per `CLAUDE.md`'s API testing strategy, since it's a new query pattern) — or client-side unit tests if implemented as a local filter
+- [ ] Update `ARCHITECTURE.md` recording the MVP approach taken (client-side filter vs. server query) and why
+
+### Later: search by additional parameters
+
+- [ ] Design the filter model once the MVP ships and real usage patterns are known — candidate fields: `context`, `priority`, `energyRequired`, `duration` (range), `location`, `status`, `dueDate` (range)
+- [ ] Decide whether this reuses/extends the label search's query mechanism (e.g. combinable query params) or is a separate structured filter UI
+- [ ] Revisit whether pagination becomes necessary at this point, per `§26`'s dataset-growth concern
 
 ---
 

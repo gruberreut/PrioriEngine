@@ -52,6 +52,7 @@ const meta: Meta<typeof ResultsSlide> = {
   component: ResultsSlide,
   argTypes: {
     onStartTask: { action: "onStartTask" },
+    onInProgressAction: { action: "onInProgressAction" },
   },
 };
 

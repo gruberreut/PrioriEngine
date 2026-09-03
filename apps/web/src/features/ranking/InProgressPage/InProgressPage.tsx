@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Task } from "../../../types/task";
 import { InProgressBlock } from "../InProgressBlock/InProgressBlock";
-import { getTasksByStatus } from "../../../services/taskService";
+import { getTasksByStatus, updateTask } from "../../../services/taskService";
 import { resolveTask } from "../../tasks/resolveTask";
 import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import styles from "./InProgressPage.module.css";
@@ -52,9 +52,19 @@ export function InProgressPage({ initialState }: InProgressPageProps) {
     );
   }
 
+  async function handleAction(actionId: string) {
+    if (actionId !== "complete" || state.status !== "loaded") return;
+    try {
+      await updateTask(state.task.id, { status: "completed" });
+    } catch {
+      return;
+    }
+    navigate("/", { replace: true });
+  }
+
   return (
     <div className={styles.page}>
-      <InProgressBlock task={state.task} />
+      <InProgressBlock task={state.task} onAction={handleAction} />
     </div>
   );
 }

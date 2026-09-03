@@ -25,7 +25,7 @@ export interface ResultsPanelProps {
   result?: RankResultMode;
   onBack?: () => void;
   onSelectTask?: (taskId: string | null) => void;
-  onInProgressAction?: (actionId: string) => void;
+  onInProgressAction?: (actionId: string, taskId: string) => void;
   onStartTask?: (taskId: string) => void;
 }
 
@@ -35,7 +35,8 @@ export function ResultsPanel({ result, onBack, onSelectTask, onInProgressAction,
   if (!result) return null;
 
   if (result.mode === "in_progress_block") {
-    return <InProgressBlock task={result.task} onAction={onInProgressAction} />;
+    const task = result.task;
+    return <InProgressBlock task={task} onAction={(actionId) => onInProgressAction?.(actionId, task.id)} />;
   }
 
   if (result.tasks.length === 0) {

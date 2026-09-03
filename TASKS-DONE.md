@@ -139,6 +139,94 @@ A read-only page at `/tasks` that shows all tasks as an expandable tree. The col
 
 ---
 
+## 9. Task entry UI (`task-entry-ui`)
+
+FAB-triggered creation flow and post-creation task detail page.
+
+**Depends on:** Section 6.1 (routing skeleton must exist before pages can be wired); Section 8 (API endpoints must exist before the form and detail page can talk to the server). Components 9.1 and 9.2 are pure UI and can be built ahead of the API.
+
+One component at a time; Storybook review required before the next begins.
+
+---
+
+### 9.1 `DurationPicker` ✓
+
+**Depends on:** none — pure component, no API dependency.
+
+4-button segmented control; identical structure and CSS pattern to `EnergyPicker`. No icons — text labels only.
+
+- [x] Props: `value: number`, `onChange: (value: number) => void`, `label?: string`, `disabled?: boolean`
+- [x] Options: `10` / `20` / `30` / `60` minutes; default `20`
+- [x] Write stories: Default (20 selected), Each option selected, Disabled
+- [x] Review in Storybook — **approved**
+
+---
+
+### 9.2 `PriorityPicker` ✓
+
+**Depends on:** none — pure component, no API dependency.
+
+5-button segmented control; same button/CSS pattern as `EnergyPicker`. Selecting Urgent reveals an inline due date input below the picker.
+
+- [x] Props: `value: number`, `onChange: (value: number) => void`, `dueDate?: string`, `onDueDateChange?: (date: string) => void`, `label?: string`, `disabled?: boolean`
+- [x] Options and mappings: Urgent → 1, Soon → 3, Medium → 6, Later → 8, Ongoing → 10; default Soon (3)
+- [x] Due date input appears inline beneath the picker only when Urgent is selected; defaults to tomorrow's date
+- [x] Write stories: Default (Soon), Urgent selected (due date visible), Each option, Disabled
+- [x] Review in Storybook — **approved**
+
+---
+
+### 9.3 `TaskCreationForm` ✓
+
+**Depends on:** 9.1, 9.2, Section 8 (`POST /api/tasks`, `GET /api/contexts?source=db`, `POST /api/contexts`), Section 6.1 (routing — form lives at `/tasks/new`).
+
+Composes all pickers into a single creation form. Submits via `POST /api/tasks` with a client-generated UUID.
+
+- [x] Fields: title (text input, required), context (`Select` populated from `GET /api/contexts?source=db`; includes an inline "New context…" option that calls `POST /api/contexts` and appends the result to the list), `PriorityPicker` (default Soon), `DurationPicker` (default 20 min), `EnergyPicker` (default medium), `LocationPicker` (default anywhere)
+- [x] On success: navigates to `/tasks/:id`
+- [x] Props: `onSubmit`, `onCancel`, `loading`, `contexts: ContextItem[]` (uses ContextItem with id+name rather than plain strings)
+- [x] Write stories: Default, Loading, WithExistingContexts
+- [x] Review in Storybook — **approved**
+
+---
+
+### 9.4 `FAB` ✓
+
+**Depends on:** Section 6.1 (needs routes to exist so the render condition can reference `/tasks/new`).
+
+Fixed-position `+` button. Not rendered on the `/tasks/new` route (controlled at the router level, not via a prop).
+
+- [x] Props: `onClick`
+- [x] Write story: Default
+- [x] Review in Storybook — **approved**
+
+---
+
+### 9.5 `TaskDetailPage`
+
+**Depends on:** 9.3 (tasks must be creatable before a detail page is useful), Section 8 (`GET /api/tasks?source=db`, `POST /api/tasks/:id/split`, `PUT /api/tasks/:id`), Section 6.1 (routing — page lives at `/tasks/:id`).
+
+Shown immediately after task creation and reachable at `/tasks/:id`.
+
+- [x] Fetches task by id from `GET /api/tasks?source=db`; shows loading and error states
+- [x] Renders `TaskCard` with `showActionLabels={true}`, `flavor="outlined"`, and four actions:
+  - **Add another** — navigates to `/tasks/new`
+  - **Add subtask** — navigates to `/tasks/new?parentId=:id&parentTitle=:title`; `TaskCreationPage` reads search params to pre-fill parent
+  - **Split** — calls `POST /api/tasks/:id/split` (prompts for parent title via `window.prompt`); navigates to the new parent's `/tasks/:parentId`
+  - **Start** — calls `PUT /api/tasks/:id` with `{ status: "in_progress" }`; disabled when any task already has `status: "in_progress"` (checked from the loaded task list)
+- [x] Added `PUT /api/tasks/:id` API endpoint and documented in `API.md`
+- [x] Write stories: Default, Start disabled (in-progress exists), Loading, Error
+- [x] Review in Storybook — **approved**
+
+### 9.6 Routing expansion
+
+**Depends on:** Section 6.1, 9.3, 9.4, 9.5 all complete.
+
+- [x] Expand `App.tsx` routes (from 6.1) to add: `/tasks/new` → `TaskCreationPage`, `/tasks/:id` → `TaskDetailPage`
+- [x] Render `FAB` on all routes except `/tasks/new`
+
+---
+
 ## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
 
 **Depends on:** section 10 (bugs fixed first).
