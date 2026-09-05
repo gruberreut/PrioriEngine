@@ -411,6 +411,30 @@ Wire up the `Complete` / `Snooze` / `Delete` actions on `InProgressBlock` (shown
 
 ---
 
+## 14. Context theming (`context-theming`)
+
+**Depends on:** Section 8 (contexts table must exist).
+
+When a user creates a new context, assign it a stable `slide_index` so it always renders with the same background in the ranking carousel. Currently, slide colors are assigned by index into a fixed palette — this works but means colors shift if contexts are reordered or deleted.
+
+The DB stores an index, not a color value. The frontend maps that index onto the existing `--color-slide-{n}` design tokens (`apps/web/src/styles/tokens.css`), which are already light/dark-aware — see `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8.7. This keeps one color system instead of two.
+
+- [x] Light-mode slide tints finalized per `documentation/Carousel backgrounds per theme.png` (dark-mode tints already matched this doc from § 22.1/22.7; only light was still the earlier washed-out placeholder) — `--tendril-slide-0..7` and `--tendril-slide-params` in `tokens.css` updated to the doc's hex values, comments unchanged since the hue/degree labels already matched
+
+**Assignment order decision:** `slide_index` must be assigned by a monotonically increasing counter (`(max assigned + 1) mod 8`), never by reusing the first free slot left by a deleted context. The design doc's hue wheel is meant to read in a fixed, pleasing order — reusing gaps could put a newer context at an earlier index than an older one, so contexts wouldn't display in ascending hue-wheel order even though display order is otherwise creation order. The accepted trade-off is the reverse case — heavy create/delete churn can eventually make two live contexts share a hue after wrapping past 8 — which is a smaller visual problem than out-of-order hues and is expected to be rare at this app's current single-user scale.
+
+### Tasks
+
+- [x] Add a `slide_index` (integer) column to the `contexts` table; generate a migration. Existing rows backfilled via `ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY created_at)` before the column was made `NOT NULL` (no default — every insert path now supplies it explicitly)
+- [x] On context creation (`POST /api/contexts`), assign `slide_index` from a monotonically increasing per-user counter, wrapping mod 8 (never reuse a freed index — see decision above). Computed as `(MAX(slide_index) for this user + 1) mod 8` inside the same transaction as the insert
+- [x] Return `slide_index` in `GET /api/contexts` responses
+- [x] Update the web frontend to key `--color-slide-{n}` off the context's `slide_index` instead of raw carousel-page position. `RankingPage.tsx` now uses `getContextItems()` (was the name-only `getContexts()`) and colors each slide via `SLIDE_PALETTE[slideIndex % 8]`; the "All" slide has no `slideIndex` and stays pinned to `SLIDE_PALETTE[0]`, unchanged from its previous de facto behavior
+- [x] Sort contexts by `slide_index` (not raw fetch/DB order) when building the carousel slides, so display order always matches the intended hue-wheel order. Done server-side — `GET /api/contexts` orders by `slide_index ASC`, so the frontend doesn't need to re-sort
+- [x] Handle the edge case where more contexts exist than palette entries (indices repeat past 8, per the wraparound above — confirm this reads acceptably rather than confusingly once it's actually reachable). Covered by a wraparound test (`contexts.test.ts`); visual confirmation once a user actually reaches 9 contexts is deferred, as this is expected to be rare at current scale
+- [x] Moved `routes/contexts.ts` from a mocked-DB test to a real-DB one (`CLAUDE.md`'s API Testing Strategy) now that `slide_index` assignment is a real invariant, not simple CRUD
+
+---
+
 ## 17. Bottom navigation bar (`bottom-nav`)
 
 Replace the current top `NavBar` (`src/components/NavBar/`) with a fixed bottom bar with icon links, matching the mobile-first patterns already used elsewhere in the app (FAB, swipeable carousel).

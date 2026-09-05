@@ -21,6 +21,7 @@ export const contexts = pgTable(
       .notNull()
       .references(() => users.id),
     name: text("name").notNull(),
+    slideIndex: integer("slide_index").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique().on(t.userId, t.name)]

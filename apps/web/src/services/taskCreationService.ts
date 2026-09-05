@@ -32,6 +32,6 @@ export async function createContext(name: string): Promise<ContextItem> {
     body: JSON.stringify({ name }),
   });
   if (!res.ok) throw new Error("Failed to create context");
-  const data = (await res.json()) as { id: string; name: string };
-  return { id: data.id, name: data.name };
+  const data = (await res.json()) as { id: string; name: string; slideIndex: number };
+  return { id: data.id, name: data.name, slideIndex: data.slideIndex };
 }

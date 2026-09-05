@@ -3,7 +3,7 @@ import { Carousel, type SwipeDirection } from "../../../components/Carousel/Caro
 import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
 import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
 import { rank } from "../../../services/rankingService";
-import { getContexts } from "../../../services/contextService";
+import { getContextItems, type ContextItem } from "../../../services/contextService";
 import { updateTask, snoozeTask, deleteTask } from "../../../services/taskService";
 import { ConfirmDialog } from "../../../components/ConfirmDialog/ConfirmDialog";
 import type { Task } from "../../../types/task";
@@ -18,6 +18,7 @@ const DELETE_CHILDREN_OPTIONS = [
 interface SlideData {
   label: string;
   context: string | undefined;
+  slideIndex: number | undefined;
   state: SlideState;
   result?: RankResultMode;
 }
@@ -36,7 +37,7 @@ const SLIDE_PALETTE = [
 ];
 
 export function RankingPage() {
-  const [contexts, setContexts] = useState<string[]>([]);
+  const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [slides, setSlides] = useState<SlideData[]>([]);
   const paramsRef = useRef<RankParams>({
@@ -50,14 +51,17 @@ export function RankingPage() {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    getContexts().then(setContexts).catch(() => {});
+    getContextItems().then(setContexts).catch(() => {});
   }, []);
 
   useEffect(() => {
-    const allSlide: SlideData = { label: "All", context: undefined, state: "idle" };
+    // getContextItems() already returns contexts ordered by slideIndex, so
+    // carousel pages display in the palette's intended ascending hue order.
+    const allSlide: SlideData = { label: "All", context: undefined, slideIndex: undefined, state: "idle" };
     const contextSlides: SlideData[] = contexts.map((c) => ({
-      label: c,
-      context: c,
+      label: c.name,
+      context: c.name,
+      slideIndex: c.slideIndex,
       state: "idle",
     }));
     const next = [allSlide, ...contextSlides];
@@ -197,13 +201,13 @@ export function RankingPage() {
         <div className={styles.paramsSlide} style={{ backgroundColor: "var(--color-slide-params)" }}>
           <ParamsForm onParamsChange={handleParamsChange} />
         </div>
-        {slides.map((slide, i) => (
+        {slides.map((slide) => (
           <ResultsSlide
             key={slide.label}
             label={slide.label}
             state={slide.state}
             result={slide.result}
-            backgroundColor={SLIDE_PALETTE[i % SLIDE_PALETTE.length]}
+            backgroundColor={SLIDE_PALETTE[(slide.slideIndex ?? 0) % SLIDE_PALETTE.length]}
             onStartTask={handleStartTask}
             onInProgressAction={handleInProgressAction}
           />

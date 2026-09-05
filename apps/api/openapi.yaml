@@ -326,9 +326,10 @@ paths:
     get:
       tags: [contexts]
       summary: List all contexts for the dev user
+      description: Ordered by slideIndex ascending, so callers don't need to re-sort.
       responses:
         '200':
-          description: Array of contexts
+          description: Array of contexts, ordered by slideIndex
           content:
             application/json:
               schema:
@@ -344,6 +345,7 @@ paths:
     post:
       tags: [contexts]
       summary: Create a context
+      description: slideIndex is assigned server-side — see the Context schema.
       requestBody:
         required: true
         content:
@@ -573,6 +575,17 @@ components:
           format: uuid
         name:
           type: string
+        slideIndex:
+          type: integer
+          minimum: 0
+          maximum: 7
+          description: >
+            Stable index into the eight --color-slide-* ranking-carousel
+            tints (tokens.css), assigned once at creation from a
+            monotonically increasing per-user counter (never reused, wraps
+            back to 0 past 8 contexts) so a context's background never
+            shifts if other contexts are reordered or removed. See the
+            "Context theming" section of documentation/ARCHITECTURE.md.
         createdAt:
           type: string
           format: date-time
@@ -580,6 +593,7 @@ components:
         id: 5c9d3b1a-1111-2222-3333-444455556666
         userId: 5c9d3b1a-0000-0000-0000-000000000000
         name: Learning
+        slideIndex: 0
         createdAt: '2024-01-01T00:00:00.000Z'
 
     RankRequest:

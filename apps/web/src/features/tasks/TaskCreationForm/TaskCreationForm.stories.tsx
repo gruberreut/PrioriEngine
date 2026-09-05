@@ -4,10 +4,10 @@ import { TaskCreationForm } from "./TaskCreationForm";
 import type { ContextItem } from "../../../services/contextService";
 
 const existingContexts: ContextItem[] = [
-  { id: "ctx-1", name: "Learning" },
-  { id: "ctx-2", name: "Creativity" },
-  { id: "ctx-3", name: "Projects" },
-  { id: "ctx-4", name: "Physical" },
+  { id: "ctx-1", name: "Learning", slideIndex: 0 },
+  { id: "ctx-2", name: "Creativity", slideIndex: 1 },
+  { id: "ctx-3", name: "Projects", slideIndex: 2 },
+  { id: "ctx-4", name: "Physical", slideIndex: 3 },
 ];
 
 const defaultArgs = {

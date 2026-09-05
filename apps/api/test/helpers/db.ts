@@ -29,8 +29,8 @@ export async function seedUser(email = `test-${randomUUID()}@priori.test`) {
   return user!;
 }
 
-export async function seedContext(userId: string, name: string) {
-  const [ctx] = await db.insert(schema.contexts).values({ userId, name }).returning();
+export async function seedContext(userId: string, name: string, slideIndex = 0) {
+  const [ctx] = await db.insert(schema.contexts).values({ userId, name, slideIndex }).returning();
   return ctx!;
 }
 
