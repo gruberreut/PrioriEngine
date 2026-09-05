@@ -1040,6 +1040,45 @@ Decided: testers reach the "Priori Beta Feedback" Google Form through a button i
 
 ---
 
+## 42. Context lifecycle: rename and archive (`context-lifecycle`)
+
+**Current state (confirmed by reading the code):** `apps/api/src/routes/contexts.ts` only implements `GET`/`POST /api/contexts` — there is no rename or delete endpoint, and no frontend surface to manage an existing context at all. The only client-side context-creation path is the inline "new context" flow inside `TaskCreationForm`.
+
+**Decided rules (per conversation):**
+- A context can be renamed at any time, regardless of what tasks it has — renaming only changes `contexts.name`, which doesn't affect any task's `context_id` reference, so there's no integrity concern.
+- A context can only be **removed** when it has no `pending`/`in_progress` tasks attached (leaf or parent — any row with that `context_id`). If it has any non-completed task, the user can rename it but not remove it.
+- "Removed" is a soft archive, not a SQL `DELETE`: the context row stays, gaining an `archived` flag. This keeps completed tasks' `context_id` valid (they stay attached to their real context for history/review) and avoids needing `ON DELETE SET NULL`/cascade behavior. An archived context is excluded from `GET /api/contexts`'s default response, so it drops out of the ranking carousel's context slides and the "new task" context picker.
+- A context with zero tasks of any kind is trivially eligible for archive under the same "no pending/in_progress" rule — no separate empty-vs-completed-only case needed.
+
+Not scoped yet beyond the rules above — this task starts with UX definition, then a tech design pass, before any implementation begins (same shape as §35).
+
+### 1. Define the user experience
+
+- [ ] Decide where context management (rename, archive) lives in the UI — a new dedicated screen listing all contexts, a panel inside `TasksPage`, or somewhere else
+- [ ] Decide the rename flow (inline edit vs. a form/dialog) and the archive flow (one tap vs. a confirmation step, and what the confirmation says when it's disabled/explains why archiving is blocked)
+- [ ] Decide how a blocked archive attempt is communicated (a context with pending/in_progress tasks) — disabled action with an explanation, vs. an attempt-then-error
+- [ ] Decide whether an archived context is recoverable (unarchive) or one-way for now — deferred, not decided
+- [ ] Get the flow reviewed/approved before tech design starts
+
+### 2. Tech design
+
+- [ ] Decide the component/page structure for the approved flow
+- [ ] Confirm whether §14's `slide_index` needs any interaction with archiving — current answer is no, since §14 already assigns indices from a never-reused monotonic counter, so an archived context's index simply stays retired, same as a hard-deleted one would
+- [ ] Update `ARCHITECTURE.md` recording the archive-not-delete decision and why (completed tasks keep a valid `context_id`)
+
+### 3. Implementation
+
+- [ ] Add an `archived` (boolean, default `false`) column to the `contexts` table; generate a migration
+- [ ] `PUT /api/contexts/:id` — rename: update `name`, no restriction based on task status
+- [ ] `DELETE /api/contexts/:id` (or a dedicated `/archive` action — pick one consistent with how `routes/tasks.ts` models similar lifecycle actions) — checks for any `pending`/`in_progress` task with that `context_id`; 409 if found, otherwise sets `archived = true` (never a real row delete)
+- [ ] `GET /api/contexts` excludes `archived` contexts by default
+- [ ] Update `openapi.yaml` for the new/changed endpoints
+- [ ] Real-DB integration tests: rename succeeds regardless of task status; archive succeeds when all tasks are completed or there are none; archive is rejected (409) when a pending/in_progress task exists; an archived context's completed tasks keep their `context_id` and still resolve correctly; `GET /api/contexts` omits archived contexts
+- [ ] Frontend: build the UI surface decided above, wire it to the new endpoints
+- [ ] Update `contextService.ts` with `renameContext`/`archiveContext` (or equivalent) client functions
+
+---
+
 ## Open Issues
 
 Issues that came up during implementation but were deferred to keep scope focused.
