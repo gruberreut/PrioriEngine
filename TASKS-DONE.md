@@ -122,6 +122,86 @@ A read-only page at `/tasks` that shows all tasks as an expandable tree. The col
 
 ---
 
+## 7. Database layer (`db-setup`)
+
+**Depends on:** none — can start immediately.
+
+Set up PostgreSQL and Drizzle ORM. Creates the foundational schema that all task CRUD operations will use.
+
+### Schema
+
+```
+users
+  id          UUID PK DEFAULT gen_random_uuid()
+  email       TEXT UNIQUE NOT NULL
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+
+contexts
+  id          UUID PK DEFAULT gen_random_uuid()
+  user_id     UUID NOT NULL → users
+  name        TEXT NOT NULL
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+  UNIQUE(user_id, name)
+
+tasks
+  id                  UUID PK  (client-generated)
+  user_id             UUID NOT NULL → users
+  parent_id           UUID → tasks  (NULL = standalone)
+  context_id          UUID → contexts
+  title               TEXT NOT NULL
+  priority            INTEGER NOT NULL  (1–10)
+  priority_updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  due_date            TIMESTAMPTZ  (required when priority = 1)
+  duration            INTEGER NOT NULL  (minutes)
+  energy_required     TEXT NOT NULL  ('low' | 'medium' | 'high')
+  location            TEXT NOT NULL DEFAULT 'anywhere'  ('home' | 'in-person' | 'anywhere')
+  status              TEXT NOT NULL DEFAULT 'pending'  ('pending' | 'in_progress' | 'completed')
+  last_suggested_at   TIMESTAMPTZ
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+```
+
+### Tasks
+
+- [x] Install PostgreSQL locally (Homebrew: `brew install postgresql@16`, or Docker)
+- [x] Add `drizzle-orm`, `drizzle-kit`, `pg`, `@types/pg` to `apps/api`
+- [x] Create `apps/api/src/db/schema.ts` — Drizzle schema definitions for all three tables
+- [x] Create `apps/api/src/db/index.ts` — exports db connection; reads `DATABASE_URL` env var
+- [x] Generate and apply first migration via drizzle-kit
+- [x] Create `apps/api/src/db/seed.ts` — creates one dev user + 4 default contexts: `Learning`, `Creativity`, `Projects`, `Physical`
+- [x] Add `"db:generate"`, `"db:migrate"`, `"db:seed"` scripts to `apps/api/package.json`
+- [x] Document `DATABASE_URL` in `apps/api/README.md`
+- [x] Create `apps/api/src/db/migrateTasks.ts` — one-time script to import `tasks.example.json` into the DB; maps `admin` context → `Projects`; resolves inherited fields; safe to re-run
+
+### User provisioning (`user-provisioning`)
+
+The seed script covers the single dev user. When real user accounts are
+added (auth phase), the server must automatically provision default
+contexts for every new user. Full plan in
+`documentation/techDesign/user-provisioning/design.md`, written ahead of
+auth so the provisioning shape is settled before it has to be threaded
+through whichever auth approach gets picked.
+
+Decided: default context list stays hardcoded (no config table — nothing
+has ever needed to edit it without a deploy) but extracted to one shared
+constant/function (`provisionDefaultContexts`) instead of living only in
+`seed.ts`; provisioning triggers synchronously, in the same request,
+immediately after a `users` row is first inserted (no DB trigger, no
+standalone `POST /api/users` endpoint — that would be unauthenticated with
+no auth chosen yet); idempotency is gated on "the insert actually returned
+a new row" (same shape `seed.ts` already uses), with `onConflictDoNothing`
+on the context batch insert as defense-in-depth for a concurrent
+double-signup race only; a deleted default context is not re-created — it's
+ordinary user data once created, same as any other context. The actual
+auth implementation and its call site are out of scope and deferred until
+auth work begins; `seed.ts` becomes a thin caller of the same shared
+function so the dev and (future) production paths don't duplicate the
+insert logic.
+
+- [x] Write detailed plan for user provisioning flow before auth implementation begins
+
+---
+
 ## 8. Task CRUD API (`task-crud-api`)
 
 **Depends on:** Section 7 complete (schema and DB connection must exist).
@@ -224,6 +304,66 @@ Shown immediately after task creation and reachable at `/tasks/:id`.
 
 - [x] Expand `App.tsx` routes (from 6.1) to add: `/tasks/new` → `TaskCreationPage`, `/tasks/:id` → `TaskDetailPage`
 - [x] Render `FAB` on all routes except `/tasks/new`
+
+---
+
+## 10. Known Bugs (`known-bugs`)
+
+Fix before starting section 11 or later — see priority note at the top of this file.
+
+### 10.1 DB-backed tasks never reconstruct hierarchy before ranking
+
+`routes/rank.ts` builds the engine's input (`rawTasks`) as a **flat** array — each task carries only a `parentId` field — and passes it straight to `rankFromPayload`. The engine's `flattenTaskTree` only discovers parent/child relationships by recursing into a `RawTask.children` array, which is never populated for DB-sourced rows. Consequences, all silent:
+
+- `isLeafTask`-based filtering (normalizer is supposed to drop any task that has children) never fires for DB data — every task is treated as a top-level leaf, so a parent task marked `in_progress` can surface in `in_progress_block` even though it has subtasks.
+- `ancestors` (and therefore `TaskCard` breadcrumbs) are always empty for anything returned by `/api/rank`, since the `LoadedTask.parent` chain is never built from `parentId`.
+- `inheritedValue`'s parent-chain walk (used to resolve fields a child task omits) never has a parent to walk to, so field inheritance silently fails for DB-sourced child tasks.
+
+- [x] Add `groupTasksByParent(rows)` to `apps/api/src/db/queries.ts` — builds a `Map<parentId | null, Row[]>` from a flat task-row list in one pass. This is a shared foundational primitive: sections 11 (`hasChildren`) and 12 (cascading completion) both reuse it, so build it here first rather than duplicating ad hoc grouping in three places
+- [x] `routes/rank.ts` — reconstruct nested `children` arrays from the flat `parentId`-linked DB rows using `groupTasksByParent` (attach recursively starting from root tasks) before calling `rankFromPayload`, so the existing (already 100%-covered) `flattenTaskTree`/`normalizeTasks` logic receives real hierarchy
+- [x] Add a regression test in `apps/api/test/routes/rank.test.ts` with a seeded parent/child pair: parent is excluded from ranking output, child is ranked with inherited fields and populated `ancestors`
+- [x] Note in `ARCHITECTURE.md` that `/api/rank`'s task-loading path constructs the tree from `parentId` before calling the engine, so this doesn't regress silently again
+
+---
+
+### 10.2 `Carousel.tsx` fails typecheck under React 19's updated `useRef` types
+
+Surfaced while typechecking section 22's changes (`npx tsc -b --noEmit`) — unrelated to that work, pre-existing.
+
+`src/components/Carousel/Carousel.tsx:27` — `const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();` calls `useRef` with no argument. React 19's types dropped the zero-argument overload; `useRef` now requires an explicit initial value.
+
+- [x] Change to `useRef<ReturnType<typeof setTimeout>>(undefined)` (or a matching explicit initial value) so `npx tsc -b --noEmit` passes clean
+
+---
+
+### 10.3 Carousel active-dot tracking still feels laggy after a swipe
+
+Surfaced during § 22.7's Storybook review (the Carousel Layer-3 migration, which added the dot's elongate transition and made the lag noticeable).
+
+`Carousel.tsx`'s `handleScroll` debounces `onSlideChange` (which drives `activeIndex`, which drives the active dot) until scroll events stop — reduced from 100ms to 40ms as part of § 22.7, which helped but didn't fully fix it. User confirmed it's still perceptibly slow but chose not to invest further time now.
+
+- [x] Investigate a fix that doesn't rely on a fixed post-scroll debounce — e.g. computing the nearest slide index continuously during scroll (`requestAnimationFrame` or the scroll event itself) so the dot tracks live rather than catching up after the fact. Resolved: added a `liveIndex` state, updated via an `requestAnimationFrame`-throttled read of `scrollLeft` on every scroll event, decoupled from the settle debounce; the dot's active class now follows `liveIndex` instead of `activeIndex`
+- [x] Re-check whether any further debounce reduction below 40ms is safe (risk: `onSlideChange` firing mid-scroll, which the debounce exists to prevent) before or alongside the above. Resolved: moot — the 40ms debounce now only gates the committed `onSlideChange` call, not the dot's visual feedback, so there's no remaining tradeoff to tune; left at 40ms
+
+---
+
+### 10.4 `PriorityPicker` overflows horizontally on small mobile widths
+
+Surfaced during § 24.2's Storybook/app review.
+
+`PriorityPicker.module.css`'s `.group` lays out all five options (Urgent/Soon/Medium/Later/Ongoing) as a single-row segmented control (`.button { flex: 1; }` with fixed `padding: var(--space-2) var(--space-3)`), with no wrapping or min-width handling. At small mobile widths (e.g. 360pt) the five labels plus padding don't fit, and the row overflows rather than shrinking or wrapping.
+
+- [x] Investigate a fix — candidates: smaller padding/font at narrow widths, wrapping onto two rows, or a horizontally scrollable row — and check whether `DurationPicker`/`EnergyPicker`/`LocationPicker` (same segmented-row pattern) have the same problem. Resolved: overflow lives in the shared `SplitGroup` primitive (covers `PriorityPicker`/`DurationPicker`/`EnergyPicker`), not per-picker CSS. `SplitGroup` now shows a vertical `Radio` list (mobile-first base, `Radio` gained an `icon` slot) with the pill row layered on via `@media (width >= 320px)` — breakpoint set by explicit user choice, below the ~480px point the 5-option row actually starts overflowing, so the fallback is a deliberate rare/edge-case path for now (see `ARCHITECTURE.md`). `LocationPicker`'s separate `Chip`-based row got a defensive `flex-wrap: wrap` only.
+
+---
+
+### 10.5 Entry/loading screen shows "Priori" instead of the app's name — fixed
+
+Per `CLAUDE.md`'s Naming section: "Priori" is reserved for the backend ranking engine specifically. Originally filed to rename to "Tendril"; superseded mid-flight once "Tendril" itself turned out to need replacing (see §41) — landed against the "TempAppName" placeholder instead, so it doesn't need touching again until §41 picks a real name.
+
+`apps/web/src/features/loading/LoadingScreen/LoadingScreen.tsx:8-9` — the `Icon` label and the wordmark `<span>` read "Priori". Line 10's "Powered by Priori Engine" is correct as-is and was left unchanged.
+
+- [x] Changed the `Icon`'s `label` prop and the wordmark text on lines 8–9 from "Priori" to "TempAppName"; line 10 untouched
 
 ---
 

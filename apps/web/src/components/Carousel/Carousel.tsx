@@ -24,7 +24,9 @@ export function Carousel({
   const containerRef = useRef<HTMLDivElement>(null);
   const [isScrolling, setIsScrolling] = useState(false);
   const [hintDismissed, setHintDismissed] = useState(false);
+  const [liveIndex, setLiveIndex] = useState(activeIndex);
   const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const rafRef = useRef<number>(undefined);
 
   const scrollToIndex = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
@@ -37,6 +39,14 @@ export function Carousel({
     [direction, children.length]
   );
 
+  const nearestIndex = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return activeIndex;
+    const slideWidth = container.offsetWidth;
+    const physicalIndex = Math.round(container.scrollLeft / slideWidth);
+    return direction === "rtl" ? children.length - 1 - physicalIndex : physicalIndex;
+  }, [activeIndex, direction, children.length]);
+
   useEffect(() => {
     scrollToIndex(activeIndex, "instant");
   }, [children.length]);
@@ -44,25 +54,37 @@ export function Carousel({
   useEffect(() => {
     if (!isScrolling) {
       scrollToIndex(activeIndex);
+      setLiveIndex(activeIndex);
     }
   }, [activeIndex, scrollToIndex, isScrolling]);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   function handleScroll() {
     setIsScrolling(true);
     if (!hintDismissed) setHintDismissed(true);
+
+    // Tracks the active dot continuously during the swipe, independent of
+    // the settle debounce below - keeps the dot from lagging behind the
+    // finger/momentum scroll.
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = undefined;
+        setLiveIndex(nearestIndex());
+      });
+    }
+
     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-    // Resets on every scroll event, so this only delays onSlideChange (and
-    // therefore the active dot) past when the browser's own momentum/snap
-    // scrolling has already settled - kept just long enough to avoid firing
-    // mid-scroll.
+    // Resets on every scroll event, so this only delays onSlideChange past
+    // when the browser's own momentum/snap scrolling has already settled -
+    // kept just long enough to avoid firing mid-scroll.
     scrollTimeoutRef.current = setTimeout(() => {
       setIsScrolling(false);
-      const container = containerRef.current;
-      if (!container) return;
-      const slideWidth = container.offsetWidth;
-      const physicalIndex = Math.round(container.scrollLeft / slideWidth);
-      const logicalIndex =
-        direction === "rtl" ? children.length - 1 - physicalIndex : physicalIndex;
+      const logicalIndex = nearestIndex();
       if (logicalIndex !== activeIndex) {
         onSlideChange(logicalIndex);
       }
@@ -96,7 +118,7 @@ export function Carousel({
             <button
               key={i}
               type="button"
-              className={`${styles.dot} ${i === activeIndex ? styles.dotActive : ""}`}
+              className={`${styles.dot} ${i === liveIndex ? styles.dotActive : ""}`}
               onClick={() => onSlideChange(i)}
               aria-label={`Go to slide ${i + 1}`}
             />

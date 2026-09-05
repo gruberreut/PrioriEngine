@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Naming
+
+The app's name is **unsettled** — "Tendril" turned out to already be in use by another app/company and is being replaced. Until a new name is chosen, use **TempAppName** as a placeholder everywhere the app's name would otherwise appear — UI copy, docs, commit messages, general discussion. Don't reintroduce "Tendril" as the product name in new work. See `TASKS.md` § 41 for the task tracking the eventual real-name rollout (including internal identifiers like the `--tendril-*` token prefix, deliberately left alone for now — see that task for why).
+
+The backend ranking engine (`packages/engine`) is called **Priori Engine** — this name is unaffected and correct to use when specifically discussing the Priori Engine's ranking system itself.
+
 ## Approval Policy
 
 Per `AGENTS.md`: do not execute implementation steps or make code changes unless the user explicitly approves. Default to planning/discussion only until approval is given.

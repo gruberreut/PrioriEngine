@@ -2,7 +2,9 @@
 
 Implementation tasks for the engine ↔ web integration.
 
-**Priority order:** at this point in development, work through sections in order: known bugs (10), then the OpenAPI documentation migration (11), then new feature work (12 onward).
+**Priority order:** at this point in development, work through sections in order: known bugs (10), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
+
+**§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing the sections above plus two new ones (§38 Deployment, §39 Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
 Fully-completed top-level sections are moved to `TASKS-DONE.md` (see `CLAUDE.md` § Task Tracking), leaving a one-line stub in their place. A missing section number here means it's archived there, not deleted.
 
@@ -167,69 +169,7 @@ _Note: `TaskCard` was moved from `src/features/ranking/` to `src/entity/` as par
 
 ---
 
-## 7. Database layer (`db-setup`)
-
-**Depends on:** none — can start immediately.
-
-Set up PostgreSQL and Drizzle ORM. Creates the foundational schema that all task CRUD operations will use.
-
-### Schema
-
-```
-users
-  id          UUID PK DEFAULT gen_random_uuid()
-  email       TEXT UNIQUE NOT NULL
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-
-contexts
-  id          UUID PK DEFAULT gen_random_uuid()
-  user_id     UUID NOT NULL → users
-  name        TEXT NOT NULL
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-  UNIQUE(user_id, name)
-
-tasks
-  id                  UUID PK  (client-generated)
-  user_id             UUID NOT NULL → users
-  parent_id           UUID → tasks  (NULL = standalone)
-  context_id          UUID → contexts
-  title               TEXT NOT NULL
-  priority            INTEGER NOT NULL  (1–10)
-  priority_updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-  due_date            TIMESTAMPTZ  (required when priority = 1)
-  duration            INTEGER NOT NULL  (minutes)
-  energy_required     TEXT NOT NULL  ('low' | 'medium' | 'high')
-  location            TEXT NOT NULL DEFAULT 'anywhere'  ('home' | 'in-person' | 'anywhere')
-  status              TEXT NOT NULL DEFAULT 'pending'  ('pending' | 'in_progress' | 'completed')
-  last_suggested_at   TIMESTAMPTZ
-  created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
-  updated_at          TIMESTAMPTZ NOT NULL DEFAULT now()
-```
-
-### Tasks
-
-- [x] Install PostgreSQL locally (Homebrew: `brew install postgresql@16`, or Docker)
-- [x] Add `drizzle-orm`, `drizzle-kit`, `pg`, `@types/pg` to `apps/api`
-- [x] Create `apps/api/src/db/schema.ts` — Drizzle schema definitions for all three tables
-- [x] Create `apps/api/src/db/index.ts` — exports db connection; reads `DATABASE_URL` env var
-- [x] Generate and apply first migration via drizzle-kit
-- [x] Create `apps/api/src/db/seed.ts` — creates one dev user + 4 default contexts: `Learning`, `Creativity`, `Projects`, `Physical`
-- [x] Add `"db:generate"`, `"db:migrate"`, `"db:seed"` scripts to `apps/api/package.json`
-- [x] Document `DATABASE_URL` in `apps/api/README.md`
-- [x] Create `apps/api/src/db/migrateTasks.ts` — one-time script to import `tasks.example.json` into the DB; maps `admin` context → `Projects`; resolves inherited fields; safe to re-run
-
-### User provisioning — needs detailed planning
-
-The seed script covers the single dev user. When real user accounts are added (auth phase), the server must automatically provision default contexts for every new user. This needs a detailed design before auth is implemented.
-
-**Open questions to resolve:**
-- Trigger point: where does provisioning run? (auth callback, a `POST /api/users` endpoint, DB trigger)
-- Default list: hardcoded in server code, or stored in a config table so it can be updated without a deploy?
-- Can users delete a default context? If yes, is it re-created on next login or gone permanently?
-- Idempotency: if the creation event fires more than once, provisioning must not duplicate contexts
-- Dev vs production: seed script is dev-only; production path must go through the auth-triggered flow
-
-- [ ] Write detailed plan for user provisioning flow before auth implementation begins
+## 7. Database layer — completed, see TASKS-DONE.md
 
 ---
 
@@ -241,53 +181,7 @@ The seed script covers the single dev user. When real user accounts are added (a
 
 ---
 
-## 10. Known Bugs (`known-bugs`)
-
-Fix before starting section 11 or later — see priority note at the top of this file.
-
-### 10.1 DB-backed tasks never reconstruct hierarchy before ranking
-
-`routes/rank.ts` builds the engine's input (`rawTasks`) as a **flat** array — each task carries only a `parentId` field — and passes it straight to `rankFromPayload`. The engine's `flattenTaskTree` only discovers parent/child relationships by recursing into a `RawTask.children` array, which is never populated for DB-sourced rows. Consequences, all silent:
-
-- `isLeafTask`-based filtering (normalizer is supposed to drop any task that has children) never fires for DB data — every task is treated as a top-level leaf, so a parent task marked `in_progress` can surface in `in_progress_block` even though it has subtasks.
-- `ancestors` (and therefore `TaskCard` breadcrumbs) are always empty for anything returned by `/api/rank`, since the `LoadedTask.parent` chain is never built from `parentId`.
-- `inheritedValue`'s parent-chain walk (used to resolve fields a child task omits) never has a parent to walk to, so field inheritance silently fails for DB-sourced child tasks.
-
-- [x] Add `groupTasksByParent(rows)` to `apps/api/src/db/queries.ts` — builds a `Map<parentId | null, Row[]>` from a flat task-row list in one pass. This is a shared foundational primitive: sections 11 (`hasChildren`) and 12 (cascading completion) both reuse it, so build it here first rather than duplicating ad hoc grouping in three places
-- [x] `routes/rank.ts` — reconstruct nested `children` arrays from the flat `parentId`-linked DB rows using `groupTasksByParent` (attach recursively starting from root tasks) before calling `rankFromPayload`, so the existing (already 100%-covered) `flattenTaskTree`/`normalizeTasks` logic receives real hierarchy
-- [x] Add a regression test in `apps/api/test/routes/rank.test.ts` with a seeded parent/child pair: parent is excluded from ranking output, child is ranked with inherited fields and populated `ancestors`
-- [x] Note in `ARCHITECTURE.md` that `/api/rank`'s task-loading path constructs the tree from `parentId` before calling the engine, so this doesn't regress silently again
-
----
-
-### 10.2 `Carousel.tsx` fails typecheck under React 19's updated `useRef` types
-
-Surfaced while typechecking section 22's changes (`npx tsc -b --noEmit`) — unrelated to that work, pre-existing.
-
-`src/components/Carousel/Carousel.tsx:27` — `const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout>>();` calls `useRef` with no argument. React 19's types dropped the zero-argument overload; `useRef` now requires an explicit initial value.
-
-- [x] Change to `useRef<ReturnType<typeof setTimeout>>(undefined)` (or a matching explicit initial value) so `npx tsc -b --noEmit` passes clean
-
----
-
-### 10.3 Carousel active-dot tracking still feels laggy after a swipe
-
-Surfaced during § 22.7's Storybook review (the Carousel Layer-3 migration, which added the dot's elongate transition and made the lag noticeable).
-
-`Carousel.tsx`'s `handleScroll` debounces `onSlideChange` (which drives `activeIndex`, which drives the active dot) until scroll events stop — reduced from 100ms to 40ms as part of § 22.7, which helped but didn't fully fix it. User confirmed it's still perceptibly slow but chose not to invest further time now.
-
-- [ ] Investigate a fix that doesn't rely on a fixed post-scroll debounce — e.g. computing the nearest slide index continuously during scroll (`requestAnimationFrame` or the scroll event itself) so the dot tracks live rather than catching up after the fact
-- [ ] Re-check whether any further debounce reduction below 40ms is safe (risk: `onSlideChange` firing mid-scroll, which the debounce exists to prevent) before or alongside the above
-
----
-
-### 10.4 `PriorityPicker` overflows horizontally on small mobile widths
-
-Surfaced during § 24.2's Storybook/app review.
-
-`PriorityPicker.module.css`'s `.group` lays out all five options (Urgent/Soon/Medium/Later/Ongoing) as a single-row segmented control (`.button { flex: 1; }` with fixed `padding: var(--space-2) var(--space-3)`), with no wrapping or min-width handling. At small mobile widths (e.g. 360pt) the five labels plus padding don't fit, and the row overflows rather than shrinking or wrapping.
-
-- [x] Investigate a fix — candidates: smaller padding/font at narrow widths, wrapping onto two rows, or a horizontally scrollable row — and check whether `DurationPicker`/`EnergyPicker`/`LocationPicker` (same segmented-row pattern) have the same problem. Resolved: overflow lives in the shared `SplitGroup` primitive (covers `PriorityPicker`/`DurationPicker`/`EnergyPicker`), not per-picker CSS. `SplitGroup` now shows a vertical `Radio` list (mobile-first base, `Radio` gained an `icon` slot) with the pill row layered on via `@media (width >= 320px)` — breakpoint set by explicit user choice, below the ~480px point the 5-option row actually starts overflowing, so the fallback is a deliberate rare/edge-case path for now (see `ARCHITECTURE.md`). `LocationPicker`'s separate `Chip`-based row got a defensive `flex-wrap: wrap` only.
+## 10. Known Bugs — completed, see TASKS-DONE.md
 
 ---
 
@@ -405,7 +299,7 @@ Today, whether an in-progress task exists is discovered lazily and per-slide: `R
 
 ---
 
-## 22. Tendril design token rollout (`tendril-design-rollout`)
+## 22. TempAppName design token rollout (`tendril-design-rollout`)
 
 Moved from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
 
@@ -539,7 +433,7 @@ Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`
 
 ---
 
-## 24. New Tendril primitives (`tendril-primitives`)
+## 24. New TempAppName primitives (`tendril-primitives`)
 
 Scheduled by § 22.8 — `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carries the token blocks and target values only; these subsections are what actually schedules building them. **These are specifications, not implementations** — nothing below has a component file, a story, or a call site yet.
 
@@ -605,7 +499,7 @@ The most-needed missing primitive. Variants: `primary`, `secondary`, `ghost`, `d
   --button-icon-radius:       var(--radius-md);
 ```
 
-Primary is a **fill**, not an outline — this app is Tendril throughout, the two systems (Tendril fills, Nocturne outlines) are never mixed. Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
+Primary is a **fill**, not an outline — this app is TempAppName throughout, the two systems (TempAppName fills, Nocturne outlines) are never mixed. Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
 
 - [x] Build `components/Button` per the checklist above
 - [x] Stories: all four variants × both sizes, plus `block`, `disabled`, `loading`, and the icon-only 44px square variant
@@ -949,6 +843,195 @@ testing.
 - [ ] Once §31 (general failed-backend-call handling) exists, wire it to also emit an error event through this mechanism, so failures are visible in aggregate and not just shown to the one user who hit them
 
 **Trigger:** production deployment is actually being planned, or the "single dev user" assumption elsewhere in this file stops holding.
+
+---
+
+## 33. Localization support (`i18n-localization`)
+
+Add support for major European languages plus Hebrew. Hebrew is RTL, which touches layout (not just string translation) — this connects directly to the **Carousel swipe direction** item under Open Issues below, which already flags that swipe direction may need to follow locale direction; resolve that item as part of this section rather than separately.
+
+No i18n library, translation source, or language list is chosen yet — per `CLAUDE.md`'s "smallest footprint" guidance, decide these before implementation starts rather than defaulting to a large framework.
+
+### Decisions needed first
+
+- [ ] Choose an i18n library for `apps/web` (e.g. `react-i18next`, `react-intl`, or a minimal custom key-lookup hook) — weigh against actual current needs (no plurals/date-formatting complexity yet beyond what's already hand-rolled) vs. not foreclosing richer formatting later
+- [ ] Confirm the language list: major European languages — candidates are English (default), Spanish, French, German, Italian, Portuguese — plus Hebrew. Confirm the exact set and priority order with the user before translating strings
+- [ ] Decide where translation strings live (JSON per locale under e.g. `apps/web/src/locales/`) and the key structure (flat vs. namespaced per feature)
+- [ ] Decide the source of translations — machine-translated first pass vs. professionally translated, and who reviews Hebrew specifically since it's the one non-Latin-script, RTL entry
+
+### RTL (Hebrew)
+
+- [ ] Decide the RTL mechanism: `dir="rtl"` on `<html>`/root driven by active locale, plus CSS logical properties (`margin-inline-start` etc.) instead of physical `left`/`right` in component CSS going forward
+- [ ] Audit existing components/pages for hardcoded physical-direction CSS (`left`/`right`, `margin-left`/`margin-right`, transforms) that would break under RTL — the design-token layers (`tokens.css`) and any migrated TempAppName primitives (§22/§24) are the first place to check since they're the newest, most consistently-built code
+- [ ] Resolve the Carousel swipe-direction Open Issue as part of this: decide whether swipe direction flips with `dir` or stays fixed, and implement accordingly
+- [ ] Verify date/number formatting (`priority_updated_at`, `due_date`, durations) renders correctly for Hebrew locale via the chosen i18n library rather than hand-rolled formatting
+
+### Implementation
+
+- [ ] Extract all user-facing strings currently hardcoded in `apps/web/src` components/pages into the chosen translation-key structure
+- [ ] Add a locale-switching mechanism — decide whether this reuses the settings-screen placeholder from §23 (deferred) or needs its own entry point sooner
+- [ ] Persist the user's chosen locale (localStorage for now, consistent with how theme preference is handled today; revisit if user accounts/§7's provisioning work lands first)
+- [ ] Add Storybook coverage confirming at least one migrated component renders correctly in both LTR and RTL (per `CLAUDE.md`'s Storybook requirements, this isn't a new component but is a new cross-cutting rendering mode worth checking visually)
+- [ ] Update `ARCHITECTURE.md` recording the i18n library choice, the RTL mechanism, and the rejected alternatives
+
+---
+
+## 34. Authentication (`auth-implementation`)
+
+**Depends on:** the deferred "User provisioning" design (§7, archived — `documentation/techDesign/user-provisioning/design.md`), written ahead of auth specifically so the provisioning shape would already be settled once this starts.
+
+No auth approach (self-rolled sessions vs. a third-party provider, e.g. Auth0/Clerk/Supabase Auth) has been chosen yet. Per `CLAUDE.md`'s "smallest footprint" guidance, this is a real trade-off to raise explicitly rather than default into: a third-party provider is far less code but adds an external dependency and cost; self-rolled keeps the footprint small but is more to build and secure correctly.
+
+- [ ] Decide the auth approach (provider vs. self-rolled) — raise the trade-off with the user before starting
+- [ ] Implement sign-up / sign-in / session handling per the chosen approach
+- [ ] Wire `provisionDefaultContexts` (§7) into the new-user path so every real signup gets its default contexts, same as `seed.ts`'s dev-user path
+- [ ] Replace the loading gate's placeholder auth step (§19) with the real check
+- [ ] Update `ARCHITECTURE.md` recording the auth approach chosen and why
+
+---
+
+## 35. Onboarding sequence (`onboarding-sequence`) — high priority
+
+**Depends on:** §34 (Auth) — onboarding is the first thing a newly-authenticated user sees, so it needs a real signup/session to hook into.
+
+A first-run sequence that explains what TempAppName is for and walks a new user through its initial setup/first actions. Not scoped yet — this task starts with UX definition, then a tech design pass, before any implementation begins.
+
+### 1. Define the user experience
+
+- [ ] Decide what the onboarding sequence needs to communicate (app purpose, how ranking/context/energy/time inputs work) and in what order
+- [ ] Decide the screen-by-screen flow and content — how many steps, what each shows, and how a user exits/skips
+- [ ] Decide whether onboarding also drives first real setup (e.g. creating initial contexts/tasks) or is purely explanatory, deferring setup to normal app use
+- [ ] Get the flow reviewed/approved before tech design starts
+
+### 2. Tech design
+
+- [ ] Decide where onboarding hooks into the app — a step in the loading gate (§19) vs. a dedicated route reached right after signup
+- [ ] Decide how "has completed onboarding" is tracked and persisted (a user-record flag vs. local storage) so it only shows once per user
+- [ ] Decide the component/page structure for the approved flow
+- [ ] Update `ARCHITECTURE.md` recording the approach
+
+---
+
+## 36. Naming consistency lint (`priori-name-lint`)
+
+Prompted by §10.5 (the loading screen still said "Priori"). Add a check that catches this class of drift automatically instead of relying on it being noticed by eye.
+
+**Updated scope:** the app's name is currently the placeholder "TempAppName" (see `CLAUDE.md`'s Naming section — "Tendril" turned out to already be in use elsewhere and is being replaced). The lint should flag both stray "Priori" and stray "Tendril" as product-name text in `apps/web`, outside their correct uses: "Priori Engine" (the backend, unaffected by the rename) and internal identifiers deliberately left alone by the TempAppName pass — the `--tendril-*` CSS custom-property prefix, the `Tendril.tsx` icon component and its import, and the `'tendril-theme'` localStorage key. §10.5 and the `LoadingScreen.tsx` wordmark/label are already fixed (now read "TempAppName"), so the check should start clean today.
+
+- [ ] Add a check (a small Node script, or a `grep`-based check wired into an existing lint/CI step) that scans `apps/web` for the standalone words "Priori" and "Tendril" (case-insensitive, word-boundary match so "Priority"/"prioritize" aren't false positives) and allow-lists "Priori Engine" plus the specific internal identifiers listed above
+- [ ] Decide whether it runs as part of `npm run typecheck`/`npm test`, a dedicated `npm run lint:naming` script, or a pre-commit hook
+- [ ] Fix any occurrence the check turns up in `apps/web` (rename to "TempAppName", except the allow-listed cases)
+- [ ] Once §41 (real-name integration) lands, update the check's target string from "TempAppName" to the real name
+
+---
+
+## 37. Alpha Readiness — Friends & Family Deploy (`alpha-readiness`)
+
+Collects everything blocking, or worth doing before, inviting friends and family to a live Alpha. This is a dashboard cross-referencing other sections, not a separate source of truth — check a line here once its target section/item is actually done there.
+
+**Must resolve — existing work:**
+- [ ] §10 Known Bugs — every item closed (currently open: §10.3 Carousel dot lag, §10.5 "Priori" on the loading screen)
+- [ ] §34 Auth — friends/family need individual accounts and separated data, not the single dev user
+- [ ] §36 (+ §10.5) Naming consistency lint — clean before external eyes see it
+
+**Should do — existing deferred work whose trigger just got met by "we're deploying":**
+- [ ] §16's "Gate or remove `/docs` and `/openapi.yaml`" bullet — its stated trigger ("`apps/api` is deployed anywhere reachable outside localhost") is now met
+- [ ] §16's "Revisit CORS" bullet (`Access-Control-Allow-Origin` hardcoded to `http://localhost:5173` in `lib/http.ts`) — same trigger
+- [ ] §32 Analytics and error tracking — its trigger ("production deployment is actually being planned") is now met; at minimum decide the lightweight version so testers' failures are visible somewhere instead of only discoverable by asking them
+
+**Nice to have, not blocking:**
+- [ ] §35 Onboarding sequence — good first impression for people who've never seen the app, but the app is usable without it
+- [ ] §18 App design review — worth a pass if time allows
+- [ ] §31 General failed-backend-call handling — real testers will hit real failures; today only `TasksPage` has bespoke handling
+
+**New work — see §38, §39:**
+- [ ] §38 Deployment & production readiness
+- [ ] §39 Alpha access control
+
+**Feedback loop (already in progress):**
+- [ ] Publish the "Priori Beta Feedback" Google Form (currently a draft) — leave its title/questions saying "Priori" for now rather than relabeling to the "TempAppName" placeholder; rename once for real once §41 lands with an actual name, instead of twice
+- [ ] §40 In-app feedback link — decided: testers reach the form via a button in the app, not a manually-sent link
+
+**Worth deciding, not yet scoped as its own task:**
+- [ ] Minimal privacy/data notice for testers — informal is probably fine for friends & family, but worth deciding explicitly rather than skipping silently, since real (if informal) personal task data will be stored
+- [ ] Backup/durability expectations for the production DB, now that it holds real user data instead of only seed/dev data
+
+---
+
+## 38. Deployment & production readiness (`alpha-deployment`)
+
+Nothing in the repo currently deploys anywhere — confirmed by inspection: no Dockerfile, no CI/CD config, no hosting config, and no `.env` file at any level. Per `CLAUDE.md`'s "smallest footprint" guidance, this needs explicit decisions before implementation, not a default choice.
+
+**Findings from the current codebase:**
+- `apps/api/src/db/index.ts` falls back to `postgresql://localhost/priori_dev` when `DATABASE_URL` isn't set — no other env-driven config exists anywhere in the repo
+- `apps/api/src/server.ts` hardcodes `PORT = 3001` and only has a `dev` script (`tsx watch`) — no compiled production start script
+- `apps/web`'s services call relative paths (`/api/tasks`, etc.), which only resolve today via `vite.config.ts`'s dev-only proxy to `localhost:3001` — nothing serves API and web from the same origin in production, and nothing proxies between them
+- `apps/api/src/lib/http.ts` hardcodes `Access-Control-Allow-Origin` to `http://localhost:5173` (tracked in §16, trigger now met — see §37)
+
+**Decisions needed first:**
+- [ ] Choose a hosting approach for `apps/api` (e.g. a small VM/PaaS like Render/Fly/Railway, or a serverless adapter) and for `apps/web` (static hosting — Vercel/Netlify/Cloudflare Pages — or served by the same host as the API)
+- [ ] Choose a production Postgres (managed instance vs. self-hosted) — separate from the local dev DB `priori_dev`
+- [ ] Decide how the web app reaches the API in production: same-origin reverse proxy (keeps the existing relative-path `fetch` calls unchanged) vs. an absolute API base URL baked in at build time (requiring every `fetch()` call site to be updated)
+
+**Implementation, once the above is decided:**
+- [ ] Add environment-driven config for whatever the chosen host needs (DB connection string, port, CORS origin) — currently only `DATABASE_URL` is env-driven
+- [ ] Add a production build/start path for `apps/api` (compiled output + a `start` script, not `tsx watch`)
+- [ ] Run `drizzle-kit migrate` against the production DB as part of the deploy step
+- [ ] Wire the real CORS origin and gate `/docs`/`/openapi.yaml` per §16's now-triggered items
+- [ ] Basic smoke test against the deployed instance before sending out invites (sign up, rank a task, complete a task, at minimum)
+- [ ] Update `ARCHITECTURE.md` recording the hosting choice and the API-reachability decision
+
+---
+
+## 39. Alpha access control (`alpha-access-control`)
+
+**Depends on:** §34 (Auth) — this decides how auth is gated for the alpha, not whether auth exists.
+
+Once auth exists, decide whether the Alpha is open signup or invite-only. An unlisted-but-public signup page is easy to build but means anyone who finds the URL can create an account and see the same unfinished app; friends-and-family testing usually wants a tighter gate.
+
+- [ ] Decide the access model: invite codes, an allowlist of email addresses, or accept open signup on an unlisted URL
+- [ ] If gated: implement the chosen mechanism (e.g. an `invited_emails` table checked at signup, or a shared invite code)
+- [ ] Decide what a tester sees if they're not invited (a clear "alpha access only" message, not a generic error)
+- [ ] Update `ARCHITECTURE.md` recording the decision
+
+---
+
+## 40. In-app feedback link (`feedback-link`)
+
+**Depends on:** §37's feedback-loop item — the form needs to be published before this points anywhere real (it can stay titled "Priori" until §41 picks a real name — see §37).
+
+Decided: testers reach the "Priori Beta Feedback" Google Form through a button inside the app, not a manually-sent link (see §37).
+
+`NavBar.tsx` currently renders exactly two items (`Rank`, `Tasks`) from a `destinations` array, each an internal `NavLink`, centered with no other slot (the theme-toggle slot was removed in §22.4 — `justify-content: center`, nothing pushed to either side). A feedback link is an external, new-tab action, not a route — it doesn't fit the `destinations` array's internal-navigation shape as-is.
+
+- [ ] Decide placement: a third, differently-styled entry in the `NavBar` (opens externally instead of routing) vs. a small separate icon button elsewhere vs. deferring to a future Settings screen (§23, not built, so not viable now)
+- [ ] Decide the trigger's look — icon-only vs. icon+label — using the existing `Icon`/`Button` primitives (§24.1) rather than new one-off markup
+- [ ] Opens the form URL in a new tab (`target="_blank" rel="noopener noreferrer"`); decide whether the URL is hardcoded in the component or pulled from env config (relevant once §38's environment-config work exists, in case the form URL differs per environment/cohort)
+- [ ] Point it at the published form URL (post §37's "publish" item), not the current draft edit link
+- [ ] Add Storybook coverage for the new entry point per `CLAUDE.md`'s Storybook requirement
+- [ ] Review in Storybook — **approved**
+
+---
+
+## 41. Integrate the app's real name (`real-name-integration`)
+
+"Tendril" turned out to already be in use by another app/company; a real replacement name hasn't been chosen yet. In the meantime, every user-facing mention of the app's name was swept to the placeholder **"TempAppName"** (`CLAUDE.md`'s Naming section, `LoadingScreen.tsx`, `Button.mdx`, `ARCHITECTURE.md`, `DESIGN-TOKENS-BY-COMPONENT.md`, and the relevant prose in this file). This task is the follow-up once a real name lands — both applying it, and finishing the parts the placeholder pass deliberately deferred.
+
+**Deliberately left untouched by the TempAppName pass** — the placeholder swap was user-facing text only, not internal identifiers, since renaming those twice (once to a placeholder, again to the real name) is wasted effort. This task does that rename for real, once, when there's a real name to land on:
+- The `--tendril-*` CSS custom-property prefix — Layer 1 of the token system, 129 occurrences in `tokens.css` alone (`CLAUDE.md`'s Design tokens section, `documentation/DESIGN-TOKENS-BY-COMPONENT.md`)
+- The `Tendril.tsx` icon component and its import (`LoadingScreen.tsx`, `NavBar.tsx`, `Button.stories.tsx`)
+- The `'tendril-theme'` `localStorage` key (`useTheme.ts` and the duplicate inline copy in `index.html`'s anti-flash script) — changing the key resets any tester's already-stored theme preference unless handled (e.g. read the old key as a fallback once, or accept the reset for an alpha-stage audience)
+- The two Tendril-named docs and the artboard image left alone (filenames, not just content) since renaming a file without a chosen name felt premature: `documentation/Tendril - color story migration plan.md` (~72 internal references, also skipped in the placeholder pass for the same reason), `documentation/Tendril components design.png`
+
+**Also once a name is chosen:**
+- [ ] Update `CLAUDE.md`'s Naming section from "unsettled, use TempAppName" to the real name, and state it as settled
+- [ ] Sweep every "TempAppName" occurrence (the files listed above) to the real name
+- [ ] Rename the internal identifiers listed above, handling the `localStorage` key migration decision
+- [ ] Rename the two docs and the artboard image (`git mv`) and update the ~15 cross-references to their filenames elsewhere in this file and `DESIGN-TOKENS-BY-COMPONENT.md`
+- [ ] Update §36's naming-lint target string from "TempAppName" to the real name
+- [ ] Rename the "Priori Beta Feedback" Google Form's title and question text (§37) — first real rename for the form, since it was deliberately left saying "Priori" through the TempAppName pass
+- [ ] Decide whether repo-identity naming (`package.json`'s `"name": "priori"`, `README.md`) should also change, as a separate call from the in-app product name
+- [ ] Storybook re-review isn't expected to be needed for the text/identifier rename itself, but confirm nothing visually regresses (e.g. the `Tendril.tsx` icon file, if renamed, still resolves everywhere it's imported)
 
 ---
 

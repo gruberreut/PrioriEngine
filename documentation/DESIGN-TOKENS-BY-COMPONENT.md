@@ -1,8 +1,8 @@
-# Applying the Tendril design, one component at a time
+# Applying the TempAppName design, one component at a time
 
 A per-component playbook. Each section is self-contained: pick the component you are working on, add its token block to `apps/web/src/styles/tokens.css`, apply the CSS diff, tick the checklist. Nothing here requires migrating anything else first.
 
-The visual reference is artboard **05 · Form components** in the Tendril identity exploration — every value below is taken from it.
+The visual reference is artboard **05 · Form components** in the TempAppName identity exploration — every value below is taken from it.
 
 Wherever priori-patch is mentioned, refer to the priori-patch directory in the priori project.
 
@@ -74,11 +74,11 @@ These are prerequisites — shared scales the per-component blocks below point a
 Add to the **light** `:root` block in `tokens.css`:
 
 ```css
-  /* Border radius — the Tendril scale (artboard 03). Large and soft
+  /* Border radius — the TempAppName scale (artboard 03). Large and soft
      throughout; nothing sharp-cornered anywhere, including inputs and the
      app icon. This is a RENAME of the existing 6px/8px sm+md pair, not an
      addition — every existing call site keeps working and simply lands on
-     the correct Tendril value. */
+     the correct TempAppName value. */
   --radius-xs:   8px;    /* chips, tags                                 */
   --radius-sm:   12px;   /* small controls, icon buttons, nav targets   */
   --radius-md:   16px;   /* buttons, text inputs, list rows             */
@@ -134,7 +134,7 @@ Ordered by how contained the change is. Each is independent.
 
 ### 3.1 Checkbox — `components/Checkbox`
 
-Currently a native `<input type="checkbox">` with a styled label. Tendril wants a 22px control with an accent fill and a check glyph, inside a 44px row.
+Currently a native `<input type="checkbox">` with a styled label. TempAppName wants a 22px control with an accent fill and a check glyph, inside a 44px row.
 
 **Tokens** — add to layer 3:
 
@@ -502,7 +502,7 @@ The most-needed missing primitive. Variants: `primary`, `secondary`, `ghost`, `d
   --button-icon-radius:       var(--radius-md);
 ```
 
-Primary is a **fill**, not an outline. (Nocturne outlines its primary; Tendril fills it. The two systems are not mixed — this app is Tendril.) Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
+Primary is a **fill**, not an outline. (Nocturne outlines its primary; TempAppName fills it. The two systems are not mixed — this app is TempAppName.) Focus: `box-shadow: var(--focus-ring-offset)` on filled variants, `var(--focus-ring)` on outlined ones.
 
 ### 4.2 TextInput / Textarea — `components/TextInput`
 

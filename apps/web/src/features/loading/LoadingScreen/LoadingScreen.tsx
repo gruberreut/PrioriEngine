@@ -5,8 +5,8 @@ import styles from "./LoadingScreen.module.css";
 export function LoadingScreen() {
   return (
     <div className={styles.screen}>
-      <Icon asset={Tendril} label="Priori" size={96} />
-      <span className={styles.wordmark}>Priori</span>
+      <Icon asset={Tendril} label="TempAppName" size={96} />
+      <span className={styles.wordmark}>TempAppName</span>
       <span className={styles.footer}>Powered by Priori Engine</span>
     </div>
   );
