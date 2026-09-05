@@ -7,7 +7,7 @@
   gap: var(--space-2);
 }
 
-.withSpinner {
+.withStatusIcon {
   align-items: center;
 }
 
@@ -28,6 +28,10 @@
   border-color: var(--color-primary);
   background-color: var(--color-primary-tint);
   cursor: pointer;
+}
+
+.container.completed {
+  background-color: var(--color-bg-disabled);
 }
 
 .container[role="button"] {
@@ -55,6 +59,11 @@
   gap: var(--space-3);
   font-size: var(--font-size-card-meta);
   color: var(--color-text-muted);
+}
+
+.completed .title,
+.completed .meta {
+  color: var(--color-text-disabled);
 }
 
 .context {

@@ -238,6 +238,137 @@ describe("POST /api/tasks/:id/snooze", () => {
   });
 });
 
+describe("PUT /api/tasks/:id", () => {
+  it("updates status and returns no auto-completed ancestors for a plain change", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Solo task" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "PUT",
+      `/api/tasks/${task.id}`,
+      JSON.stringify({ status: "in_progress" })
+    );
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { task: { id: string; status: string }; autoCompletedAncestors: unknown[] };
+    expect(body.task.id).toBe(task.id);
+    expect(body.task.status).toBe("in_progress");
+    expect(body.autoCompletedAncestors).toEqual([]);
+  });
+
+  it("returns 404 for an unknown task id", async () => {
+    const user = await seedUser();
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "PUT", `/api/tasks/${randomUUID()}`, JSON.stringify({ status: "completed" }));
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 400 for an invalid status", async () => {
+    const user = await seedUser();
+    const task = await seedTask(user.id, { title: "Task" });
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(handler, "PUT", `/api/tasks/${task.id}`, JSON.stringify({ status: "bogus" }));
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("completing the last incomplete child auto-completes the parent", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Home Renovation" });
+    const doneSibling = await seedTask(user.id, { title: "Paint fence", parentId: parent.id, status: "completed" });
+    const lastChild = await seedTask(user.id, { title: "Fix gate", parentId: parent.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "PUT",
+      `/api/tasks/${lastChild.id}`,
+      JSON.stringify({ status: "completed" })
+    );
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { task: { id: string }; autoCompletedAncestors: { id: string; status: string }[] };
+    expect(body.autoCompletedAncestors).toHaveLength(1);
+    expect(body.autoCompletedAncestors[0]!.id).toBe(parent.id);
+    expect(body.autoCompletedAncestors[0]!.status).toBe("completed");
+
+    const [parentRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, parent.id));
+    expect(parentRow!.status).toBe("completed");
+    const [doneSiblingRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, doneSibling.id));
+    expect(doneSiblingRow!.status).toBe("completed");
+  });
+
+  it("completing the last remaining subproject under a project cascades two levels", async () => {
+    const user = await seedUser();
+    const project = await seedTask(user.id, { title: "Home Renovation" });
+    await seedTask(user.id, { title: "Kitchen", parentId: project.id, status: "completed" });
+    const subproject = await seedTask(user.id, { title: "Garden", parentId: project.id });
+    const lastLeaf = await seedTask(user.id, { title: "Plant tulips", parentId: subproject.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "PUT",
+      `/api/tasks/${lastLeaf.id}`,
+      JSON.stringify({ status: "completed" })
+    );
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { autoCompletedAncestors: { id: string }[] };
+    expect(body.autoCompletedAncestors.map((a) => a.id).sort()).toEqual([project.id, subproject.id].sort());
+
+    const [subprojectRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, subproject.id));
+    expect(subprojectRow!.status).toBe("completed");
+    const [projectRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, project.id));
+    expect(projectRow!.status).toBe("completed");
+  });
+
+  it("does not cascade when the parent has an incomplete sibling task", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Home Renovation" });
+    const completingChild = await seedTask(user.id, { title: "Fix gate", parentId: parent.id });
+    await seedTask(user.id, { title: "Paint fence", parentId: parent.id, status: "pending" });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "PUT",
+      `/api/tasks/${completingChild.id}`,
+      JSON.stringify({ status: "completed" })
+    );
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { autoCompletedAncestors: unknown[] };
+    expect(body.autoCompletedAncestors).toEqual([]);
+
+    const [parentRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, parent.id));
+    expect(parentRow!.status).not.toBe("completed");
+  });
+
+  it("auto-completes a priority-10 (ongoing/recurring) parent uniformly, same as any other", async () => {
+    const user = await seedUser();
+    const parent = await seedTask(user.id, { title: "Ongoing garden upkeep", priority: 10 });
+    const lastChild = await seedTask(user.id, { title: "Water plants", parentId: parent.id });
+
+    const handler = createTasksHandler(db, user.id);
+    const res = await handle(
+      handler,
+      "PUT",
+      `/api/tasks/${lastChild.id}`,
+      JSON.stringify({ status: "completed" })
+    );
+
+    expect(res.statusCode).toBe(200);
+    const body = res.body() as { autoCompletedAncestors: { id: string }[] };
+    expect(body.autoCompletedAncestors).toHaveLength(1);
+    expect(body.autoCompletedAncestors[0]!.id).toBe(parent.id);
+
+    const [parentRow] = await db.select().from(tasksTable).where(eq(tasksTable.id, parent.id));
+    expect(parentRow!.status).toBe("completed");
+  });
+});
+
 describe("DELETE /api/tasks/:id", () => {
   it("deletes a leaf task with no children", async () => {
     const user = await seedUser();

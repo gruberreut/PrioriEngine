@@ -5,6 +5,7 @@ import { TaskCard, type TaskAction } from "../../../entity/TaskCard/TaskCard";
 import { ActionButton } from "../../../components/ActionButton/ActionButton";
 import { Icon } from "../../../components/Icon/Icon";
 import { Trash } from "../../../assets/icons/Trash";
+import { CheckCircle } from "../../../assets/icons/CheckCircle";
 import styles from "./TaskTreeItem.module.css";
 
 export interface TaskTreeItemProps {
@@ -48,6 +49,7 @@ export function TaskTreeItem({ task, ancestors, depth, allTasks, defaultExpanded
   const completedMinutes = descendants
     .filter((t) => t.status === "completed")
     .reduce((sum, t) => sum + (t.duration ?? 0), 0);
+  const completed = task.status === "completed";
 
   return (
     <div className={styles.item}>
@@ -56,20 +58,23 @@ export function TaskTreeItem({ task, ancestors, depth, allTasks, defaultExpanded
         style={{ paddingLeft: `calc(${depth} * 24px + var(--space-2))` }}
       >
         <div
-          className={styles.row}
+          className={`${styles.row} ${completed ? styles.rowCompleted : ""}`}
           onClick={() => setExpanded((v) => !v)}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setExpanded((v) => !v); }}
         >
           <span className={styles.indicator}>{expanded ? "▾" : "▸"}</span>
+          {completed && <Icon asset={CheckCircle} label="Completed" size={18} />}
           <span className={styles.title}>{task.title}</span>
           <span className={styles.progress}>{completedMinutes} / {totalMinutes} min</span>
-          <ActionButton
-            icon={<Icon asset={Trash} label="Delete" size={20} />}
-            color="#fee2e2"
-            onClick={() => onDelete?.(task)}
-          />
+          {!completed && (
+            <ActionButton
+              icon={<Icon asset={Trash} label="Delete" size={20} />}
+              color="#fee2e2"
+              onClick={() => onDelete?.(task)}
+            />
+          )}
         </div>
       </div>
       {expanded && children.map((child) => (

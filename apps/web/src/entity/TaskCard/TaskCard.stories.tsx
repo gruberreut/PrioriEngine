@@ -92,6 +92,10 @@ export const InProgress: StoryObj<typeof TaskCard> = {
   args: { ...defaultArgs, flavor: "flat", task: { ...task, status: "in_progress" }, actions: inProgressActions },
 };
 
+export const Completed: StoryObj<typeof TaskCard> = {
+  args: { ...defaultArgs, task: { ...task, status: "completed" }, actions: sampleActions },
+};
+
 // Explain
 
 export const ExplainOn: StoryObj<typeof TaskCard> = {

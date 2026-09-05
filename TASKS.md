@@ -201,16 +201,16 @@ When completing a task makes it the last non-completed direct child of its paren
 
 ### Backend
 
-- [ ] `PUT /api/tasks/:id` — when a status update results in `status: "completed"`, after committing, walk up the `parentId` chain using `groupTasksByParent`: at each level, check whether all direct children of that parent now have `status: "completed"`; if so, mark that parent `completed` too and continue to its parent; stop at the first parent with an incomplete child, or when there's no parent
-- [ ] Run the cascade in the same DB transaction as the original status update, so a crash mid-cascade can't leave the tree half-completed
-- [ ] Response shape: `{ task: <updated>, autoCompletedAncestors: Task[] }` — empty array when nothing cascaded
-- [ ] Update `openapi.yaml` for the new response shape
-- [ ] Update `ARCHITECTURE.md` recording this as a decision: automatic cascade (no per-level confirmation), applies uniformly regardless of priority/recurrence
-- [ ] Real-DB integration tests: completing the last leaf under a parent completes the parent; completing the last remaining subproject under a project cascades two levels; completing a task with incomplete siblings does not cascade; completing the last child of a priority-10/recurring parent still auto-completes it
+- [x] `PUT /api/tasks/:id` — when a status update results in `status: "completed"`, after committing, walk up the `parentId` chain using `groupTasksByParent`: at each level, check whether all direct children of that parent now have `status: "completed"`; if so, mark that parent `completed` too and continue to its parent; stop at the first parent with an incomplete child, or when there's no parent
+- [x] Run the cascade in the same DB transaction as the original status update, so a crash mid-cascade can't leave the tree half-completed
+- [x] Response shape: `{ task: <updated>, autoCompletedAncestors: Task[] }` — empty array when nothing cascaded
+- [x] Update `openapi.yaml` for the new response shape
+- [x] Update `ARCHITECTURE.md` recording this as a decision: automatic cascade (no per-level confirmation), applies uniformly regardless of priority/recurrence
+- [x] Real-DB integration tests: completing the last leaf under a parent completes the parent; completing the last remaining subproject under a project cascades two levels; completing a task with incomplete siblings does not cascade; completing the last child of a priority-10/recurring parent still auto-completes it
 
 ### Frontend
 
-- [ ] `taskService.ts` — `updateTask`'s return type gains `autoCompletedAncestors`
+- [x] `taskService.ts` — `updateTask`'s return type gains `autoCompletedAncestors`
 - [ ] Surface accomplishment feedback when `autoCompletedAncestors` is non-empty (e.g. "You also finished 'Home Renovation'!"), in addition to the existing per-task completion feedback — exact placement (toast vs. banner vs. dedicated screen) ties into `ARCHITECTURE.md`'s planned "brief celebration" step, which isn't built yet and needs its own design pass before this can be wired up
 
 ---
@@ -753,7 +753,7 @@ Decide the intended UX for completed tasks inside a project tree — per-user re
 - [ ] If the above is adopted, decide the query shape needed to express it server-side: e.g. `queryTasks` needs to know, per row, whether its root ancestor project is fully completed (likely via `groupTasksByParent`, walking each candidate row's ancestor chain, or precomputing a `projectCompleted` flag) — this is nontrivial to do efficiently in one query and needs its own design pass, not just a `WHERE status != 'completed'`
 - [ ] Decide how the user reaches the excluded set (standalone completed tasks + fully-completed projects) — two options raised, not mutually exclusive: (a) a checkbox/toggle in `TasksPage` that re-fetches with completed+archived projects included; (b) a dedicated Archive page/route for browsing completed tasks and completed projects separately from the active list. Pick one for v1 or decide both are worth building and sequence them
 - [ ] Whichever fetch-on-demand shape is chosen (toggle vs. archive page), decide the query shape: `?status=completed&parentId=` for a scoped per-project fetch, a dedicated endpoint, or pagination (`limit`/`cursor`) if a single project can itself accumulate many completed tasks over time
-- [ ] Add a visual indicator for `status: "completed"` on individual task rows in `TaskTreeItem` (and any other place a completed leaf task can appear in a list, e.g. `TaskCard`) — e.g. strikethrough title, muted color, checkmark badge — using existing design tokens, not new literals
+- [x] Add a visual indicator for `status: "completed"` on individual task rows in `TaskTreeItem` (and any other place a completed leaf task can appear in a list, e.g. `TaskCard`) — e.g. strikethrough title, muted color, checkmark badge — using existing design tokens, not new literals. Resolved: recessed background (`--color-bg-disabled`) + dimmed text (`--color-text-disabled`) + a `CheckCircle` badge (reusing the icon already used for the Complete action) on both `TaskCard` (leaf rows) and `TaskTreeItem`'s own parent/project row markup; actions are hidden on a completed task for now (delete included) per explicit user direction, pending a possible future "reopen" action
 - [ ] If a "show completed" toggle/action is added, decide where it lives (per-project, global to `TasksPage`) and whether the state should persist (e.g. across navigations/sessions)
 - [ ] Reconcile with `TaskTreeItem`'s existing `completedMinutes / totalMinutes` progress line — decide whether that number can still be computed cheaply (e.g. a server-side count) once completed descendants are no longer fetched by default alongside everything else
 - [ ] Cross-check against §13 (Cascading Task Completion, not yet built) — once a parent can auto-complete when its last child completes, confirm the chosen display behaves sensibly for a fully-completed subtree (e.g. does the whole branch collapse, stay expanded and greyed out, etc.)

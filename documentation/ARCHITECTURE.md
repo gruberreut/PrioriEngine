@@ -285,6 +285,14 @@ Tasks are stored as a nested JSON tree for CLI use. All fields are optional on `
 
 Snooze is not a status. It sets `lastSuggestedAt = now` and, if the task's current status is `in_progress`, also reverts it to `pending` (any other status is left untouched); `priorityUpdatedAt` (and priority/context) are untouched either way. The recency suppression is the mechanism `ranker.ts`'s `isRecentlySuggested`/`recurrenceWindowHours` already implement: the task is suppressed from ranking until the recurrence-based window (default 24h) elapses. **Superseded:** an earlier version of this decision set *only* `lastSuggestedAt`, with status left alone. That was incomplete — `ranker.ts`'s in-progress check (`tasks.find(t => t.status === "in_progress")`) is a plain status lookup, unaffected by `lastSuggestedAt`, so snoozing the currently in-progress task left it blocking ranking indefinitely, contradicting User Flow § 4/6 below (snooze listed as one of the ways to resolve the block). The status revert closes that gap. This is the canonical description of snooze semantics — other documents in `documentation/` that describe a different mechanism predate this decision and have been marked superseded in place.
 
+### Cascading task completion
+
+Completing a task that is the last non-`completed` direct child of its parent auto-completes the parent too, and the check repeats up the ancestor chain — finishing the last subproject under a project completes the project as well. `routes/tasks.ts`'s `PUT /api/tasks/:id` handler does this inside the same transaction as the original status update (re-querying `groupTasksByParent`'s grouping at each ancestor level, since completing one level changes what the next level up sees as its children) and returns `{ task, autoCompletedAncestors }`, where `autoCompletedAncestors` is empty when nothing cascaded.
+
+The cascade applies uniformly regardless of the parent's priority — a priority-10/"Ongoing" parent is not exempt, even though ongoing tasks are expected to keep gaining children over time. Decided this way (rather than excluding recurring/ongoing parents) because there is no separate signal that distinguishes "this project is done" from "this project's current batch of children is done" — treating them the same keeps the rule simple and lets the user re-open or re-populate a prematurely-completed "Ongoing" parent manually rather than the system guessing.
+
+The cascade is automatic with no per-level confirmation — the user finds out via accomplishment feedback after the fact rather than a prompt beforehand, consistent with this app's snooze/complete actions elsewhere already being unconfirmed one-click actions. Surfacing that feedback (e.g. "you also finished X") on the frontend depends on a "brief celebration" UI step that does not exist yet and needs its own design pass; until then, `autoCompletedAncestors` is available on the response but unused by the client.
+
 ---
 
 ## Full-Stack Request Flow

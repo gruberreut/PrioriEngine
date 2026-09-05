@@ -25,6 +25,10 @@
   background-color: var(--color-bg-disabled);
 }
 
+.row.rowCompleted {
+  background-color: var(--color-bg-disabled);
+}
+
 .row:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
@@ -54,6 +58,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rowCompleted .title {
+  color: var(--color-text-disabled);
 }
 
 .progress {

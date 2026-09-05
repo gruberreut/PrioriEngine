@@ -4,6 +4,7 @@ import { ScoreBreakdown, type ScoreBreakdownData } from "../../features/ranking/
 import { LocationIcon } from "../../features/ranking/LocationIcon/LocationIcon";
 import { Icon } from "../../components/Icon/Icon";
 import { SpinnerArc } from "../../assets/icons/SpinnerArc";
+import { CheckCircle } from "../../assets/icons/CheckCircle";
 import { Breadcrumbs } from "../../components/Breadcrumbs/Breadcrumbs";
 import { ActionButton } from "../../components/ActionButton/ActionButton";
 import styles from "./TaskCard.module.css";
@@ -29,15 +30,17 @@ export interface TaskCardProps {
 
 export function TaskCard({ task, breakdown, explain = false, flavor = "outlined", selected = false, actions, showActionLabels = false, onSelect, onAction }: TaskCardProps) {
   const inProgress = task.status === "in_progress";
+  const completed = task.status === "completed";
   return (
     <div
-      className={`${styles.container} ${flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress ? styles.withSpinner : ""}`}
+      className={`${styles.container} ${flavor === "outlined" ? styles.outlined : styles.flat} ${selected ? styles.selected : ""} ${inProgress || completed ? styles.withStatusIcon : ""} ${completed ? styles.completed : ""}`}
       onClick={onSelect}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
       onKeyDown={onSelect ? (e) => { if (e.key === "Enter" || e.key === " ") onSelect(); } : undefined}
     >
       {inProgress && <Icon asset={SpinnerArc} label="In progress" size={36} />}
+      {completed && <Icon asset={CheckCircle} label="Completed" size={36} />}
       <div className={styles.content}>
         {task.ancestors && task.ancestors.length > 0 && (
           <Breadcrumbs ancestors={task.ancestors} />
@@ -55,7 +58,7 @@ export function TaskCard({ task, breakdown, explain = false, flavor = "outlined"
         </div>
         {explain && breakdown && <ScoreBreakdown breakdown={breakdown} />}
       </div>
-      {actions && actions.length > 0 && (
+      {!completed && actions && actions.length > 0 && (
         <div className={styles.actions}>
           {actions.map((action) => (
             <ActionButton

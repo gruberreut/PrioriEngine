@@ -12,14 +12,22 @@ export async function getTasksByStatus(status: Task["status"]): Promise<Task[]> 
   return res.json() as Promise<Task[]>;
 }
 
-export async function updateTask(id: string, updates: { status: Task["status"] }): Promise<Task> {
+export interface TaskUpdateResult {
+  task: Task;
+  autoCompletedAncestors: Task[];
+}
+
+export async function updateTask(
+  id: string,
+  updates: { status: Task["status"] }
+): Promise<TaskUpdateResult> {
   const res = await fetch(`/api/tasks/${id}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(updates),
   });
   if (!res.ok) throw new Error("Failed to update task");
-  return res.json() as Promise<Task>;
+  return res.json() as Promise<TaskUpdateResult>;
 }
 
 export async function snoozeTask(id: string): Promise<Task> {

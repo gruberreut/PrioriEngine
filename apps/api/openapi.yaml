@@ -163,6 +163,12 @@ paths:
     put:
       tags: [tasks]
       summary: Update a task's status
+      description: >
+        When the update sets status to completed and that makes the task
+        the last non-completed direct child of its parent, the parent is
+        auto-completed too, and the check repeats up the ancestor chain
+        (uniformly, regardless of the parent's priority) inside the same
+        transaction as the original update.
       parameters:
         - $ref: '#/components/parameters/TaskId'
       requestBody:
@@ -180,11 +186,11 @@ paths:
               status: in_progress
       responses:
         '200':
-          description: Updated task
+          description: Updated task, plus any ancestors that auto-completed as a result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Task'
+                $ref: '#/components/schemas/TaskUpdateResponse'
         '400':
           description: status is not one of pending, in_progress, completed
           content:
@@ -465,6 +471,57 @@ components:
         createdAt: '2024-01-01T00:00:00.000Z'
         updatedAt: '2024-01-01T00:00:00.000Z'
         hasChildren: false
+
+    TaskUpdateResponse:
+      type: object
+      description: >
+        Response for PUT /api/tasks/{id}. When the status update completes
+        a task and that makes it the last non-completed direct child of its
+        parent, the parent is auto-completed too, and the check repeats up
+        the ancestor chain — see the "Cascading task completion" section of
+        documentation/ARCHITECTURE.md. autoCompletedAncestors is empty when
+        nothing cascaded, which is the common case.
+      required: [task, autoCompletedAncestors]
+      properties:
+        task:
+          $ref: '#/components/schemas/Task'
+        autoCompletedAncestors:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+      example:
+        task:
+          id: 550e8400-e29b-41d4-a716-446655440000
+          userId: 5c9d3b1a-1111-2222-3333-444455556666
+          parentId: 6f1e2d3c-4444-5555-6666-777788889999
+          contextId: null
+          title: Fix gate
+          priority: 5
+          priorityUpdatedAt: '2024-01-01T00:00:00.000Z'
+          dueDate: null
+          duration: 30
+          energyRequired: medium
+          location: home
+          status: completed
+          lastSuggestedAt: null
+          createdAt: '2024-01-01T00:00:00.000Z'
+          updatedAt: '2024-01-02T00:00:00.000Z'
+        autoCompletedAncestors:
+          - id: 6f1e2d3c-4444-5555-6666-777788889999
+            userId: 5c9d3b1a-1111-2222-3333-444455556666
+            parentId: null
+            contextId: null
+            title: Home Renovation
+            priority: 5
+            priorityUpdatedAt: '2024-01-01T00:00:00.000Z'
+            dueDate: null
+            duration: 0
+            energyRequired: medium
+            location: home
+            status: completed
+            lastSuggestedAt: null
+            createdAt: '2024-01-01T00:00:00.000Z'
+            updatedAt: '2024-01-02T00:00:00.000Z'
 
     CreateTaskRequest:
       type: object

@@ -54,7 +54,6 @@ export function Carousel({
   useEffect(() => {
     if (!isScrolling) {
       scrollToIndex(activeIndex);
-      setLiveIndex(activeIndex);
     }
   }, [activeIndex, scrollToIndex, isScrolling]);
 
@@ -94,6 +93,9 @@ export function Carousel({
   const orderedChildren = direction === "rtl" ? [...children].reverse() : children;
   const showSwipeHint = swipeHint && !hintDismissed && activeIndex === 0;
   const hintDirection = direction === "rtl" ? "←" : "→";
+  // Only defers to the rAF-tracked liveIndex while a swipe is in flight;
+  // otherwise activeIndex (the settled, committed value) is authoritative.
+  const dotIndex = isScrolling ? liveIndex : activeIndex;
 
   return (
     <div className={styles.wrapper}>
@@ -118,7 +120,7 @@ export function Carousel({
             <button
               key={i}
               type="button"
-              className={`${styles.dot} ${i === liveIndex ? styles.dotActive : ""}`}
+              className={`${styles.dot} ${i === dotIndex ? styles.dotActive : ""}`}
               onClick={() => onSlideChange(i)}
               aria-label={`Go to slide ${i + 1}`}
             />

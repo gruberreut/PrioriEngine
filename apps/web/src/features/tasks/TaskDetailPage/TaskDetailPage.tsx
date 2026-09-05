@@ -66,7 +66,7 @@ export function TaskDetailPage({ taskId: propTaskId, initialState }: TaskDetailP
   async function handleStart() {
     setActionError(null);
     try {
-      const updated = await updateTask(task.id, { status: "in_progress" });
+      const { task: updated } = await updateTask(task.id, { status: "in_progress" });
       setState({ status: "loaded", task: updated, tasks: tasks.map((t) => (t.id === updated.id ? updated : t)) });
     } catch {
       setActionError("Failed to start task. Please try again.");

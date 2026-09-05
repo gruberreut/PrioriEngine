@@ -184,15 +184,45 @@ export function createTasksHandler(db: Db, devUserId: string) {
           json(res, 400, { error: "Invalid status" });
           return true;
         }
-        const [updated] = await db
-          .update(tasksTable)
-          .set({ status, updatedAt: new Date() })
-          .where(eq(tasksTable.id, taskId))
-          .returning();
-        if (!updated) {
+        const result = await db.transaction(async (tx) => {
+          const [updated] = await tx
+            .update(tasksTable)
+            .set({ status, updatedAt: new Date() })
+            .where(eq(tasksTable.id, taskId))
+            .returning();
+          if (!updated) return null;
+
+          const autoCompletedAncestors: (typeof updated)[] = [];
+
+          if (status === "completed") {
+            let currentParentId = updated.parentId;
+            while (currentParentId) {
+              // Re-fetched every iteration (not hoisted above the loop) because a
+              // prior loop turn may have just completed one of these siblings.
+              const rows = await tx.select().from(tasksTable).where(eq(tasksTable.userId, updated.userId));
+              const grouped = groupTasksByParent(rows);
+              const siblings = grouped.get(currentParentId) ?? [];
+              const allComplete = siblings.length > 0 && siblings.every((s) => s.status === "completed");
+              if (!allComplete) break;
+
+              const [updatedParent] = await tx
+                .update(tasksTable)
+                .set({ status: "completed", updatedAt: new Date() })
+                .where(eq(tasksTable.id, currentParentId))
+                .returning();
+              if (!updatedParent) break;
+              autoCompletedAncestors.push(updatedParent);
+              currentParentId = updatedParent.parentId;
+            }
+          }
+
+          return { task: updated, autoCompletedAncestors };
+        });
+
+        if (!result) {
           json(res, 404, { error: "Task not found" });
         } else {
-          json(res, 200, updated);
+          json(res, 200, result);
         }
       } catch {
         json(res, 400, { error: "Bad request" });

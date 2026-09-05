@@ -18,10 +18,15 @@ function makeTask(overrides: Partial<Task> & Pick<Task, "id" | "title">): Task {
 }
 
 const leaf = makeTask({ id: "leaf-1", title: "Write weekly review" });
+const completedLeaf = makeTask({ id: "leaf-2", title: "Water the seedlings", status: "completed" });
 
 const parent = makeTask({ id: "parent-1", title: "Home projects", duration: 30, energyRequired: "low" });
 const child1 = makeTask({ id: "child-1", title: "Fix leaky faucet", parentId: "parent-1", location: "home", status: "completed" });
 const child2 = makeTask({ id: "child-2", title: "Repot tomato seedlings", parentId: "parent-1", location: "home" });
+
+const completedParent = makeTask({ id: "parent-2", title: "Home projects", duration: 30, energyRequired: "low", status: "completed" });
+const completedChild1 = makeTask({ id: "child-3", title: "Fix leaky faucet", parentId: "parent-2", location: "home", status: "completed" });
+const completedChild2 = makeTask({ id: "child-4", title: "Repot tomato seedlings", parentId: "parent-2", location: "home", status: "completed" });
 
 const root = makeTask({ id: "root-1", title: "Health & fitness" });
 const mid = makeTask({ id: "mid-1", title: "Morning routine", parentId: "root-1" });
@@ -57,6 +62,10 @@ export const Leaf: StoryObj<typeof TaskTreeItem> = {
   args: defaultArgs,
 };
 
+export const CompletedLeaf: StoryObj<typeof TaskTreeItem> = {
+  args: { ...defaultArgs, task: completedLeaf, allTasks: [completedLeaf] },
+};
+
 export const ParentCollapsed: StoryObj<typeof TaskTreeItem> = {
   args: {
     ...defaultArgs,
@@ -71,6 +80,15 @@ export const ParentExpanded: StoryObj<typeof TaskTreeItem> = {
     ...defaultArgs,
     task: parent,
     allTasks: [parent, child1, child2],
+    defaultExpanded: true,
+  },
+};
+
+export const CompletedParentExpanded: StoryObj<typeof TaskTreeItem> = {
+  args: {
+    ...defaultArgs,
+    task: completedParent,
+    allTasks: [completedParent, completedChild1, completedChild2],
     defaultExpanded: true,
   },
 };
