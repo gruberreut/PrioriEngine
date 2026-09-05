@@ -8,6 +8,51 @@ import { getTasksByStatus } from "../../../services/taskService";
  *  actually ready — keeps the loading state from flashing on a fast load. */
 export const MIN_LOADING_MS = 1500;
 
+type Navigate = ReturnType<typeof useNavigate>;
+
+/** A gate step either lets the sequence continue, or redirects and stops it. */
+type GateStepResult = "continue" | { redirect: string };
+type GateStep = () => Promise<GateStepResult>;
+
+// Steps run one after another, not in parallel. That's intentional, not an
+// oversight: each step below depends on the previous one having passed
+// (authzStep needs to know who the user is; inProgressStep shouldn't run if
+// authzStep already redirected away) so there's no pair that's actually safe
+// to parallelize today. If a future step turns out to be genuinely
+// independent of the others - no shared dependency, nothing to wait on -
+// treat that as its own enhancement to runGateSteps rather than assuming
+// strict sequencing is still correct once it no longer holds.
+
+/** No-op placeholder — ties into section 7's deferred "User provisioning"
+ *  design work. Exists to give the sequence the right shape for when real
+ *  auth lands (TASKS.md § 34), not to do anything today. */
+const authStep: GateStep = async () => "continue";
+
+/** No-op placeholder, same reasoning as authStep. */
+const authzStep: GateStep = async () => "continue";
+
+/** A failed check shouldn't strand the user on the splash forever - fail
+ *  open and let the app's existing per-slide in-progress handling catch
+ *  it if one really exists. */
+const inProgressStep: GateStep = async () => {
+  const task = await getTasksByStatus("in_progress")
+    .then((tasks) => tasks[0] ?? null)
+    .catch(() => null);
+  return task ? { redirect: "/in-progress" } : "continue";
+};
+
+const GATE_STEPS: GateStep[] = [authStep, authzStep, inProgressStep];
+
+async function runGateSteps(navigate: Navigate): Promise<void> {
+  for (const step of GATE_STEPS) {
+    const result = await step();
+    if (result !== "continue") {
+      navigate(result.redirect, { replace: true });
+      return;
+    }
+  }
+}
+
 interface LoadingGateProps {
   children: ReactNode;
 }
@@ -19,29 +64,9 @@ export function LoadingGate({ children }: LoadingGateProps) {
   useEffect(() => {
     let cancelled = false;
     const minDelay = new Promise<void>((resolve) => setTimeout(resolve, MIN_LOADING_MS));
-    // Gate steps run one after another (this is the only real step today;
-    // TASKS.md § 19's planned auth/authz steps would precede it, each
-    // depending on the previous one having passed). That's intentional, not
-    // an oversight: every step here needs the prior one's outcome, so there's
-    // no pair that's actually safe to parallelize yet. If a future step is
-    // added that's genuinely independent of the others (no shared
-    // dependency, nothing to wait on), revisit this as an enhancement rather
-    // than assuming strict sequencing is still correct - don't let it default
-    // to sequential by inertia once that assumption stops holding.
-    //
-    // A failed check shouldn't strand the user on the splash forever - fail
-    // open and let the app's existing per-slide in-progress handling catch
-    // it if one really exists.
-    const inProgressCheck = getTasksByStatus("in_progress")
-      .then((tasks) => tasks[0] ?? null)
-      .catch(() => null);
 
-    Promise.all([minDelay, inProgressCheck]).then(([, inProgressTask]) => {
-      if (cancelled) return;
-      if (inProgressTask) {
-        navigate("/in-progress", { replace: true });
-      }
-      setReady(true);
+    Promise.all([minDelay, runGateSteps(navigate)]).then(() => {
+      if (!cancelled) setReady(true);
     });
 
     return () => {
