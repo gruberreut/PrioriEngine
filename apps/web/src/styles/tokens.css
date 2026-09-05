@@ -636,8 +636,6 @@
   --select-empty-title-fg:   var(--color-text-strong);
   --select-empty-desc-size:  var(--font-size-meta);
   --select-empty-desc-fg:    var(--color-text-muted);
-  --select-skeleton-bg:      var(--color-border);
-  --select-skeleton-radius:  var(--radius-sm);
 
   /* LoadingScreen — features/loading/LoadingScreen */
   --loading-screen-bg:              var(--color-bg-page);

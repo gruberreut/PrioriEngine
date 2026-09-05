@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Sheet } from "../Sheet/Sheet";
+import { Skeleton } from "../Skeleton/Skeleton";
 import { useIsWideContainer } from "./useIsWideContainer";
 import styles from "./Select.module.css";
 
@@ -121,9 +122,9 @@ export function Select({
     if (loading) {
       return (
         <div className={styles.skeletonList} aria-hidden="true">
-          <div className={styles.skeletonBar} style={{ width: "70%" }} />
-          <div className={styles.skeletonBar} style={{ width: "45%" }} />
-          <div className={styles.skeletonBar} style={{ width: "60%" }} />
+          <Skeleton width="70%" height="12px" />
+          <Skeleton width="45%" height="12px" />
+          <Skeleton width="60%" height="12px" />
         </div>
       );
     }

@@ -10,7 +10,7 @@ One trigger, two presentations - the closed field is identical everywhere (48px,
 
 `placeholder`, when given, renders as a real selectable first row (clears the value on pick) rather than only a hint - the same behavior the previous native `<select>` had.
 
-`loading` shows three skeleton bars in place of the option list; an empty `options` array (and not loading) shows `emptyTitle`/`emptyDescription` instead. Both presentations share the same row markup, differing only in height (`--select-option-height` desktop, `--select-option-height-touch` on the sheet) and in how a selection dismisses: a click closes the desktop menu, a tap closes the sheet.
+`loading` shows three `Skeleton` bars in place of the option list; an empty `options` array (and not loading) shows `emptyTitle`/`emptyDescription` instead. Both presentations share the same row markup, differing only in height (`--select-option-height` desktop, `--select-option-height-touch` on the sheet) and in how a selection dismisses: a click closes the desktop menu, a tap closes the sheet.
 
 Keyboard on desktop: Arrow Up/Down move the highlighted row (via `aria-activedescendant` - focus never leaves the trigger), Enter/Space selects it, Escape or Tab closes. See `documentation/Tendril Select component.png` § 9a-9c and `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.4 (superseded by this redesign).
 

@@ -170,9 +170,3 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-3);
 }
-
-.skeletonBar {
-  height: 12px;
-  border-radius: var(--select-skeleton-radius);
-  background: var(--select-skeleton-bg);
-}
