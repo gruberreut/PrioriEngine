@@ -260,7 +260,7 @@ A broader visual/UX pass across the app. Not scoped yet — needs a walkthrough 
 Currently the app renders straight into its routes on mount — there's no single point where cross-cutting startup concerns (auth, authorization, blocking-state checks) can run before the rest of the app appears. Build a generic bootstrap mechanism for that, independent of what the individual steps end up being (those are separate tasks — see 20).
 
 - [x] Create a `LoadingPage` / bootstrap gate component that runs on app mount, wraps the router, and renders before any route
-- [ ] Design the gate as an ordered sequence of async steps; each step can pass through, redirect, or block until resolved
+- [ ] Design the gate as an ordered sequence of async steps; each step can pass through, redirect, or block until resolved. **Sequential-by-default is a deliberate choice, not an oversight** (discussed in conversation): the known steps (auth → authz → in-progress check) each depend on the previous one's outcome, so nothing here is actually safe to parallelize today. If a future step turns out to be genuinely independent, treat that as its own enhancement to the runner rather than assuming strict sequencing still holds — flagged with a matching comment in `LoadingGate.tsx` so it isn't forgotten
 - [ ] Add a placeholder authentication step (no-op today; ties into section 7's deferred "User provisioning" design work), just to give the sequence the right shape for when auth exists
 - [ ] Add a placeholder authorization step (no-op today), same reasoning
 - [x] Show a loading state while steps are in flight
