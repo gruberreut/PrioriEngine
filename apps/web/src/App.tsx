@@ -12,8 +12,13 @@ import { useTheme } from "./features/theme/useTheme";
 function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
-  const showFAB = location.pathname !== "/tasks/new";
-  const linksHidden = location.pathname === "/in-progress";
+  const isInProgressBlock = location.pathname === "/in-progress";
+  // /in-progress blocks navigation elsewhere until the task is resolved
+  // (Complete / Snooze / Delete) - the FAB would otherwise be the one
+  // remaining way to leave without resolving it, since NavBar already
+  // hides its links via linksHidden below.
+  const showFAB = location.pathname !== "/tasks/new" && !isInProgressBlock;
+  const linksHidden = isInProgressBlock;
   // No UI yet (see TASKS.md for the planned settings screen) - this just
   // applies the light/dark theme (time-of-day by default) and exposes
   // window.switchTheme() as a dev-console escape hatch.

@@ -269,15 +269,7 @@ Currently the app renders straight into its routes on mount — there's no singl
 
 ---
 
-## 20. In-progress-task check as an early gate step (`in-progress-check`)
-
-**Depends on:** section 19 (the loading gate must exist to add a step to it), section 21 (needs the dedicated route to redirect to).
-
-Today, whether an in-progress task exists is discovered lazily and per-slide: `RankingPage` finds out only when a given carousel slide's `rank` call returns `in_progress_block`, so on refresh the user briefly sees the full ranking carousel, and then every slide (except the params slide) independently renders the same in-progress task. Replace this with a single check that runs once as a step in the loading gate (section 19), before any route renders.
-
-- [x] Add an in-progress-task check step to the loading gate: fetch tasks; if one has `status: "in_progress"`, redirect to the dedicated in-progress route (section 21)
-- [ ] Keep the user on that route — block navigation to other routes — until they resolve it via Complete / Snooze / Delete
-- [ ] Update `ARCHITECTURE.md` — record this step as the canonical place in-progress blocking is enforced, superseding the current per-slide discovery in `ResultsPanel`/`RankingPage` (not yet true — the gate only runs on initial mount, so the per-slide check still catches a task started mid-session without a reload; revisit once that's unified too)
+## 20. In-progress-task check as an early gate step — completed, see TASKS-DONE.md
 
 ---
 
