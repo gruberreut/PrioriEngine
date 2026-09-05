@@ -51,15 +51,15 @@
      Light and dark are separate sets by necessity (a lift above #F3EEE6 has
      to be near-white; above #1B1917 it has to be near-black) but the hue
      wheel and the order are identical, so page 3 is the same hue in both. */
-  --tendril-slide-0: #EFE9DD;   /* 60°  sand   */
-  --tendril-slide-1: #F0E7DE;   /* 100° olive  */
-  --tendril-slide-2: #ECE8E1;   /* 145° sage   */
-  --tendril-slide-3: #F1E8E0;   /* 190° teal   */
-  --tendril-slide-4: #EAE6DC;   /* 225° slate  */
-  --tendril-slide-5: #EFE5DE;   /* 262° iris   */
-  --tendril-slide-6: #F1EBDD;   /* 300° mauve  */
-  --tendril-slide-7: #EBE8E2;   /* 335° plum   */
-  --tendril-slide-params: #F6EDE1;   /* 42°, higher chroma — settings reads apart */
+  --tendril-slide-0: #FDEEE2;   /* 60°  sand   */
+  --tendril-slide-1: #F4F1E2;   /* 100° olive  */
+  --tendril-slide-2: #EAF4EA;   /* 145° sage   */
+  --tendril-slide-3: #E8F4F3;   /* 190° teal   */
+  --tendril-slide-4: #E8F3F7;   /* 225° slate  */
+  --tendril-slide-5: #ECF1FB;   /* 262° iris   */
+  --tendril-slide-6: #F2EEFB;   /* 300° mauve  */
+  --tendril-slide-7: #FAECF6;   /* 335° plum   */
+  --tendril-slide-params: #FFEBDF;   /* 42°, higher chroma — settings reads apart */
 
   --tendril-d-slide-0: #2F2117;
   --tendril-d-slide-1: #272516;
