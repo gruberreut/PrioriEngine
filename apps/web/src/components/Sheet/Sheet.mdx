@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as SheetStories from './Sheet.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={SheetStories} />
+
+# Sheet
+
+A panel anchored to the bottom edge of the viewport - rounded top corners only, `--shadow-lg`, and a slide-up entry with the scrim fading in underneath it (no exit animation is designed; the panel unmounts immediately on close, same as `ConfirmDialog`). `title` is optional and renders no header row at all when omitted - there's no separate close button, matching the artboard. Content past `--sheet-max-height` scrolls inside the panel rather than growing the sheet past the viewport, with its own bottom padding accounting for `env(safe-area-inset-bottom)` so the last row never sits under a home indicator. Dismiss via Escape, a backdrop click, or the grabber (tap or drag down past a threshold) - the grabber is decorative/`aria-hidden`, since Escape is the one fully accessible path and a drag gesture has no keyboard equivalent anyway; a consumer whose content is itself selectable (e.g. `Select`'s option rows) is expected to call `onClose` on selection too. Distinct from `ConfirmDialog`, which is a centered confirm-style dialog built on `Card` - this is the bottom-anchored, free-form-content counterpart. Built to be composed by `Select`'s mobile listbox presentation (§24.13) - see `documentation/Tendril Select component.png` § 9c and `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4.4.
+
+## Tokens
+
+Every `--sheet-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--sheet-" />

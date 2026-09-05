@@ -1,5 +1,6 @@
 import { ResultsPanel, type RankResultMode } from "../ResultsPanel/ResultsPanel";
 import { Card } from "../../../components/Card/Card";
+import { Skeleton } from "../../../components/Skeleton/Skeleton";
 import { InlineMessage } from "../../../components/InlineMessage/InlineMessage";
 import type { Task } from "../../../types/task";
 import styles from "./ResultsSlide.module.css";
@@ -23,8 +24,8 @@ export function ResultsSlide({ label, state, result, backgroundColor, onStartTas
         <div className={styles.skeletonList}>
           {[0, 1, 2].map((i) => (
             <Card key={i}>
-              <div className={`${styles.skeletonLine} ${styles.skeletonTitle}`} />
-              <div className={`${styles.skeletonLine} ${styles.skeletonMeta}`} />
+              <Skeleton width="70%" />
+              <Skeleton width="45%" height="0.75rem" />
             </Card>
           ))}
         </div>

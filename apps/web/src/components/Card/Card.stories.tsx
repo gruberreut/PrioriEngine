@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Card } from "./Card";
 import { Button } from "../Button/Button";
+import { Skeleton as SkeletonBar } from "../Skeleton/Skeleton";
 
 const defaultArgs = {
   title: "Book the dentist",
@@ -66,8 +67,8 @@ export const Skeleton: Story = {
     <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
       {[0, 1, 2].map((i) => (
         <Card key={i}>
-          <div style={{ height: "1rem", width: "70%", borderRadius: "var(--radius-sm)", background: "var(--color-border)" }} />
-          <div style={{ height: "0.75rem", width: "45%", borderRadius: "var(--radius-sm)", background: "var(--color-border)" }} />
+          <SkeletonBar width="70%" />
+          <SkeletonBar width="45%" height="0.75rem" />
         </Card>
       ))}
     </div>

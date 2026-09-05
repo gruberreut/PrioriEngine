@@ -1,0 +1,91 @@
+/* Tokens: --sheet-* (see styles/tokens.css) */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--sheet-z);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--sheet-backdrop-bg);
+  animation: sheet-scrim-in var(--motion-fast) var(--motion-ease);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: var(--sheet-max-height);
+  background: var(--sheet-bg);
+  border-top-left-radius: var(--sheet-radius);
+  border-top-right-radius: var(--sheet-radius);
+  box-shadow: var(--sheet-shadow);
+  outline: none;
+  animation: sheet-enter var(--motion-medium) var(--motion-ease);
+}
+
+.grabberRow {
+  display: flex;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: var(--space-2) 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+.grabber {
+  width: var(--sheet-grabber-width);
+  height: var(--sheet-grabber-height);
+  border-radius: var(--sheet-grabber-radius);
+  background: var(--sheet-grabber-bg);
+}
+
+.header {
+  flex-shrink: 0;
+  padding: var(--space-3) var(--sheet-pad-x) 0;
+}
+
+.title {
+  font-size: var(--sheet-title-size);
+  font-weight: 600;
+  color: var(--sheet-title-fg);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--sheet-pad-y) var(--sheet-pad-x)
+    calc(var(--sheet-pad-y) + env(safe-area-inset-bottom));
+  scrollbar-width: thin;
+  scrollbar-color: var(--sheet-scrollbar-thumb) transparent;
+}
+
+.body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.body::-webkit-scrollbar-thumb {
+  background: var(--sheet-scrollbar-thumb);
+  border-radius: var(--sheet-scrollbar-radius);
+}
+
+@keyframes sheet-enter {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes sheet-scrim-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

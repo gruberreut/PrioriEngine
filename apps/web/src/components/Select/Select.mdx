@@ -1,0 +1,21 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as SelectStories from './Select.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={SelectStories} />
+
+# Select
+
+One trigger, two presentations - the closed field is identical everywhere (48px, matches `TextInput`), but the open state depends on how much width `Select` itself is actually given: `≥768px` opens an anchored desktop menu, `<768px` composes `Sheet` (§24.10) as a bottom sheet. This is a **container** measurement (`useIsWideContainer`, a `ResizeObserver` on `Select`'s own wrapper), not the browser viewport - a `Select` squeezed into a narrow column on an otherwise-wide screen still gets the mobile sheet. See the `NarrowContainer` story for a demonstration: it pins a 320px wrapper inside the full-width canvas and still renders the sheet. `options`/`value`/`onChange`/`label`/`placeholder`/`disabled` are unchanged from before this redesign - the responsive switch is entirely internal. Single selection, no search field, text-only rows for now.
+
+`placeholder`, when given, renders as a real selectable first row (clears the value on pick) rather than only a hint - the same behavior the previous native `<select>` had.
+
+`loading` shows three skeleton bars in place of the option list; an empty `options` array (and not loading) shows `emptyTitle`/`emptyDescription` instead. Both presentations share the same row markup, differing only in height (`--select-option-height` desktop, `--select-option-height-touch` on the sheet) and in how a selection dismisses: a click closes the desktop menu, a tap closes the sheet.
+
+Keyboard on desktop: Arrow Up/Down move the highlighted row (via `aria-activedescendant` - focus never leaves the trigger), Enter/Space selects it, Escape or Tab closes. See `documentation/Tendril Select component.png` § 9a-9c and `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.4 (superseded by this redesign).
+
+## Tokens
+
+Every `--select-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--select-" />

@@ -16,6 +16,8 @@ Per `AGENTS.md`: do not execute implementation steps or make code changes unless
 
 `TASKS.md` tracks active and upcoming work. When every item in a top-level numbered section (`## N. ...`) is checked off with no open sub-items left anywhere in it, move that section's full content out of `TASKS.md` into `TASKS-DONE.md` (same repo root), appended in numeric order. Leave a single-line stub in `TASKS.md` in its place — `## N. Title — completed, see TASKS-DONE.md` — so section numbers and existing `§N` cross-references still resolve without opening the archive. Do not archive a section that has any unchecked item anywhere in it, even if most of it is done — a partially-complete section stays in `TASKS.md` in full, including its already-completed subsections.
 
+**Exception: the Known Bugs section (`## 10. Known Bugs`).** Its header stays in `TASKS.md` even when its list is fully resolved — do not collapse it to a stub. It's the standing place new bugs get filed, so it needs to exist and be findable even at zero open items. Individual fixed bugs still move to `TASKS-DONE.md` as normal; only the section title itself is exempt from archiving.
+
 ## Architecture Documentation
 
 Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it.

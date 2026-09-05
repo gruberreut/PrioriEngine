@@ -1,29 +1,178 @@
+/* Tokens: --select-* (see styles/tokens.css) */
+
 .container {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
 }
 
 .label {
-  font-size: var(--font-size-label);
+  font-size: var(--select-label-size);
   font-weight: 500;
-  color: var(--color-text-body);
+  color: var(--select-label-fg);
 }
 
-.select {
-  padding: var(--space-2) var(--space-3);
-  font-size: var(--font-size-label);
-  border: 1px solid var(--color-border-input);
-  border-radius: var(--radius-sm);
-  background-color: var(--color-bg-surface);
-  color: var(--color-text-strong);
+.trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: var(--select-min-width);
+  height: var(--select-height);
+  padding: 0 var(--select-pad-x);
+  border: 1px solid var(--select-border);
+  border-radius: var(--select-radius);
+  background: var(--select-bg);
+  color: var(--select-fg);
+  font-size: var(--select-value-size);
   cursor: pointer;
-  appearance: auto;
-  min-width: 160px;
+  transition: border-color var(--motion-fast) var(--motion-ease);
 }
 
-.select:disabled {
-  background-color: var(--color-bg-disabled);
-  color: var(--color-text-disabled);
+.trigger:focus-visible {
+  outline: none;
+  border-color: var(--select-border-focus);
+  box-shadow: var(--select-focus-ring);
+}
+
+.trigger:disabled {
+  background: var(--select-bg-disabled);
+  color: var(--select-fg-disabled);
   cursor: not-allowed;
+}
+
+.trigger:hover:not(:disabled) {
+  border-color: var(--select-border-hover);
+}
+
+.value {
+  flex: 1;
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.placeholder {
+  color: var(--select-fg-placeholder);
+}
+
+.caret {
+  flex-shrink: 0;
+  transition: transform var(--motion-fast) var(--motion-ease);
+}
+
+.caretOpen {
+  transform: rotate(180deg);
+}
+
+/* Desktop anchored menu */
+
+.menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  margin-top: var(--space-1);
+  padding: var(--select-menu-pad);
+  background: var(--select-menu-bg);
+  border-radius: var(--select-menu-radius);
+  box-shadow: var(--select-menu-shadow);
+  max-height: var(--select-menu-max-h);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--select-scrollbar-thumb) transparent;
+}
+
+.menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.menu::-webkit-scrollbar-thumb {
+  background: var(--select-scrollbar-thumb);
+  border-radius: var(--select-scrollbar-radius);
+}
+
+/* Option rows - shared by the desktop menu and the mobile Sheet */
+
+.optionList {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  height: var(--select-option-height);
+  padding: 0 var(--space-3);
+  border-radius: var(--select-option-radius);
+  color: var(--select-fg);
+  font-size: var(--select-value-size);
+  cursor: pointer;
+}
+
+.optionTouch {
+  height: var(--select-option-height-touch);
+}
+
+.optionHighlighted {
+  background: var(--select-option-bg-hover);
+}
+
+.optionSelected {
+  background: var(--select-option-bg-sel);
+  color: var(--select-option-fg-sel);
+  font-weight: 500;
+}
+
+.optionLabel {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.check {
+  flex-shrink: 0;
+}
+
+/* Empty and loading states, shown in place of the option list */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-3);
+}
+
+.emptyTitle {
+  font-size: var(--select-empty-title-size);
+  font-weight: 600;
+  color: var(--select-empty-title-fg);
+}
+
+.emptyDescription {
+  font-size: var(--select-empty-desc-size);
+  color: var(--select-empty-desc-fg);
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-3);
+}
+
+.skeletonBar {
+  height: 12px;
+  border-radius: var(--select-skeleton-radius);
+  background: var(--select-skeleton-bg);
 }

@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as SkeletonStories from './Skeleton.stories';
+import { ComponentTokens } from '../../styles/ComponentTokens';
+
+<Meta of={SkeletonStories} />
+
+# Skeleton
+
+A single shimmering placeholder bar - `width`/`height` are plain CSS strings, since arbitrary per-instance sizing is the whole point (a title-shaped bar, a shorter meta-shaped bar underneath it, and so on). No artboard exists for this one - the token block was derived from `ResultsSlide`'s own pre-existing shimmer CSS (`ResultsSlide.module.css`'s `.skeletonLine`/`@keyframes shimmer`, now deleted in favor of this primitive), not a design doc. `ComposedLines` reproduces `ResultsSlide`'s exact loading-state layout: three `Card`s, each with a title-width bar and a shorter meta-width bar underneath.
+
+## Tokens
+
+Every `--skeleton-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--skeleton-" />

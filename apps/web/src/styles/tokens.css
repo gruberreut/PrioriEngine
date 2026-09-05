@@ -116,6 +116,8 @@
   --shadow-md: 0 4px 12px rgb(46 42 38 / .10);
   --shadow-lg: 0 6px 16px rgb(46 42 38 / .14);
 
+  --color-scrim: rgb(46 42 38 / .38);
+
   /* type families — absorbed from index.css */
   --font-sans:    system-ui, 'Segoe UI', Roboto, sans-serif;
   --font-heading: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -227,6 +229,8 @@
   --shadow-sm: 0 1px 2px rgb(0 0 0 / .40);
   --shadow-md: 0 4px 12px rgb(0 0 0 / .50);
   --shadow-lg: 0 6px 16px rgb(0 0 0 / .60);
+
+  --color-scrim: rgb(0 0 0 / .58);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -270,6 +274,8 @@
     --shadow-sm: 0 1px 2px rgb(0 0 0 / .40);
     --shadow-md: 0 4px 12px rgb(0 0 0 / .50);
     --shadow-lg: 0 6px 16px rgb(0 0 0 / .60);
+
+    --color-scrim: rgb(0 0 0 / .58);
   }
 }
 
@@ -531,16 +537,107 @@
   --message-fg:               var(--color-text-strong);
   --message-size:             var(--font-size-body);
 
-  /* ConfirmDialog — components/ConfirmDialog
-     Chrome (kicker/title/meta, accent border, no shadow) is the Card
+  /* ConfirmDialog — components/ConfirmDialog */
+  /* Chrome (kicker/title/meta, accent border, no shadow) is the Card
      component's own `active` state, reused as-is - this group only covers
      what the backdrop/positioning wrapper paints itself. */
   --confirm-dialog-z:                var(--z-modal);
-  /* no Layer-2 role for a translucent scrim - only this component needs one */
-  --confirm-dialog-backdrop-bg:      rgb(0 0 0 / .45);
+  --confirm-dialog-backdrop-bg:      var(--color-scrim);
   --confirm-dialog-backdrop-pad:     var(--space-5);
   --confirm-dialog-panel-max-width:  360px;
   --confirm-dialog-actions-gap:      var(--space-2);
+
+  /* Sheet — components/Sheet */
+  --sheet-z:            var(--z-modal);
+  --sheet-backdrop-bg:  var(--color-scrim);
+  --sheet-bg:           var(--color-bg-surface);
+  --sheet-radius:       var(--radius-xl);   /* top corners only - see .panel
+                                                in Sheet.module.css */
+  --sheet-shadow:       var(--shadow-lg);
+  --sheet-max-height:   70vh;     /* no Layer-2 role for a viewport-relative
+                                      cap - matches the value grounded in the
+                                      Select mobile-sheet artboard
+                                      (documentation/Tendril Select
+                                      component.png § 9c); content scrolls
+                                      past this */
+  --sheet-pad-x:        var(--space-5);
+  --sheet-pad-y:        var(--space-5);
+  --sheet-title-size:   var(--font-size-label);
+  --sheet-title-fg:     var(--color-text-strong);
+  --sheet-grabber-width:  36px;   /* no Layer-2 role for a drag-handle size -
+                                      matches the same artboard's grabber spec */
+  --sheet-grabber-height: 4px;
+  --sheet-grabber-radius: var(--radius-full);
+  --sheet-grabber-bg:     var(--color-border-input);
+  --sheet-scrollbar-thumb:  var(--color-border-input);   /* persistent, not
+                                                              OS-auto-hide-
+                                                              dependent - the
+                                                              only scroll
+                                                              affordance a
+                                                              viewport-relative
+                                                              (vh-capped) sheet
+                                                              can rely on */
+  --sheet-scrollbar-radius: var(--radius-full);
+
+  /* Select — components/Select */
+  /* Replaces the § 3.4 block entirely (documentation/DESIGN-TOKENS-BY-COMPONENT.md),
+     grounded in documentation/Tendril Select component.png § 9a-9c. The mobile
+     presentation composes Sheet as-is (see § 24.10) rather than restyling it,
+     so this group only covers the trigger, the desktop anchored menu, and the
+     option rows shared by both presentations - no --select-sheet-* or
+     --select-grabber-* duplication of Sheet's own tokens. */
+  --select-height:        var(--control-height-xl);   /* 48px */
+  --select-radius:        var(--radius-md);           /* was --radius-sm before
+                                                           the field took its
+                                                           full 48px treatment */
+  --select-pad-x:         var(--space-4);
+  --select-min-width:     160px;   /* keeps the control from collapsing to fit
+                                       a short value plus the caret */
+  --select-bg:            var(--color-bg-surface);
+  --select-border:        var(--color-border-input);
+  --select-border-hover:  var(--color-text-disabled);
+  --select-border-focus:  var(--color-primary);
+  --select-focus-ring:    var(--focus-ring);
+  --select-bg-disabled:   var(--color-bg-disabled);
+  --select-fg:            var(--color-text-strong);
+  --select-fg-disabled:   var(--color-text-disabled);
+  --select-fg-placeholder: var(--color-text-disabled);
+  --select-value-size:    var(--font-size-body);    /* 14px */
+  --select-label-size:    var(--font-size-label);   /* 16px - the artboard's own
+                                                        anatomy note says 11px/500,
+                                                        but its rendered field
+                                                        labels are bold and
+                                                        body-sized, not a tiny
+                                                        caption; same correction
+                                                        TextInput's --input-label-*
+                                                        already made against the
+                                                        same artboard set */
+  --select-label-fg:      var(--color-text-strong);
+
+  --select-menu-bg:       var(--color-bg-surface);
+  --select-menu-radius:   var(--radius-lg);   /* 22px */
+  --select-menu-pad:      6px;
+  --select-menu-shadow:   var(--shadow-md);
+  --select-menu-max-h:    238px;   /* 5.5 rows, so the cut is visible */
+  --select-scrollbar-thumb:  var(--color-border-input);   /* persistent, not
+                                                              OS-auto-hide-
+                                                              dependent */
+  --select-scrollbar-radius: var(--radius-full);
+
+  --select-option-height:       40px;
+  --select-option-height-touch: 52px;   /* mobile sheet rows, above the 44px floor */
+  --select-option-radius:       var(--radius-md);   /* concentric with the 22px
+                                                         menu minus its 6px padding */
+  --select-option-bg-hover:     var(--color-bg-page);
+  --select-option-bg-sel:       var(--color-primary-tint);
+  --select-option-fg-sel:       var(--color-primary);
+
+  --select-empty-title-size: var(--font-size-label);
+  --select-empty-title-fg:   var(--color-text-strong);
+  --select-empty-desc-size:  var(--font-size-meta);
+  --select-empty-desc-fg:    var(--color-text-muted);
+  --select-skeleton-bg:      var(--color-border);
+  --select-skeleton-radius:  var(--radius-sm);
 
   /* LoadingScreen — features/loading/LoadingScreen */
   --loading-screen-bg:              var(--color-bg-page);
@@ -551,4 +648,14 @@
                                                not body copy */
   --loading-screen-footer-fg:       var(--color-text-muted);
   --loading-screen-footer-size:     var(--font-size-micro);
+
+  /* Skeleton — components/Skeleton */
+  /* No artboard for this one - derived from ResultsSlide's existing
+     shimmer implementation (gradient sweep over --color-border, 1.4s
+     cycle) rather than a design doc. */
+  --skeleton-height:        1rem;
+  --skeleton-radius:        var(--radius-sm);
+  --skeleton-bg:            var(--color-border);
+  --skeleton-bg-highlight:  color-mix(in srgb, var(--color-border) 50%, transparent);
+  --skeleton-duration:      1.4s;
 }
