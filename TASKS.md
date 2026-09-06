@@ -185,17 +185,7 @@ _Note: `TaskCard` was moved from `src/features/ranking/` to `src/entity/` as par
 
 Per-user decision: this section header stays in `TASKS.md` even when its list is empty, rather than being archived away like other fully-completed sections — it's the standing place new bugs get filed. An individual bug still moves to `TASKS-DONE.md` once fixed; only the section title itself is exempt from archiving. See the priority note at the top of this file: known bugs come first.
 
-### 10.1 Duplicate context option after creating one from the task-creation Select — high priority
-
-Reported by the user. Repro: on the task-creation page, open the context `Select`, choose "New context…", create one. Reopen the context `Select` — the newly created context is listed twice, and the browser console logs:
-
-> Encountered two children with the same key, `c8ad1c91-d2c8-42b9-b1c4-e36601b30dcf`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
-
-**Likely cause (not yet confirmed):** `TaskCreationForm.tsx`'s `handleAddContext` has no re-entrancy guard — nothing stops it running twice for a single "add" action. It's wired to both the new-context `TextInput`'s Enter key (`onKeyDown`) and the "Add" button's `onClick`, and `contextLoading` is only set *inside* the function body, not checked at its start. If it fires twice, `setAddedContexts((prev) => [...prev, created])` (line ~73) could push the same created context into `addedContexts` twice; `allContexts = [...contexts, ...addedContexts]` (line ~104) then renders it twice under the same `id`-derived key.
-
-- [ ] Confirm the actual cause (double-invocation of `handleAddContext`, a stale-closure double-append, or `onCreateContext`/the API layer itself returning a duplicate)
-- [ ] Fix — likely a re-entrancy guard at the top of `handleAddContext` (e.g. `if (contextLoading) return;`) and/or deduping `allContexts` by `id` as a belt-and-suspenders measure
-- [ ] Add a regression test (no `TaskCreationForm` test file exists yet — this would be the first) covering: adding a context via Enter, then reopening the `Select`, shows it exactly once
+No open items right now — see `TASKS-DONE.md` § 10 for resolved bugs (most recently § 10.6, the duplicate-context-option bug).
 
 ---
 
@@ -960,7 +950,7 @@ Prompted by §10.5 (the loading screen still said "Priori"). Add a check that ca
 Collects everything blocking, or worth doing before, inviting friends and family to a live Alpha. This is a dashboard cross-referencing other sections, not a separate source of truth — check a line here once its target section/item is actually done there.
 
 **Must resolve — existing work:**
-- [ ] §10 Known Bugs — every item closed (currently open: §10.3 Carousel dot lag, §10.5 "Priori" on the loading screen)
+- [x] §10 Known Bugs — every item closed (§10.1 duplicate context option, §10.3 Carousel dot lag, and §10.5 "Priori" on the loading screen are all resolved, see `TASKS-DONE.md` § 10)
 - [ ] §34 Auth — friends/family need individual accounts and separated data, not the single dev user
 - [ ] §36 (+ §10.5) Naming consistency lint — clean before external eyes see it
 
@@ -1101,6 +1091,38 @@ Not scoped yet beyond the rules above — this task starts with UX definition, t
 - [ ] Real-DB integration tests: rename succeeds regardless of task status; archive succeeds when all tasks are completed or there are none; archive is rejected (409) when a pending/in_progress task exists; an archived context's completed tasks keep their `context_id` and still resolve correctly; `GET /api/contexts` omits archived contexts
 - [ ] Frontend: build the UI surface decided above, wire it to the new endpoints
 - [ ] Update `contextService.ts` with `renameContext`/`archiveContext` (or equivalent) client functions
+
+---
+
+## 43. Default font: Rubik (`font-rubik`)
+
+Switch the app's default typeface (`--font-sans` in `tokens.css`, currently `system-ui, 'Segoe UI', Roboto, sans-serif`) to Rubik. Rubik must render correctly for the same language set §33 already commits to — major European languages plus Hebrew — so glyph coverage (Latin Extended + Hebrew) is a hard requirement, not just a look-and-feel swap.
+
+**Relationship to §33:** this is the font/typeface decision; §33 (Localization support) is the separate string-translation/i18n-library/RTL-layout effort. Rubik natively supports Hebrew (it's a Google Font published in both Latin and Hebrew variants), which makes it a reasonable pick ahead of §33's RTL work landing, but this task can proceed independently of §33's timeline.
+
+- [ ] Confirm Rubik's Hebrew variant covers the actual glyph/niqqud needs (base Hebrew letters at minimum; confirm whether niqqud/vowel points are needed anywhere in the product before assuming they're out of scope)
+- [ ] Decide how the font is served — self-hosted `.woff2` files (no external request, works offline, consistent with this app's local-first direction) vs. Google Fonts CDN link. Per `CLAUDE.md`'s "smallest footprint" guidance, weigh this explicitly rather than defaulting to the CDN
+- [ ] Add the chosen font files/`@font-face` declarations (if self-hosted) or `<link>`/`@import` (if CDN), covering both Latin and Hebrew subsets
+- [ ] Update `--font-sans` in `tokens.css` to `'Rubik', system-ui, 'Segoe UI', Roboto, sans-serif` (keep the existing stack as fallback)
+- [ ] Decide whether `--font-heading` also moves to Rubik or stays on its own stack — currently identical to `--font-sans`'s old value, so this is a real choice, not automatic
+- [ ] Verify rendering across the existing component set in Storybook, in both LTR text and a sanity check with Hebrew sample text (a temporary story or manual check — real Hebrew strings don't exist yet since §33 hasn't shipped translations)
+- [ ] Confirm no layout regressions from Rubik's metrics differing from the system-ui stack (line-height, `TaskCard` title truncation, button label widths at `sm` size)
+- [ ] Update `ARCHITECTURE.md` recording the font choice and why (Hebrew + European-language glyph support, self-hosted vs. CDN decision)
+
+---
+
+## 44. Locale settings in the Settings page (`locale-settings-page`) — deferred, low priority
+
+Once a Settings page exists (§23) and localization is implemented (§33), give the user a way to pick their language/locale from the UI instead of a console workaround or a hardcoded default. This is the settings-page-integration half of §33's "Add a locale-switching mechanism" bullet, tracked as its own low-priority entry so it isn't lost inside that section.
+
+**Depends on:** §23 (Settings page must exist first) and §33 (localization/i18n library and language list must be implemented first).
+
+- [ ] Add a locale picker control to the Settings page, listing the language set §33 confirms (European languages + Hebrew)
+- [ ] Wire the picker to the i18n library's locale-switching mechanism chosen in §33
+- [ ] Persist the chosen locale the same way §33 decides (localStorage today, consistent with theme preference; revisit if §7's user provisioning/accounts land first)
+- [ ] Confirm switching locale in Settings correctly flips RTL layout when Hebrew is selected (per §33's RTL mechanism)
+
+**Trigger:** §23 and §33 both need to have landed first — this is future work, not scheduled yet.
 
 ---
 

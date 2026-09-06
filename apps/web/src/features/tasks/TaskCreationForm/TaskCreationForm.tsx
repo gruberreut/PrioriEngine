@@ -30,6 +30,18 @@ export interface TaskCreationFormProps {
 
 const NEW_CONTEXT_VALUE = "__new__";
 
+/**
+ * `contexts` is the caller's list; `addedContexts` is this form's own record of
+ * contexts it has created this session. Once a created context round-trips back
+ * into `contexts` (as it does on the real task-creation page, which appends to its
+ * own state after `onCreateContext` resolves), the two lists briefly overlap by id —
+ * dedupe here rather than assuming the caller never reflects it back.
+ */
+export function mergeContexts(contexts: ContextItem[], addedContexts: ContextItem[]): ContextItem[] {
+  const knownIds = new Set(contexts.map((c) => c.id));
+  return [...contexts, ...addedContexts.filter((c) => !knownIds.has(c.id))];
+}
+
 export function TaskCreationForm({
   contexts,
   onSubmit,
@@ -65,6 +77,7 @@ export function TaskCreationForm({
   }
 
   async function handleAddContext() {
+    if (contextLoading) return;
     const name = newContextName.trim();
     if (!name) return;
     setContextLoading(true);
@@ -101,7 +114,7 @@ export function TaskCreationForm({
     });
   }
 
-  const allContexts = [...contexts, ...addedContexts];
+  const allContexts = mergeContexts(contexts, addedContexts);
   const contextOptions = [
     ...allContexts.map((c) => ({ label: c.name, value: c.id })),
     { label: "New context…", value: NEW_CONTEXT_VALUE },

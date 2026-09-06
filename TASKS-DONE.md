@@ -367,6 +367,18 @@ Per `CLAUDE.md`'s Naming section: "Priori" is reserved for the backend ranking e
 
 ---
 
+### 10.6 Duplicate context option after creating one from the task-creation Select
+
+Reported by the user. Repro: on the task-creation page, open the context `Select`, choose "New context…", create one. Reopen the context `Select` — the newly created context is listed twice, and the browser console logs a "two children with the same key" React warning.
+
+**Actual cause (differs from the original hypothesis):** not a re-entrancy issue — `handleAddContext` only ever ran once per click/Enter. The real cause was two independent lists both tracking the same created context: `TaskCreationPage.tsx`'s `handleCreateContext` appends the new context to its own `contexts` state after `onCreateContext` resolves, while `TaskCreationForm.tsx` also appended it to its own local `addedContexts` state. `allContexts = [...contexts, ...addedContexts]` then contained the same `id` twice as soon as the parent's updated `contexts` prop flowed back down — deterministic on every context creation, not a race.
+
+- [x] Confirmed the actual cause by tracing `onCreateContext`'s one real call site (`TaskCreationPage.tsx`) rather than assuming the original hypothesis
+- [x] Fixed by extracting `mergeContexts(contexts, addedContexts)` in `TaskCreationForm.tsx` — dedupes by `id`, caller's `contexts` list wins on overlap; keeps `addedContexts` as a fallback for callers (e.g. Storybook) that don't reflect the new context back into `contexts` themselves. Also added a cheap `if (contextLoading) return;` guard at the top of `handleAddContext` as defense-in-depth against the originally-suspected double-invocation, even though it wasn't the actual cause
+- [x] Added `TaskCreationForm.test.ts` (first test file for this component) covering `mergeContexts`: appends a new context, dedupes when the caller's list already has it (caller's version wins), and the empty case
+
+---
+
 ## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
 
 **Depends on:** section 10 (bugs fixed first).
