@@ -1,0 +1,15 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import * as ParamsBarStories from './ParamsBar.stories';
+import { ComponentTokens } from '../../../styles/ComponentTokens';
+
+<Meta of={ParamsBarStories} />
+
+# ParamsBar
+
+Read-only summary of the current Location/Time/Energy ranking params, rendered as a `RankingPage`-local sibling of `Carousel` and shown once the user has swiped past the params slide (`activeIndex > 0`). Three equal-width columns, each a muted caption over a value — the same order as the params slide itself. Display-only for now: tapping a column to reopen its picker in a `Sheet` is a later phase (see `TASKS.md` § 46).
+
+## Tokens
+
+Every `--params-bar-*` custom property declared in `tokens.css`, resolved live — follows the theme toolbar above.
+
+<ComponentTokens prefix="--params-bar-" />

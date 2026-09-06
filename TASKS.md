@@ -1130,6 +1130,29 @@ Once a Settings page exists (§23) and localization is implemented (§33), give 
 
 ---
 
+## 46. `ParamsBar` — carry filter choices across result pages (`params-bar`)
+
+Real design: `documentation/Selected filter component design.png` (frame 11c, "Three equal parts, editable in a sheet"). Once the user swipes past the filter page, the chosen Location/Time/Energy need to stay visible on every results page — not repeated per slide's own markup, and not lost.
+
+**Decisions made in conversation:**
+- Named `ParamsBar` (ties to the existing `RankParams`/`ParamsForm` vocabulary already in this codebase), not `FilterSelectionSummary`.
+- Renders once, as a `RankingPage`-local sibling of `<Carousel>` — not per-slide, and not a new general "app-level top bar slot" mechanism. `ParamsBar`'s content is identical across every slide (only `context` differs per slide, which `ParamsBar` doesn't show), so one persistent instance toggled by `activeIndex > 0` fully covers "visible on every page except the first" without new architecture. `NavBar` itself isn't built as a slot system either — revisit only if a second real use case for per-route top-bar content shows up.
+- Accepted trade-off: swiping from the params page to the first results page changes the carousel's available height by `ParamsBar`'s height (it appears above results for the first time). Not reserving invisible space on the params page to avoid this — a one-time step at first swipe, not scroll-time jank.
+- Color choice: the mock's own "LOCATION"/"TIME"/"ENERGY" captions read as a muted secondary tone, distinct from the vivid `--color-primary` captions elsewhere in the same mock (the context group headings, the bottom sheet's own caption) and from `ParamsForm`'s own section captions (§45, deliberately `--color-primary`). Per the `CLAUDE.md` "Resolving a supplied design mock against existing tokens" guidance (added this session), didn't trust the exact shade read off a screenshot: matched `ParamsBar`'s captions to the already-established muted-label pattern (`--color-text-body`, the same color `LocationPicker`/`EnergyPicker`/`DurationPicker` already use for their own labels) instead.
+- MVP is display-only, per explicit scope: no tap/`onClick`, no `Sheet` integration yet. Phases 2 and 3 below are separate, later tasks — deliberately not built now. `RankingPage.tsx`'s `handleParamsChange`/`loadSlide` state machine (skeleton while re-ranking, then new results) already exists and needs no new infrastructure for Phase 3 — it's an integration once Phase 2 exists, not a build.
+
+**MVP:**
+- [x] Build `ParamsBar` (`src/features/ranking/ParamsBar/`) — read-only, three equal-width columns (Location icon+value, Time value only, Energy icon+value), muted caption above each value, reusing `LocationIcon`/`EnergyIcon` for the icons
+- [x] Wire into `RankingPage.tsx` as a sibling of `<Carousel>`, visible when `activeIndex > 0`; give `RankingPage.module.css` a wrapper around `<Carousel>` (`flex: 1; min-height: 0`) so it absorbs the remaining space rather than changing the shared `Carousel` primitive's own sizing contract
+- [x] Stories: Default (home/30/medium), plus one variant per field showing a different value
+- [x] Review in Storybook — **approved**
+
+**Follow-up (separate tasks, not built now):**
+- [ ] Phase 2 — tapping a column opens a `Sheet` holding just that group's picker (reusing `LocationPicker`/`DurationPicker`/`EnergyPicker` without a `label`, matching how `Select`'s mobile presentation already composes `Sheet` in § 24.13); no title, no confirm button — picking a value applies it and closes the sheet, per the mock. The tapped column shows a tinted/"washed" background while its sheet is open.
+- [ ] Phase 3 — wire the sheet's `onChange` into the same params-change path `ParamsForm` already feeds (`RankingPage.handleParamsChange`), so picking a new value resets slides to `idle` and re-fetches exactly like today
+
+---
+
 ## Open Issues
 
 Issues that came up during implementation but were deferred to keep scope focused.

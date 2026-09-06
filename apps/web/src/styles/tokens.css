@@ -656,4 +656,25 @@
   --skeleton-bg:            var(--color-border);
   --skeleton-bg-highlight:  color-mix(in srgb, var(--color-border) 50%, transparent);
   --skeleton-duration:      1.4s;
+
+  /* ParamsBar — features/ranking/ParamsBar */
+  /* Grounded in documentation/Selected filter component design.png § 11c:
+     a flush bar (no background/outer border - it sits directly on the
+     page background, same as the mock) with a muted caption over a vivid
+     value, the three columns split by thin vertical rules. Per CLAUDE.md
+     "Resolving a supplied design mock against existing tokens", only the
+     caption's exact shade is re-derived rather than trusted (it matches
+     the already-established muted-label role used by
+     LocationPicker/EnergyPicker/DurationPicker); the value keeps the
+     mock's own vivid accent, which is already --color-primary elsewhere
+     (ParamsForm's section labels, the mock's own PROJECTS/PHYSICAL group
+     headings), and the column rule reuses the same divider role ParamsForm
+     already uses between its own sections. */
+  --params-bar-pad-x:         var(--space-4);
+  --params-bar-pad-y:         var(--space-3);
+  --params-bar-caption-size:  var(--font-size-micro);
+  --params-bar-caption-fg:    var(--color-text-body);
+  --params-bar-value-size:    var(--font-size-body);
+  --params-bar-value-fg:      var(--color-primary);
+  --params-bar-divider:       var(--color-border);
 }

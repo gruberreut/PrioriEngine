@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Carousel, type SwipeDirection } from "../../../components/Carousel/Carousel";
 import { ParamsForm, type RankParams } from "../ParamsForm/ParamsForm";
+import { ParamsBar } from "../ParamsBar/ParamsBar";
 import { ResultsSlide, type SlideState } from "../ResultsSlide/ResultsSlide";
 import { rank } from "../../../services/rankingService";
 import { getContextItems, type ContextItem } from "../../../services/contextService";
@@ -40,12 +41,11 @@ export function RankingPage() {
   const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [slides, setSlides] = useState<SlideData[]>([]);
-  const paramsRef = useRef<RankParams>({
-    location: "home",
-    availableTime: 30,
-    energy: "medium",
-    explain: false,
-  });
+  const initialParams: RankParams = { location: "home", availableTime: 30, energy: "medium", explain: false };
+  // ParamsBar needs to re-render on param changes, which the ref below
+  // (read inside async closures to dodge stale values) doesn't provide.
+  const [params, setParams] = useState<RankParams>(initialParams);
+  const paramsRef = useRef<RankParams>(initialParams);
   const paramsVersionRef = useRef(0);
   const slidesRef = useRef<SlideData[]>([]);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
@@ -69,8 +69,9 @@ export function RankingPage() {
     slidesRef.current = next;
   }, [contexts]);
 
-  function handleParamsChange(params: RankParams) {
-    paramsRef.current = params;
+  function handleParamsChange(newParams: RankParams) {
+    paramsRef.current = newParams;
+    setParams(newParams);
     paramsVersionRef.current++;
     setSlides((prev) => {
       const next = prev.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
@@ -191,28 +192,37 @@ export function RankingPage() {
 
   return (
     <div className={styles.page}>
-      <Carousel
-        activeIndex={activeIndex}
-        onSlideChange={handleSlideChange}
-        direction={SWIPE_DIRECTION}
-        showDots
-        swipeHint
-      >
-        <div className={styles.paramsSlide} style={{ backgroundColor: "var(--color-slide-params)" }}>
-          <ParamsForm onParamsChange={handleParamsChange} />
-        </div>
-        {slides.map((slide) => (
-          <ResultsSlide
-            key={slide.label}
-            label={slide.label}
-            state={slide.state}
-            result={slide.result}
-            backgroundColor={SLIDE_PALETTE[(slide.slideIndex ?? 0) % SLIDE_PALETTE.length]}
-            onStartTask={handleStartTask}
-            onInProgressAction={handleInProgressAction}
-          />
-        ))}
-      </Carousel>
+      {activeIndex > 0 && (
+        <ParamsBar
+          location={params.location}
+          availableTime={params.availableTime}
+          energy={params.energy}
+        />
+      )}
+      <div className={styles.carouselWrapper}>
+        <Carousel
+          activeIndex={activeIndex}
+          onSlideChange={handleSlideChange}
+          direction={SWIPE_DIRECTION}
+          showDots
+          swipeHint
+        >
+          <div className={styles.paramsSlide} style={{ backgroundColor: "var(--color-slide-params)" }}>
+            <ParamsForm onParamsChange={handleParamsChange} />
+          </div>
+          {slides.map((slide) => (
+            <ResultsSlide
+              key={slide.label}
+              label={slide.label}
+              state={slide.state}
+              result={slide.result}
+              backgroundColor={SLIDE_PALETTE[(slide.slideIndex ?? 0) % SLIDE_PALETTE.length]}
+              onStartTask={handleStartTask}
+              onInProgressAction={handleInProgressAction}
+            />
+          ))}
+        </Carousel>
+      </div>
       <ConfirmDialog
         open={pendingDeleteId !== null}
         title="This task has subtasks"

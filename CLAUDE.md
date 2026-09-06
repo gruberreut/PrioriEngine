@@ -236,3 +236,5 @@ When building or restyling a component:
 8. Add a `<ComponentTokens prefix="--<component>-" />` block to the component's Storybook docs page so the token list stays self-documenting.
 
 Component-level design work follows `documentation/DESIGN-TOKENS-BY-COMPONENT.md`, which carries the per-component target values and migration order.
+
+**Resolving a supplied design mock against existing tokens.** When implementing a design file (a screenshot or exported mock), prefer matching this codebase's already-established token usage over inferring a new one-off value from the mock — especially for color, where subtle shade differences between elements in a screenshot are easy to misread and mocks are not guaranteed to be internally consistent with each other or with what's already built. Don't assume a mock's apparent color choice is deliberate just because it's in the file; check it against how the same kind of element (a caption, a muted label, an accent) is already styled elsewhere in the app first, and flag the discrepancy rather than quietly picking a new value.
