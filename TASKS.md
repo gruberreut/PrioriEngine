@@ -1130,26 +1130,20 @@ Once a Settings page exists (§23) and localization is implemented (§33), give 
 
 ---
 
-## 46. `ParamsBar` — carry filter choices across result pages (`params-bar`)
+## 46. `ParamsBar` — carry filter choices across result pages — completed, see TASKS-DONE.md
 
-Real design: `documentation/Selected filter component design.png` (frame 11c, "Three equal parts, editable in a sheet"). Once the user swipes past the filter page, the chosen Location/Time/Energy need to stay visible on every results page — not repeated per slide's own markup, and not lost.
+---
 
-**Decisions made in conversation:**
-- Named `ParamsBar` (ties to the existing `RankParams`/`ParamsForm` vocabulary already in this codebase), not `FilterSelectionSummary`.
-- Renders once, as a `RankingPage`-local sibling of `<Carousel>` — not per-slide, and not a new general "app-level top bar slot" mechanism. `ParamsBar`'s content is identical across every slide (only `context` differs per slide, which `ParamsBar` doesn't show), so one persistent instance toggled by `activeIndex > 0` fully covers "visible on every page except the first" without new architecture. `NavBar` itself isn't built as a slot system either — revisit only if a second real use case for per-route top-bar content shows up.
-- Accepted trade-off: swiping from the params page to the first results page changes the carousel's available height by `ParamsBar`'s height (it appears above results for the first time). Not reserving invisible space on the params page to avoid this — a one-time step at first swipe, not scroll-time jank.
-- Color choice: the mock's own "LOCATION"/"TIME"/"ENERGY" captions read as a muted secondary tone, distinct from the vivid `--color-primary` captions elsewhere in the same mock (the context group headings, the bottom sheet's own caption) and from `ParamsForm`'s own section captions (§45, deliberately `--color-primary`). Per the `CLAUDE.md` "Resolving a supplied design mock against existing tokens" guidance (added this session), didn't trust the exact shade read off a screenshot: matched `ParamsBar`'s captions to the already-established muted-label pattern (`--color-text-body`, the same color `LocationPicker`/`EnergyPicker`/`DurationPicker` already use for their own labels) instead.
-- MVP is display-only, per explicit scope: no tap/`onClick`, no `Sheet` integration yet. Phases 2 and 3 below are separate, later tasks — deliberately not built now. `RankingPage.tsx`'s `handleParamsChange`/`loadSlide` state machine (skeleton while re-ranking, then new results) already exists and needs no new infrastructure for Phase 3 — it's an integration once Phase 2 exists, not a build.
+## 47. `TaskCard` design review (`taskcard-design-review`)
 
-**MVP:**
-- [x] Build `ParamsBar` (`src/features/ranking/ParamsBar/`) — read-only, three equal-width columns (Location icon+value, Time value only, Energy icon+value), muted caption above each value, reusing `LocationIcon`/`EnergyIcon` for the icons
-- [x] Wire into `RankingPage.tsx` as a sibling of `<Carousel>`, visible when `activeIndex > 0`; give `RankingPage.module.css` a wrapper around `<Carousel>` (`flex: 1; min-height: 0`) so it absorbs the remaining space rather than changing the shared `Carousel` primitive's own sizing contract
-- [x] Stories: Default (home/30/medium), plus one variant per field showing a different value
-- [x] Review in Storybook — **approved**
+`TaskCard` predates both the design-token migration and the `Card` primitive (§24) — it still reads `--color-*`/`--radius-*` Layer-2 roles directly rather than through its own Layer-3 group, and whether it should eventually move onto `Card` or stay a separate, pre-migration component was left as an open question when `Card` was built. Also folds in two display issues already filed under Open Issues, since a design review is exactly where they'd get resolved:
+- The context badge is redundant when a card is already shown on a context-specific carousel slide (e.g. "Learning") — it should only appear on the "All" slide.
+- Energy is shown as plain text ("medium energy") in the meta line, unlike every other energy display in the app, which uses `EnergyIcon`.
 
-**Follow-up (separate tasks, not built now):**
-- [ ] Phase 2 — tapping a column opens a `Sheet` holding just that group's picker (reusing `LocationPicker`/`DurationPicker`/`EnergyPicker` without a `label`, matching how `Select`'s mobile presentation already composes `Sheet` in § 24.13); no title, no confirm button — picking a value applies it and closes the sheet, per the mock. The tapped column shows a tinted/"washed" background while its sheet is open.
-- [ ] Phase 3 — wire the sheet's `onChange` into the same params-change path `ParamsForm` already feeds (`RankingPage.handleParamsChange`), so picking a new value resets slides to `idle` and re-fetches exactly like today
+- [ ] Decide: migrate `TaskCard` onto the `Card` primitive, or keep it separate and give it its own Layer-3 token group
+- [ ] Resolve the context-badge-on-context-slide redundancy
+- [ ] Replace the "medium energy" text with `EnergyIcon`
+- [ ] Review in Storybook — approved
 
 ---
 
@@ -1160,6 +1154,4 @@ Issues that came up during implementation but were deferred to keep scope focuse
 - **Split sibling title** — `POST /api/tasks/:id/split` creates the blank sibling with `title: ""`. Decide whether the API should accept an optional `siblingTitle` in the request body, or whether the client is always expected to prompt for it after navigation.
 - **Carousel swipe direction** — currently parameterized (swipe-right reveals results). Finalize after UX testing whether this should be fixed or follow locale direction.
 - **Ranking filtering and sort order** — when filtering by available time (e.g. 10 minutes), tasks that exceed the time budget are still returned. Investigate whether the engine's `durationScore` penalizes but doesn't exclude over-budget tasks, and whether a hard filter is needed. Additionally, returned tasks are not sorted in a user-intuitive order — sort results from low to high based on energy level and available time so the easiest/quickest tasks surface first.
-- **Hide context label in context-specific slides** — when viewing results in a context-specific carousel slide (e.g. "Learning"), the context badge in each `TaskCard` is redundant. Only display the context label when the card is shown on the "All" slide.
-- **Use EnergyIcon in TaskCard** — replace the "medium energy" text in `TaskCard` meta with the `EnergyIcon` component (from `EnergyPicker`) for a more compact, visual representation.
 - ~~**ResultsSlide idle/loading text**~~ — replaced "Swipe here to load results" and "Loading…" text with a shimmer skeleton of 3 placeholder task cards for both `idle` and `loading` states. ✓

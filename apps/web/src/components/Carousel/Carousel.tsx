@@ -7,6 +7,11 @@ export interface CarouselProps {
   children: React.ReactNode;
   activeIndex: number;
   onSlideChange: (index: number) => void;
+  /** Fires continuously as the dot indicator itself updates - including
+   *  mid-swipe, before the settle debounce commits onSlideChange - for
+   *  chrome outside the carousel (e.g. RankingPage's ParamsBar) that needs
+   *  to track the visible slide without waiting on data-fetch timing. */
+  onVisibleIndexChange?: (index: number) => void;
   direction?: SwipeDirection;
   showDots?: boolean;
   swipeHint?: boolean;
@@ -16,6 +21,7 @@ export function Carousel({
   children: rawChildren,
   activeIndex,
   onSlideChange,
+  onVisibleIndexChange,
   direction = "ltr",
   showDots = false,
   swipeHint = false,
@@ -63,6 +69,14 @@ export function Carousel({
     };
   }, []);
 
+  // Only defers to the rAF-tracked liveIndex while a swipe is in flight;
+  // otherwise activeIndex (the settled, committed value) is authoritative.
+  const dotIndex = isScrolling ? liveIndex : activeIndex;
+
+  useEffect(() => {
+    onVisibleIndexChange?.(dotIndex);
+  }, [dotIndex, onVisibleIndexChange]);
+
   function handleScroll() {
     setIsScrolling(true);
     if (!hintDismissed) setHintDismissed(true);
@@ -93,9 +107,6 @@ export function Carousel({
   const orderedChildren = direction === "rtl" ? [...children].reverse() : children;
   const showSwipeHint = swipeHint && !hintDismissed && activeIndex === 0;
   const hintDirection = direction === "rtl" ? "←" : "→";
-  // Only defers to the rAF-tracked liveIndex while a swipe is in flight;
-  // otherwise activeIndex (the settled, committed value) is authoritative.
-  const dotIndex = isScrolling ? liveIndex : activeIndex;
 
   return (
     <div className={styles.wrapper}>

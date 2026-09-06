@@ -40,6 +40,11 @@ const SLIDE_PALETTE = [
 export function RankingPage() {
   const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  // Tracks the carousel's visible slide the same way its own dot indicator
+  // does - continuously during a swipe, not just once it settles - so
+  // ParamsBar appears in step with the results slide sliding into view
+  // instead of lagging behind it until the data-fetch trigger below fires.
+  const [visibleIndex, setVisibleIndex] = useState(0);
   const [slides, setSlides] = useState<SlideData[]>([]);
   const initialParams: RankParams = { location: "home", availableTime: 30, energy: "medium", explain: false };
   // ParamsBar needs to re-render on param changes, which the ref below
@@ -69,15 +74,26 @@ export function RankingPage() {
     slidesRef.current = next;
   }, [contexts]);
 
+  // Resets every slide to idle (dropping stale results) and, if a results
+  // slide is already the one on screen, immediately reloads it - swiping
+  // to a slide only "idle"-checks and loads on arrival (handleSlideChange
+  // below), which never fires when params change from ParamsBar without
+  // leaving the current slide.
+  function resetSlidesAndReload() {
+    const next = slidesRef.current.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
+    slidesRef.current = next;
+    setSlides(next);
+    const slideIndex = activeIndex - 1;
+    if (slideIndex >= 0) {
+      loadSlide(slideIndex);
+    }
+  }
+
   function handleParamsChange(newParams: RankParams) {
     paramsRef.current = newParams;
     setParams(newParams);
     paramsVersionRef.current++;
-    setSlides((prev) => {
-      const next = prev.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
-      slidesRef.current = next;
-      return next;
-    });
+    resetSlidesAndReload();
   }
 
   async function loadSlide(slideIndex: number) {
@@ -117,13 +133,7 @@ export function RankingPage() {
 
   function refreshAfterMutation() {
     paramsVersionRef.current++;
-    const next = slidesRef.current.map((s) => ({ ...s, state: "idle" as const, result: undefined }));
-    slidesRef.current = next;
-    setSlides(next);
-    const slideIndex = activeIndex - 1;
-    if (slideIndex >= 0) {
-      loadSlide(slideIndex);
-    }
+    resetSlidesAndReload();
   }
 
   async function handleStartTask(taskId: string) {
@@ -192,17 +202,20 @@ export function RankingPage() {
 
   return (
     <div className={styles.page}>
-      {activeIndex > 0 && (
-        <ParamsBar
-          location={params.location}
-          availableTime={params.availableTime}
-          energy={params.energy}
-        />
-      )}
+      <ParamsBar
+        visible={visibleIndex > 0}
+        location={params.location}
+        availableTime={params.availableTime}
+        energy={params.energy}
+        onLocationChange={(location) => handleParamsChange({ ...paramsRef.current, location })}
+        onAvailableTimeChange={(availableTime) => handleParamsChange({ ...paramsRef.current, availableTime })}
+        onEnergyChange={(energy) => handleParamsChange({ ...paramsRef.current, energy })}
+      />
       <div className={styles.carouselWrapper}>
         <Carousel
           activeIndex={activeIndex}
           onSlideChange={handleSlideChange}
+          onVisibleIndexChange={setVisibleIndex}
           direction={SWIPE_DIRECTION}
           showDots
           swipeHint

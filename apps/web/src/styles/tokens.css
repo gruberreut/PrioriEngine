@@ -659,8 +659,8 @@
 
   /* ParamsBar — features/ranking/ParamsBar */
   /* Grounded in documentation/Selected filter component design.png § 11c:
-     a flush bar (no background/outer border - it sits directly on the
-     page background, same as the mock) with a muted caption over a vivid
+     a flush bar (no background of its own - it sits directly on the page
+     background, same as the mock) with a muted caption over a vivid
      value, the three columns split by thin vertical rules. Per CLAUDE.md
      "Resolving a supplied design mock against existing tokens", only the
      caption's exact shade is re-derived rather than trusted (it matches
@@ -668,8 +668,12 @@
      LocationPicker/EnergyPicker/DurationPicker); the value keeps the
      mock's own vivid accent, which is already --color-primary elsewhere
      (ParamsForm's section labels, the mock's own PROJECTS/PHYSICAL group
-     headings), and the column rule reuses the same divider role ParamsForm
-     already uses between its own sections. */
+     headings). The mock's own screenshot has nothing below the bar but
+     more of the same flat page background, so it shows no seam - but in
+     the real app ParamsBar sits directly above the carousel's own
+     variably-colored slide backgrounds, so a hairline bottom border earns
+     its place here even though the mock doesn't show one, to keep the bar
+     legible as its own strip regardless of the slide color beneath it. */
   --params-bar-pad-x:         var(--space-4);
   --params-bar-pad-y:         var(--space-3);
   --params-bar-caption-size:  var(--font-size-micro);
@@ -677,4 +681,11 @@
   --params-bar-value-size:    var(--font-size-body);
   --params-bar-value-fg:      var(--color-primary);
   --params-bar-divider:       var(--color-border);
+  --params-bar-outer-border:  var(--color-border);
+  /* Phase 2 (§46 follow-up): tapped column wash + focus ring, matching the
+     mock's own tinted "TIME" column (frame 11c-right) while its Sheet is
+     open. Reuses the same tint role FAB/Select/BottomNav already use for
+     an active/selected state, and the shared global focus ring. */
+  --params-bar-active-bg:     var(--color-primary-tint);
+  --params-bar-focus-ring:    var(--focus-ring);
 }

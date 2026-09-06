@@ -7,6 +7,7 @@ const meta: Meta<typeof Carousel> = {
   component: Carousel,
   argTypes: {
     onSlideChange: { action: "onSlideChange" },
+    onVisibleIndexChange: { action: "onVisibleIndexChange" },
   },
   decorators: [
     (Story) => (

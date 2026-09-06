@@ -4,24 +4,77 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   padding: var(--params-bar-pad-y) var(--params-bar-pad-x);
+  border-bottom: 1px solid var(--params-bar-outer-border);
+  opacity: 1;
+  visibility: visible;
+  transition: opacity var(--motion-medium) var(--motion-ease);
+}
+
+/* Reserves the bar's own height/space rather than unmounting - see
+   ParamsBarProps.visible. Fades out, then drops visibility only once the
+   fade finishes, so it stays visible (and in the a11y tree) for the
+   transition itself; coming back the other way, .bar's own rule above
+   applies instead, so visibility returns instantly while opacity fades in. */
+.hidden {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--motion-medium) var(--motion-ease),
+              visibility 0s linear var(--motion-medium);
 }
 
 .column {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: var(--space-1);
   min-width: 0;
-  padding-right: var(--space-4);
+
+  /* Bleeds into .bar's own vertical padding so the tap target - and the
+     active tint below - covers the bar's full height, not just the text,
+     matching the mock's tinted column. */
+  margin: calc(var(--params-bar-pad-y) * -1) 0;
+  padding: var(--params-bar-pad-y) var(--space-4) var(--params-bar-pad-y) 0;
+  border: none;
   border-right: 1px solid var(--params-bar-divider);
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+  transition: background var(--motion-fast) var(--motion-ease);
+}
+
+/* Same bleed trick as above, horizontal this time: without it, the first/
+   last column's active tint stops short of .bar's own left/right padding,
+   leaving an untinted sliver at each outer edge. The added padding cancels
+   the negative margin's shift so the caption/value stay put. */
+.column:first-child {
+  margin-left: calc(var(--params-bar-pad-x) * -1);
+  padding-left: var(--params-bar-pad-x);
 }
 
 .column:last-child {
-  padding-right: 0;
+  margin-right: calc(var(--params-bar-pad-x) * -1);
+  padding-right: var(--params-bar-pad-x);
   border-right: none;
 }
 
 .column + .column {
   padding-left: var(--space-4);
+}
+
+.column.active {
+  background: var(--params-bar-active-bg);
+  border-right-color: transparent;
+}
+
+.column:has(+ .active) {
+  border-right-color: transparent;
+}
+
+.column:focus-visible {
+  outline: none;
+  box-shadow: var(--params-bar-focus-ring);
 }
 
 .caption {
