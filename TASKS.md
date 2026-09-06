@@ -1126,6 +1126,10 @@ Once a Settings page exists (§23) and localization is implemented (§33), give 
 
 ---
 
+## 45. Filter/params slide redesign — completed, see TASKS-DONE.md
+
+---
+
 ## Open Issues
 
 Issues that came up during implementation but were deferred to keep scope focused.

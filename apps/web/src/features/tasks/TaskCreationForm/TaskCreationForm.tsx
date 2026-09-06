@@ -209,7 +209,7 @@ export function TaskCreationForm({
       <LocationPicker
         label="Location"
         value={location}
-        onChange={(val) => setLocation(val ?? "anywhere")}
+        onChange={setLocation}
         disabled={disabled}
       />
 

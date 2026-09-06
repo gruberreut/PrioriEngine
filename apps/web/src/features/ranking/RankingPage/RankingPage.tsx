@@ -41,7 +41,7 @@ export function RankingPage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [slides, setSlides] = useState<SlideData[]>([]);
   const paramsRef = useRef<RankParams>({
-    location: undefined,
+    location: "home",
     availableTime: 30,
     energy: "medium",
     explain: false,

@@ -11,7 +11,11 @@ export interface DurationPickerProps {
 }
 
 export function DurationPicker({ value, onChange, label, disabled = false }: DurationPickerProps) {
-  const options = OPTIONS.map((option) => ({ value: String(option), label: `${option} min` }));
+  const options = OPTIONS.map((option) => ({
+    value: String(option),
+    label: "min",
+    icon: <span className={styles.number}>{option}</span>,
+  }));
 
   return (
     <div className={styles.container}>

@@ -511,3 +511,26 @@ this one page rather than building a general mechanism now (see §30/§31).
 - [x] Review in Storybook — `Atomic/ActionButton`, `Entity/TaskCard`, `Features/Tasks/TaskTreeItem`, `Features/Tasks/TasksPage` — **approved**
 
 ---
+
+## 45. Filter/params slide redesign (`params-slide-redesign`)
+
+Real design supplied: `documentation/Landing page design.png` (the carousel's first slide — the location/time/energy filter form, rendered today by `ParamsForm`/`RankingPage`). Reviewed against the current implementation; several gaps found, some already decided and landed, others still open.
+
+**Decisions made in conversation:**
+- The mock's "Anywhere" runtime location is **not** a union of Home + In-person — confirmed via `packages/engine/test/ranker.test.ts`'s existing `"filters tasks by location: anywhere shows only anywhere tasks"` test: it's a deliberate exclusive category (only location-agnostic tasks), not "no constraint." Kept as-is — not an engine change.
+- That label was misleading given the actual behavior (a user picking "Anywhere" would reasonably expect to see every task, not a narrower subset). Renamed `"Anywhere"` → `"Flexible"` in `LOCATION_LABELS` (`LocationIcon.tsx`) instead of changing the filtering semantics. This is the shared component's label, so it also renames the option in `TaskCreationForm`'s task-location tagging — reads fine there too ("this task is flexible about location").
+- `LocationPicker` dropped its deselect-to-`undefined` behavior; `ParamsForm`'s `location` default changed from `undefined` (no filter, every task shown) to `"home"` (a real filtered default) — an intentional behavior change, not just cosmetic, made so `LocationPicker` could move onto `SplitGroup` (a plain radio group, always one value active) like the other two pickers.
+- **Divergence from the mock, decided in conversation:** the mock's pills render individually separated with a gap between each; `SplitGroup`'s existing joined-segment treatment (chosen in § 24.8) was kept as-is rather than chased pixel-for-pixel, since unifying all three pickers onto the existing primitive was prioritized over new visual fidelity to the artboard.
+
+- [x] Converted `LocationPicker` from `Chip` (separate pills, horizontal icon+label) onto `SplitGroup` (the primitive `EnergyPicker`/`DurationPicker` already use) for one consistent look across all three groups
+- [x] `LOCATION_LABELS.anywhere` renamed "Anywhere" → "Flexible" (`LocationIcon.tsx`)
+- [x] `ParamsForm`'s `location` default changed `undefined` → `"home"`; `RankParams.location` type drops `| undefined`
+- [x] `rankingService.ts` — `location` is now always sent in the rank request body (previously omitted when `undefined`); updated `rankingService.test.ts` accordingly
+- [x] `TaskCreationForm.tsx` — simplified `onChange={(val) => setLocation(val ?? "anywhere")}` to `onChange={setLocation}` now that `LocationPicker` never emits `undefined`
+- [x] Added a heading above the params card: `getGreeting(now)` (`ParamsForm/getGreeting.ts`, new small pure utility, 3 buckets — morning <12, afternoon <17, evening after — with its own test) + the static subtitle "Set what fits right now, then swipe."
+- [x] Wrapped the three pickers in the existing `Card` primitive (used purely for its chrome — no `title`/`kicker`/`meta` — exactly the "wrapping a different component that renders its own title" case its own prop comment already documents) rather than a bespoke card class, so the surface/border/radius/shadow stay centrally themed through `--card-*` instead of a second hardcoded copy
+- [x] Added section captions ("Location" / "Available Time" / "Energy", `text-transform: uppercase` in CSS rather than literal caps text) styled `--font-size-micro`/`--color-primary`/600 weight/`0.06em` letter-spacing in `ParamsForm.module.css` — mirrors the pattern already established by `Card`'s own `.kicker` (`--card-kicker-fg` already resolves to `--color-primary`), but kept as ParamsForm's own local style rather than reusing `Card`'s Layer-3 tokens directly (rule 6: never reference another component's Layer-3 token). `LocationPicker`/`DurationPicker`/`EnergyPicker` are called from `ParamsForm` without a `label` prop so their own internal (differently-styled) label doesn't render a duplicate underneath this caption — each falls back to its own hardcoded `aria-label` default, so nothing is lost for accessibility. Plain `.divider` line (`--color-border`) between each section
+- [x] `DurationPicker` pills now go two-line: repurposed `SplitGroup`'s existing `icon` slot (previously used for `EnergyPicker`'s per-level icon) to hold a bold number span, with `"min"` as the (now-shared, no-longer-per-option) label — no `SplitGroup` changes needed, since the slot already renders above the label for any `ReactNode`
+- [x] Review in Storybook — `Features/Ranking/ParamsForm`, `Features/Ranking/LocationPicker`, `Features/Tasks/DurationPicker` — **approved**
+
+---

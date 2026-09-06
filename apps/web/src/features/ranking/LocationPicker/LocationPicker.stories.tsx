@@ -4,7 +4,7 @@ import type { Meta, StoryObj } from "@storybook/react-vite";
 import { LocationPicker, type LocationRequirement } from "./LocationPicker";
 
 const defaultArgs = {
-  value: undefined as LocationRequirement | undefined,
+  value: "home" as LocationRequirement,
   label: "Location",
   disabled: false,
 };
@@ -22,7 +22,7 @@ export default meta;
 type Story = StoryObj<typeof LocationPicker>;
 
 const render: Story["render"] = (args) => {
-  const [{ value }, updateArgs] = useArgs<{ value: LocationRequirement | undefined }>();
+  const [{ value }, updateArgs] = useArgs<{ value: LocationRequirement }>();
   return (
     <LocationPicker
       {...args}
@@ -40,17 +40,12 @@ export const Default: Story = {
   render,
 };
 
-export const HomeSelected: Story = {
-  args: { ...defaultArgs, value: "home" },
-  render,
-};
-
 export const InPersonSelected: Story = {
   args: { ...defaultArgs, value: "in-person" },
   render,
 };
 
-export const AnywhereSelected: Story = {
+export const FlexibleSelected: Story = {
   args: { ...defaultArgs, value: "anywhere" },
   render,
 };

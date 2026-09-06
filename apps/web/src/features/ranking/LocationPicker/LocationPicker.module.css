@@ -9,9 +9,3 @@
   font-weight: 500;
   color: var(--color-text-body);
 }
-
-.group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}

@@ -6,7 +6,7 @@ const baseParams: RankParams = {
   availableTime: 30,
   energy: "medium",
   explain: false,
-  location: undefined,
+  location: "home",
 };
 
 function mockFetch(body: unknown, ok = true) {
@@ -72,21 +72,12 @@ describe("request body construction", () => {
     expect(body.context).toBeUndefined();
   });
 
-  it("includes location in the body when set", async () => {
+  it("always includes location in the body", async () => {
     mockFetch({ mode: "recommendations", top: [] });
 
-    await rank({ ...baseParams, location: "home" }, undefined);
+    await rank({ ...baseParams, location: "in-person" }, undefined);
 
-    expect(capturedBody()).toMatchObject({ location: "home" });
-  });
-
-  it("omits location from the body when undefined", async () => {
-    mockFetch({ mode: "recommendations", top: [] });
-
-    await rank({ ...baseParams, location: undefined }, undefined);
-
-    const body = capturedBody() as Record<string, unknown>;
-    expect(body.location).toBeUndefined();
+    expect(capturedBody()).toMatchObject({ location: "in-person" });
   });
 
   it("POSTs to /api/rank with Content-Type application/json", async () => {

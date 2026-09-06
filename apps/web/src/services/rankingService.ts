@@ -42,9 +42,9 @@ export async function rank(params: RankParams, context: string | undefined): Pro
     availableTime: params.availableTime,
     energyLevel: params.energy,
     explain: params.explain,
+    location: params.location,
   };
   if (context) body.context = context;
-  if (params.location) body.location = params.location;
 
   const res = await fetch("/api/rank", {
     method: "POST",
