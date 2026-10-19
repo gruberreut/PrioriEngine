@@ -18,6 +18,25 @@ Per `AGENTS.md`: do not execute implementation steps or make code changes unless
 
 **Exception: the Known Bugs section (`## 10. Known Bugs`).** Its header stays in `TASKS.md` even when its list is fully resolved — do not collapse it to a stub. It's the standing place new bugs get filed, so it needs to exist and be findable even at zero open items. Individual fixed bugs still move to `TASKS-DONE.md` as normal; only the section title itself is exempt from archiving.
 
+**Pushing without a TASKS.md change.** A `git push` hook (`.claude/hooks/check-tasks.sh`) blocks pushes whose outgoing commits don't touch `TASKS.md`. When a change genuinely has nothing to track, add a line `Tasks: none — <reason>` to one of the commit messages.
+
+## Branch Workflow
+
+Work happens on a short-lived branch off `main` (the default branch; there is no `master`), named `<type>/<short-description>`, e.g. `chore/repo-cleanup`, `feat/params-bar`, `fix/duplicate-context-option`.
+
+Every change lands on `main` through a GitHub PR, even as a solo contributor — the PR is the reviewable record of plan → implementation → review. Never push directly to `main`.
+
+**Starting**
+- Branch from an up-to-date `main`: `git fetch origin`, then confirm local `main` matches `origin/main` before `git checkout -b`.
+
+**Finishing** (only with explicit user approval at each outward-facing step: commit, push, PR creation)
+1. Update `TASKS.md` for the completed work as a commit on the branch (see § Task Tracking).
+2. `git fetch origin`, then check divergence in **both** directions before pushing: `git log HEAD..origin/main` (remote commits the branch lacks) and `git log origin/main..HEAD` (exactly the commits the PR will carry — flag anything unexpected).
+3. Push the branch: `git push -u origin <branch>`.
+4. Open the PR with `gh pr create`, filling every section of `.github/pull_request_template.md`.
+5. The user reviews and merges on GitHub. The agent never merges.
+6. Afterwards: `git checkout main`, `git pull --ff-only`, then delete the branch locally and on the remote. End on a clean `main` in sync with `origin/main`.
+
 ## Architecture Documentation
 
 Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it.
