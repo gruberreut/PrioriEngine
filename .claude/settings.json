@@ -9,6 +9,12 @@
             "if": "Bash(git commit*)",
             "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Before committing: check TASKS.md and update it to reflect completed work if needed.\"}}'",
             "statusMessage": "Checking TASKS.md..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "\"${CLAUDE_PROJECT_DIR}\"/.claude/hooks/check-tasks.sh",
+            "statusMessage": "Checking outgoing commits touch TASKS.md..."
           }
         ]
       }

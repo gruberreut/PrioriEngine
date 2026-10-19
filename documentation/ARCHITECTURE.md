@@ -340,6 +340,14 @@ DB rows are flat, linked only by `parentId` — the engine's `flattenTaskTree` e
 
 ---
 
+## Development Workflow
+
+**PR per change.** Every change reaches `main` through a GitHub PR from a short-lived branch, even with a single contributor; the user reviews and merges on GitHub, and the agent never merges. The PR, filled in from `.github/pull_request_template.md` (why, what changed, how it was verified, how AI was used), is the reviewable record linking plan → implementation → review. Rejected alternative: fast-forward merges pushed straight to `main`. That's less ceremony for a solo project, but it leaves no review record, and before this change, local commits accumulated on `main` and were pushed in batches, so one push could publish several older commits along with the intended change.
+
+**TASKS.md: nudge at commit, block at push.** A `git commit` PreToolUse hook only reminds the agent to check `TASKS.md`. A `git push` PreToolUse hook (`.claude/hooks/check-tasks.sh`) blocks with exit 2 when none of the outgoing commits (`origin/main..HEAD`) touch `TASKS.md` and no commit message opts out with a `Tasks: none — <reason>` line. Push is the right granularity: a branch is the unit of work, and it needs a `TASKS.md` update once, not in every commit. Rejected alternative: blocking at commit. That's the wrong level, because intermediate commits (WIP, refactors, fixups) legitimately don't touch `TASKS.md`, so a commit-level block would mostly produce false positives and train opt-out habits.
+
+---
+
 ## Explicitly Out of Scope (MVP)
 
 - Adaptive learning / automatic weight tuning
