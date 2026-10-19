@@ -8,6 +8,7 @@ cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 # No origin/main to compare against (fresh clone, offline): don't block.
 git rev-parse --verify --quiet origin/main >/dev/null || exit 0
 
+# Known limitation: checks HEAD, so `git push origin <other-branch>` checks the wrong commits; accepted, since the workflow always pushes the current branch.
 range="origin/main..HEAD"
 
 # Nothing outgoing (e.g. deleting a remote branch from main).
