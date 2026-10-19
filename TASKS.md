@@ -185,7 +185,24 @@ _Note: `TaskCard` was moved from `src/features/ranking/` to `src/entity/` as par
 
 Per-user decision: this section header stays in `TASKS.md` even when its list is empty, rather than being archived away like other fully-completed sections — it's the standing place new bugs get filed. An individual bug still moves to `TASKS-DONE.md` once fixed; only the section title itself is exempt from archiving. See the priority note at the top of this file: known bugs come first.
 
-No open items right now — see `TASKS-DONE.md` § 10 for resolved bugs (most recently § 10.6, the duplicate-context-option bug).
+Resolved bugs are in `TASKS-DONE.md` § 10 (most recently § 10.6, the duplicate-context-option bug).
+
+### 10.7 Web lint fails on `main` — fix, then make lint a mandatory check
+
+Found while refreshing the agent docs (`docs/claude-md-split`). Filed as a bug at the user's request so it gets bug priority. `npm run lint -w @priori/web` (eslint + stylelint) currently fails on `main`: 22 ESLint errors and 5 warnings. Stylelint is clean. Breakdown at the time of filing:
+- 18 errors, `storybook/no-renderer-packages`: older `*.stories.tsx` files import `@storybook/react` directly; newer ones already use `@storybook/react-vite`
+- 2 errors, `react-hooks/set-state-in-effect`: `RankingPage.tsx`, `TaskCreationForm.tsx`
+- 2 errors, `react-refresh/only-export-components`: `LocationIcon.tsx`, `TaskCreationForm.tsx`
+- 2 warnings, `react-hooks/exhaustive-deps`: `Carousel.tsx`, `ParamsForm.tsx`
+- 3 warnings from the generated `coverage/` report, which ESLint isn't ignoring
+
+- [ ] Switch the 18 story files to `@storybook/react-vite`
+- [ ] Fix the two `set-state-in-effect` errors. These are behavioural changes, so check each in Storybook/the app rather than just silencing the rule
+- [ ] Fix the two `only-export-components` errors (move the non-component exports out of the component files)
+- [ ] Resolve the two `exhaustive-deps` warnings
+- [ ] Add `coverage` to `globalIgnores` in `apps/web/eslint.config.js`
+- [ ] Confirm `npm run lint -w @priori/web` exits 0. Decide whether warnings must also be zero (e.g. `eslint --max-warnings 0`)
+- [ ] Once it passes, make it mandatory: add a rule to `apps/web/CLAUDE.md` that lint must pass after any change in `apps/web` before the work is considered complete. Decide whether to also enforce it mechanically (a hook like `.claude/hooks/check-tasks.sh`, or CI once § 38 adds one) so it doesn't depend on remembering
 
 ---
 
@@ -410,6 +427,7 @@ Since § 22.4, theme has no manual UI: `auto` picks light/dark by time of day (`
 - [ ] `ThemeToggle` no longer exists — deleted in § 24.8 once it was confirmed to have zero real callers (it had briefly become just an unused wrapper around `SplitGroup`). Build the control fresh here instead of reviving it, and decide first: the tinted-track-with-inset-pill construction in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.3 (never actually built — that's what a theme toggle was originally spec'd to look like, distinct from `SplitGroup`'s joined-seam shape) vs. just using `SplitGroup` directly for simplicity. Either way, wire it to `useTheme`'s `setTheme`
 - [ ] Add a way to reach `/settings` from the app — `NavBar` has no slot for it currently; decide whether it gets one or the entry point is elsewhere
 - [ ] Reconsider `timeOfDayTheme()`'s fixed 6am–6pm split at the same time — e.g. treat `Auto` as "time-of-day split" only when the user hasn't explicitly picked Light/Dark, or consider deriving real sunrise/sunset if that's ever worth the complexity
+- [ ] Nice to have: pick light/dark from the phone's own indication of being in light or darkness instead of (or alongside) the wall-clock split. Options to weigh: the OS appearance setting via `prefers-color-scheme` (widely supported; phones can switch it automatically), or the ambient light sensor directly (`AmbientLightSensor` web API: limited browser support, so treat it as progressive enhancement only)
 
 **Trigger:** whenever a settings screen is needed for anything else, or the `window.switchTheme()` console workaround becomes annoying enough to fix.
 

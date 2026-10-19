@@ -4,8 +4,6 @@ A per-component playbook. Each section is self-contained: pick the component you
 
 The visual reference is artboard **05 · Form components** in the TempAppName identity exploration — every value below is taken from it.
 
-Wherever priori-patch is mentioned, refer to the priori-patch directory in the priori project.
-
 ---
 
 ## 1. The token model
@@ -31,7 +29,7 @@ In `tokens.css`, in a third block after the dark-mode blocks, one clearly-labell
 /* ---------- Layer 3: component tokens ----------
    One group per component. Every entry defaults to a Layer-2 role — a literal
    value here means this component deliberately diverges, and the comment says
-   why. Components reference ONLY these; see CLAUDE.md § Component tokens. */
+   why. Components reference ONLY these; see apps/web/CLAUDE.md § Design tokens. */
 :root {
   /* Button — components/Button */
   --button-radius:          var(--radius-md);
@@ -120,7 +118,7 @@ Add to the **light** `:root` block in `tokens.css`:
   --font-size-micro: 11px;
 ```
 
-The radius rename is the one global change here with a visible effect, and it is wider than it first looks. `--radius-sm` and `--radius-md` are already referenced well beyond the components this document migrates: `Select`, `NavBar`, `ThemeToggle`, `TaskCard`, `EnergyPicker`, `LocationPicker`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `InProgressBlock`, `ResultsSlide`, `TaskTreeItem`, `EmptyState` — roughly fifteen files, most of them outside this plan's scope this round. The rename still carries all of them automatically, no CSS edit required, but "check visually" needs to be a real step against that whole list, not an aside:
+The radius rename is the one global change here with a visible effect, and it is wider than it first looks. `--radius-sm` and `--radius-md` are already referenced well beyond the components this document migrates: `Select`, `NavBar`, `ThemeToggle` (since deleted), `TaskCard`, `EnergyPicker`, `LocationPicker`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `InProgressBlock`, `ResultsSlide`, `TaskTreeItem`, `EmptyState` — roughly fifteen files, most of them outside this plan's scope this round. The rename still carries all of them automatically, no CSS edit required, but "check visually" needs to be a real step against that whole list, not an aside:
 
 - [ ] After TASKS.md § 22.1 lands, visually diff every file in the list above in both modes — the rename affects them whether or not they are otherwise being migrated this round
 
@@ -255,14 +253,14 @@ Diff: `border-radius: 50%` → `var(--fab-radius)`; `width/height: 56px` → `va
 
 ---
 
-### 3.3 ThemeToggle — `components/ThemeToggle`
+### 3.3 ThemeToggle — removed (was `components/ThemeToggle`)
 
-**Status:** `ThemeToggle` was deleted (TASKS.md § 24.8) once it became an unused wrapper with no real caller — § 24 built `SplitGroup` as the general seamed/joined segmented primitive (artboard's "Today / This week / Someday" example) instead, and `ThemeToggle` was migrated onto *that* rather than the distinct construction below. That was a shortcut, not a correction: this section's tinted-track-with-inset-pill design is what a real theme control was actually spec'd to look like, and it's never been built. Whoever picks up § 23 (theme settings screen) needs to decide then whether to build this properly or accept `SplitGroup`'s shape for simplicity — the token block and rationale below are kept for that decision, not superseded.
+**Status:** there is no theme control in the UI. Theme follows time of day by default (`auto` mode in `features/theme/useTheme.ts`, light 6am–6pm, dark otherwise), and that replaced the need for a toggle. `ThemeToggle` was deleted (TASKS.md § 24.8) once it became an unused wrapper with no real caller — § 24 built `SplitGroup` as the general seamed/joined segmented primitive (artboard's "Today / This week / Someday" example) instead, and `ThemeToggle` was migrated onto *that* rather than the distinct construction below. That was a shortcut, not a correction: this section's tinted-track-with-inset-pill design is what a real theme control was actually spec'd to look like, and it's never been built. Whoever picks up § 23 (theme settings screen) needs to decide then whether to build this properly or accept `SplitGroup`'s shape for simplicity — the token block and rationale below are kept for that decision, not superseded.
 
 Currently a bordered button group with negative-margin seams. The sheet's segmented control is a different construction: a tinted track, an inset selected pill, no shared borders. This is the one existing component whose markup changes shape.
 
 ```css
-  /* ThemeToggle / segmented control — components/ThemeToggle */
+  /* ThemeToggle / segmented control — components/ThemeToggle (never built; see Status above) */
   --segmented-track-bg:      var(--color-border);
   --segmented-track-radius:  var(--radius-md);
   --segmented-track-pad:     3px;
@@ -374,7 +372,7 @@ Diff for (a): swap every `var(--color-*)` for its `--select-*` equivalent; `padd
 
 ### 3.5 NavBar — bottom bar — `components/NavBar`
 
-**Done — see `priori-patch/`.** TASKS.md § 17 already called for this: the top bar is replaced by a fixed bottom bar with icon links, safe-area insets, and a collision check against the FAB.
+**Done** — was delivered via a patch folder (`priori-patch/`), since applied and deleted. TASKS.md § 17 already called for this: the top bar is replaced by a fixed bottom bar with icon links, safe-area insets, and a collision check against the FAB.
 
 ```css
   /* BottomNav — components/NavBar */
@@ -608,7 +606,7 @@ Two additions, both small.
 
 Reading from `document.styleSheets` means it lists whatever is actually in `tokens.css`, resolves each through the cascade, and follows the theme toolbar. Put it at the bottom of each component's docs page. This is what makes the layer-3 block self-documenting rather than a second thing to maintain.
 
-**A parity guard.** `test/tokenParity.test.ts` already checks the two dark blocks match. Add two assertions:
+**A parity guard.** `apps/web/src/styles/tokens.parity.test.ts` already checks the two dark blocks match. Add two assertions:
 
 1. Every `--<prefix>-*` group in layer 3 has a matching `components/<Prefix>` directory — catches tokens left behind after a rename.
 2. No `*.module.css` references a layer-2 token directly. A short regex over the component CSS files; failure message points at this document.
@@ -627,7 +625,7 @@ Add under a new `## Design tokens` heading, after the Storybook section:
 All visual values live in `apps/web/src/styles/tokens.css`, in three layers:
 
 - **Layer 1 — palette** (`--tendril-*`): raw hexes. Hexes appear nowhere else in the codebase.
-- **Layer 2 — semantic roles** (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--control-height-*`, `--focus-ring*`, `--motion-*`): what a value *means*. Mode-aware — the light block, the `[data-theme='dark']` block and the `prefers-color-scheme` block must stay in parity (enforced by `test/tokenParity.test.ts`).
+- **Layer 2 — semantic roles** (`--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, `--control-height-*`, `--focus-ring*`, `--motion-*`): what a value *means*. Mode-aware — the light block, the `[data-theme='dark']` block and the `prefers-color-scheme` block must stay in parity (enforced by `apps/web/src/styles/tokens.parity.test.ts`).
 - **Layer 3 — component tokens** (`--<component>-*`): per-component knobs, one labelled group per component, in the same file.
 
 **Rule: a `*.module.css` file references Layer 3 only.** Never `var(--color-*)` directly from a component. This is what allows one component's design to be adjusted without touching any other.
@@ -658,14 +656,14 @@ The task list that used to live here (patch application, app-shell padding, nav-
 
 ## 9. Suggested order
 
-1. §2 global tokens — **done in `priori-patch/`** (radius renamed, scales added).
-2. `NavBar` bottom bar — **done in `priori-patch/`** (TASKS.md § 17).
+1. §2 global tokens — **done** (was delivered via a patch folder, since applied and deleted) (radius renamed, scales added).
+2. `NavBar` bottom bar — **done** (was delivered via a patch folder, since applied and deleted) (TASKS.md § 17).
 3. TASKS.md § 22.1 apply the patch, then § 22.2 app-shell padding — the bar is not usable without it. Includes the radius-rename visual audit called out in §2.
 4. `Checkbox` — smallest remaining example of the pattern; use it to settle the layer-3 conventions before repeating them.
 5. TASKS.md § 22.8 add the new primitives to TASKS.md, then build `Button`, `TextInput`, `Card` — the three most screens need. `Button` first and reviewed before the rest.
 6. The remaining seven primitives from § 22.8, in the order it sequences them: `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal` — each expands its §4.4 table row into a full token block as part of its own task.
-7. `FAB` — **done in `priori-patch/`**; `Breadcrumbs`, `Select` — contained restyles.
-8. `ThemeToggle` — after TASKS.md § 22.4 decides where the control lives.
+7. `FAB` — **done** (was delivered via a patch folder, since applied and deleted); `Breadcrumbs`, `Select` — contained restyles.
+8. `ThemeToggle` — superseded: deleted (TASKS.md § 24.8); theme now follows time of day. A future theme control belongs to TASKS.md § 23.
 9. `Carousel` — TASKS.md § 22.7; the dark slide tints now have real values, and the index now comes from TASKS.md §14's `slide_index` once it lands.
 10. TASKS.md § 22.6 parity guard and token surface, once two or three components are on the model and the conventions have stopped moving.
-11. TASKS.md § 22.9 delete `priori-patch/`.
+11. TASKS.md § 22.9 delete `priori-patch/` — done; the patch folder was applied and deleted.

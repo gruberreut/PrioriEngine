@@ -27,7 +27,7 @@ type Story = StoryObj<typeof ParamsBar>;
 
 // Tapping a column opens a Sheet to change that value, so the story needs to
 // stay controlled (via useArgs) for the picked value to show up in the bar
-// and for the controls panel to follow along - see CLAUDE.md "Controls
+// and for the controls panel to follow along - see apps/web/CLAUDE.md "Controls
 // interactivity".
 const render: Story["render"] = (args) => {
   const [{ location, availableTime, energy }, updateArgs] = useArgs<{
