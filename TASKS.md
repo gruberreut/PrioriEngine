@@ -285,7 +285,7 @@ Currently the app renders straight into its routes on mount — there's no singl
 
 Moved from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
 
-`priori-patch/` contains complete file replacements for §§ 22.1–22.2. Everything else here needs a call site the patch couldn't see, a decision, or a file outside `apps/web/src`.
+`priori-patch/` contained complete file replacements for §§ 22.1–22.2 (since deleted — see § 22.9). Everything else here needs a call site the patch couldn't see, a decision, or a file outside `apps/web/src`.
 
 ---
 
@@ -396,8 +396,8 @@ The eight dark values are real now, so this is unblocked. Reconciled with § 14 
 
 **Depends on:** every task in this section and every component in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 9 being complete — `priori-patch/` is a reference for diffs until then.
 
-- [ ] Confirm no remaining checklist item points at `priori-patch/`
-- [ ] Delete the `priori-patch/` directory
+- [x] Confirm no remaining checklist item points at `priori-patch/`
+- [x] Delete the `priori-patch/` directory
 - [ ] Review in Storybook — **approved**
 
 ---
