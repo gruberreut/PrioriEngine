@@ -11,7 +11,7 @@ const css = readFileSync(join(stylesDir, 'tokens.css'), 'utf-8');
 
 // Layer-2 categories a migrated component must route through Layer 3
 // instead of referencing directly. --space-*, font families, and
-// --motion-* are deliberately excluded - see CLAUDE.md § Design tokens.
+// --motion-* are deliberately excluded - see apps/web/CLAUDE.md § Design tokens.
 const RESTRICTED_LAYER2 = /var\(\s*(--color-|--radius-|--shadow-|--control-height-|--focus-ring)/g;
 
 function extractBlock(source: string, selectorPattern: RegExp): string {

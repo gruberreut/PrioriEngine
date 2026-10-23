@@ -238,6 +238,6 @@ Displays: "No eligible tasks found." and a suggestion (change context or add tas
 ## Storybook Setup Notes
 
 - Install alongside `apps/web`: `@storybook/react-vite`
-- Fixture data lives in `apps/web/test/storyFixtures.ts` — pre-built `RankResult`, `RankedTask`, and `NormalizedTask` objects derived from `tasks.example.json`
-- Engine types are imported as a dev dependency only (`packages/engine/src/types.ts`); no runtime coupling to the engine from the web app
+- Fixture data is defined inline in each `*.stories.tsx` file; there is no shared fixture module
+- The web app uses its own types (`apps/web/src/types/task.ts`) and does not import from `packages/engine`; no coupling to the engine from the web app
 - Naming and story structure conventions: see [COMPONENT_BEST_PRACTICES.md](../guidelines/COMPONENT_BEST_PRACTICES.md)
