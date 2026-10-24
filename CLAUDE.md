@@ -37,6 +37,8 @@ Every change lands on `main` through a GitHub PR, even as a solo contributor —
 5. The user reviews and merges on GitHub. The agent never merges.
 6. Afterwards: `git checkout main`, `git pull --ff-only`, then delete the branch locally and on the remote. End on a clean `main` in sync with `origin/main`.
 
+To finalize a PR, use /finish-pr.
+
 ## Architecture Documentation
 
 Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it.
