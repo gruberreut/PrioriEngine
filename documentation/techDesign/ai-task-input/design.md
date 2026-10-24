@@ -272,5 +272,5 @@ Related but not blocking: § 49 (parent/child priority), § 50 (priority signal;
 ## Open questions
 
 - Allowance period and size, and this feature's unit thresholds by input length (AI integration doc).
-- Model choice, from the evaluation set (AI integration doc).
+- Whether the app's model (AI integration doc) holds up on this feature's evaluation set.
 - The values of the shared default priority and duration (§ 50).

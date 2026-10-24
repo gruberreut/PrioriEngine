@@ -1255,7 +1255,7 @@ Design: `documentation/techDesign/ai-integration/design.md`. Project-wide founda
 
 - [ ] **First: research AI pricing.** Per-model token prices, what one task-drafting call costs (typical and worst-case input, `max_tokens` output, with and without prompt caching), the Console's spend limits, and what an allowance per user per period would cost at expected usage. Leaning towards a low-cost model, since task drafting is a fairly simple extraction job; the research should confirm it's enough. Write the findings into the AI integration doc
 - [ ] Decide the allowance period (daily, monthly or rolling) and size, from the pricing research
-- [ ] Decide the model, from the pricing research and the first feature's evaluation set (starting with the low-cost candidate)
+- [ ] Decide the app's single model, from the pricing research and the first feature's evaluation set (starting with the low-cost candidate)
 - [ ] Check the Anthropic organisation's data retention settings, and whether the consent notice should mention them
 - [ ] Add `@anthropic-ai/sdk` to `apps/api`; record the provider decision in `documentation/ARCHITECTURE.md`
 - [ ] `src/ai/client.ts`, `allowance.ts`, `inputHygiene.ts`
