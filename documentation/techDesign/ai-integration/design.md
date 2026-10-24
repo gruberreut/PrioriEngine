@@ -26,9 +26,19 @@ The web app never talks to the provider. It calls TempAppName's own API, which h
 
 **Why:** the key must never reach the browser, and only the server can enforce allowance strictly.
 
-### Model choice is per feature, and measured
+### One model for the whole app, chosen by measurement
 
-Each feature names its model in its own design doc, chosen by running that feature's test inputs (see Testing). Current candidates, at Anthropic first-party prices per million tokens (input / output):
+Every AI feature uses the same model. The model ID is a constant in `src/ai/client.ts`, so changing it goes through a PR like any other change. A feature that turns out to need a different model can get a per-feature override then; until a real need appears, that option isn't built.
+
+**The model is chosen on the backend only.** It is never part of an API request or response. Endpoints don't accept a model field, and the browser can't influence which model runs. The model is recorded in `ai_usage_events` for cost tracking, which is server-side only.
+
+**Why:** there's one AI feature today, and one model means one config value, one prompt-caching namespace and one set of costs to understand.
+
+**Rejected:**
+- Choosing a model per feature now. It adds configuration and testing for each feature with no current need.
+- An environment variable for the model. It would allow switching without a deploy, but nothing needs that yet, and a code constant keeps model changes reviewable in a PR.
+
+The model is chosen from the pricing research and the evaluation sets (see Testing), and re-checked when a feature is added. Current candidates, at Anthropic first-party prices per million tokens (input / output):
 
 | Model | ID | Input | Output | Notes |
 |---|---|---|---|---|
@@ -36,9 +46,7 @@ Each feature names its model in its own design doc, chosen by running that featu
 | Claude Sonnet 5.5 | `claude-sonnet-5-5` | $2.00 | $10.00 | Middle option |
 | Claude Haiku 5.5 | `claude-haiku-5-5` | $0.10 | $0.50 | Fastest and cheapest; no server-side refusal fallback |
 
-The model ID lives in one config value inside `src/ai/`, so it's a one-line change.
-
-**Leaning:** a low-cost model (Claude Haiku 5.5) for task drafting, since it's a fairly simple extraction job. To be confirmed by the pricing research (§ 52's first item) and the feature's evaluation set before it's committed. Moving up a tier is reserved for cases where the evaluation shows the low-cost model making structure mistakes.
+**Leaning:** a low-cost model (Claude Haiku 5.5), since task drafting, the first feature, is a fairly simple extraction job. To be confirmed by the pricing research (§ 52's first item) and the task-drafting evaluation set before it's committed. Moving up a tier is reserved for cases where the evaluation shows the low-cost model making structure mistakes.
 
 ### Structured output only, no tools
 
@@ -127,7 +135,7 @@ Put the fixed system prompt and output schema first in the request and mark them
 
 | File | Purpose |
 |---|---|
-| `client.ts` | The only `@anthropic-ai/sdk` import: client construction, model config, timeouts |
+| `client.ts` | The only `@anthropic-ai/sdk` import: client construction, the model constant, timeouts |
 | `allowance.ts` | `reserveUnits`, `releaseUnits`, `getAllowanceStatus` (transactional, over `ai_usage_events`) |
 | `inputHygiene.ts` | Normalisation, control-character stripping, length check |
 | `<feature>.ts` | One file per feature (first: `taskDrafting.ts`): system prompt, output schema, call, validation |
@@ -157,12 +165,12 @@ Feature endpoints are listed in each feature's design doc. All endpoints are doc
 
 - **API tests** replace the AI module with canned outputs (valid, invalid JSON, schema-violating, refusal, provider error), so they never call the provider.
 - Allowance gets **real-DB tests** (concurrent reservations never exceed the limit, refunds on provider error, period boundaries), since that's a high-value invariant under `apps/api/CLAUDE.md`'s testing strategy.
-- **Prompt evaluation:** each feature keeps a set of sample inputs with expected results, run against the real model on demand (not in `npm test`, since it costs money). It's used to choose the model and to check prompt changes.
+- **Prompt evaluation:** each feature keeps a set of sample inputs with expected results, run against the real model on demand (not in `npm test`, since it costs money). It's used to choose the app's model, to check that a new feature works on it, and to check prompt changes.
 - **Injection cases** belong in every feature's sample set: text that tries to give the model instructions must come back as ordinary feature output (for task input: tasks with those words as titles), and never as anything else.
 
 ## Open questions
 
 - **Pricing research** (§ 52's first item, not blocked by Auth): per-call cost of task drafting at typical and worst-case sizes, the effect of prompt caching, and what an allowance would cost per user. The two questions below depend on it.
 - **Allowance period and size.** Daily, monthly or rolling, and how many units.
-- **Model per feature.** Leaning low-cost for task drafting; confirmed from measured quality and cost on each feature's sample set.
+- **The app's model.** Leaning low-cost (Claude Haiku 5.5); confirmed from measured quality and cost on the task-drafting sample set.
 - **Anthropic data retention settings** for the organisation, and whether the consent notice needs to mention them.
