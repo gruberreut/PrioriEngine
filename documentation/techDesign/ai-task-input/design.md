@@ -12,7 +12,7 @@ AI task input lets the user describe one or more tasks in free text ("Kitchen re
 
 ### Review-first, with questions inline
 
-Submitting text always leads straight to the review screen, never to a separate question-and-answer step. Open questions appear as chips on the draft cards they affect. Each chip offers its answers plus the default, and an unanswered chip falls back to the default when the user confirms. For a simple single task, the review is one card and a Save button.
+Submitting text always leads straight to the review screen, never to a separate question-and-answer step. Open questions are shown on the draft cards they affect. Each one offers its answers plus the default, and an unanswered question falls back to the default when the user confirms. How questions look and are answered is part of the results design (see Draft presentation). For a simple single task, the review is one card and a Save button.
 
 **Rejected:**
 - A chat-style question round before the review. It's an extra step on every input that has a question.
@@ -27,9 +27,9 @@ For each field of each draft, the first rule that gives an answer wins:
 3. **Inherited** from the draft's parent, in the batch or in the existing tree (inheritable fields only, see below).
 4. **Default.**
 
-Every draft field carries its `source` (`stated | inferred | inherited | default`). The review screen marks non-stated values subtly so the user can see what was guessed. Rule 3 and rule 4 are applied **in code after the model responds**, not by the model, so they stay consistent and testable. The model only reports what it parsed or inferred.
+Every draft field carries its `source` (`stated | inferred | inherited | default`). The review screen distinguishes non-stated values from stated ones so the user can see what was guessed, without asking them anything. How that's shown visually is part of the results design (see Draft presentation). This is separate from open questions (below), which are only for the few values with no safe guess. Rule 3 and rule 4 are applied **in code after the model responds**, not by the model, so they stay consistent and testable. The model only reports what it parsed or inferred.
 
-**When to ask** (a question chip). Ask only when no safe value exists and a wrong guess would change ranking a lot or misrepresent intent:
+**When to ask** (an open question on the card). Ask only when no safe value exists and a wrong guess would change ranking a lot or misrepresent intent:
 
 | Field | Asks when |
 |---|---|
@@ -116,8 +116,8 @@ Drafts are shown with `TaskCard`. Whether that means extending `TaskCard` (e.g. 
 
 - the draft tree (nesting, existing-project breadcrumbs)
 - priority and due date on the card, since `TaskCard` shows neither today
-- the guessed-value marker per field
-- question chips
+- how guessed (non-stated) values are distinguished from stated ones, per field
+- how open questions are shown and answered, including the default
 - the recurrence note
 - selection checkboxes and the action bar
 - inline field editing
@@ -140,7 +140,7 @@ Implementation starts once § 34 (Auth) is done, so the endpoint is per user and
                         ├─ validate output against schema    (502 invalid_output)
                         ├─ apply inheritance + defaults in code, rank & cap questions
                         └─ log usage event, return drafts + questions + allowance
-  review screen: edit fields, answer chips, restructure (client-only)
+  review screen: edit fields, answer questions, restructure (client-only)
   Save ──► POST /api/tasks/batch  (one transaction: new contexts, then tasks parent-first)
        └─ PATCH /api/ai/task-drafts/:eventId/outcome  (kept / edited / deleted counts)
 ```
@@ -179,7 +179,7 @@ Fields the model omits are filled by the server's inheritance and default step, 
 | `components/Button` | **Reuse** for Draft, Save, Start over |
 | `components/InlineMessage` | **Reuse** for allowance-exhausted, refusal and error messages |
 | `components/Checkbox` | **Reuse** for draft selection |
-| `components/Chip` | **Reuse** for question-chip answers |
+| `components/Chip` | **Candidate** for answering open questions, depending on the results design |
 | `components/Sheet` | **Reuse** for the Move picker and the Create project naming step |
 | `components/ActionButton` | **Reuse** in the selection action bar |
 | `components/Skeleton` | **Reuse** while drafting |
@@ -212,7 +212,7 @@ No change is needed for this feature beyond the `rank.ts` mapping fix. Removing 
 | New | Purpose |
 |---|---|
 | `features/tasks/AiTaskInput` | Text box, `AllowanceIndicator`, Draft button, manual-form link |
-| `features/tasks/DraftReview` | Renders the draft tree with `TaskCard`, inline editing, question chips, selection; Save / Start over |
+| `features/tasks/DraftReview` | Renders the draft tree with `TaskCard`, inline editing, open questions, guessed-value indication, selection; Save / Start over |
 | `features/tasks/DraftActionBar` | Cancel, Change hierarchy → Move / Create project / Change to standalone |
 | `features/tasks/draftTree.ts` | Pure functions on the draft tree (move, group, detach, remove, answer question, apply default on save), unit-tested |
 | `services/aiService.ts`, `useAiStatus`, `AllowanceIndicator`, `AiConsentNotice` | Shared AI pieces, specified in the AI integration doc |
