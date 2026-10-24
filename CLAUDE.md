@@ -18,6 +18,8 @@ Per `AGENTS.md`: do not execute implementation steps or make code changes unless
 
 **Exception: the Known Bugs section (`## 10. Known Bugs`).** Its header stays in `TASKS.md` even when its list is fully resolved — do not collapse it to a stub. It's the standing place new bugs get filed, so it needs to exist and be findable even at zero open items. Individual fixed bugs still move to `TASKS-DONE.md` as normal; only the section title itself is exempt from archiving.
 
+**Tech design docs get a task.** When a tech design doc is created (e.g. under `documentation/techDesign/`), add a `TASKS.md` section for its implementation in the same change. The section links to the doc, and the doc names its `TASKS.md` section near the top, so each can be found from the other.
+
 **Pushing without a TASKS.md change.** A `git push` hook (`.claude/hooks/check-tasks.sh`) blocks pushes whose outgoing commits don't touch `TASKS.md`. When a change genuinely has nothing to track, add a line `Tasks: none — <reason>` to one of the commit messages.
 
 ## Branch Workflow

@@ -2,7 +2,7 @@
 
 Implementation tasks for the engine ↔ web integration.
 
-**Priority order:** at this point in development, work through sections in order: known bugs (10), then §48 (shared queries split by entity, placed right after § 10 for that reason), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
+**Priority order:** at this point in development, work through sections in order: known bugs (10), then §48 (shared queries split by entity, placed right after § 10 for that reason), then §50 (priority signal quality, placed after § 48 for the same reason), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
 
 **§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing the sections above plus two new ones (§38 Deployment, §39 Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
@@ -204,6 +204,19 @@ Found while refreshing the agent docs (`docs/claude-md-split`). Filed as a bug a
 - [ ] Confirm `npm run lint -w @priori/web` exits 0. Decide whether warnings must also be zero (e.g. `eslint --max-warnings 0`)
 - [ ] Once it passes, make it mandatory: add a rule to `apps/web/CLAUDE.md` that lint must pass after any change in `apps/web` before the work is considered complete. Decide whether to also enforce it mechanically (a hook like `.claude/hooks/check-tasks.sh`, or CI once § 38 adds one) so it doesn't depend on remembering
 
+### 10.8 Stored subtasks don't inherit context or due date when ranked
+
+Found while designing AI task input (`documentation/techDesign/ai-task-input/design.md`), by reading the code (not yet reproduced in a test). Filed as a bug at the user's request rather than waiting for § 53.
+
+The engine's `inheritedValue` (`normalizer.ts`) walks up to the parent only when a field is `undefined`; any other value, including `null` and `[]`, counts as set. `routes/rank.ts` builds the engine input from DB rows with `dueDate: t.dueDate?.toISOString() ?? null` and `contexts: t.contextId ? [...] : []`, so a subtask with no due date or context of its own never inherits its parent's.
+
+User-visible effect: a subtask under a project that has a context (e.g. *Garden*) but no context itself is excluded when ranking for that context (`context_mismatch`), and a subtask under a project with a due date is ranked as if it had none.
+
+- [ ] Write a failing real-DB test in `test/routes/rank.test.ts`: a parent with a context and due date, a child with neither; ranking for that context includes the child, and the child's normalized due date is the parent's
+- [ ] Fix the mapping in `routes/rank.ts`: a DB `null` becomes an omitted field (`undefined`), and no context becomes no `contexts` key, so the engine inherits
+- [ ] Check the other fields in that mapping for the same problem (`lastSuggestedAt` should stay `null`, since it's per task and not inherited)
+- [ ] Check the web side: `resolveTask.ts` already inherits `contexts`, so confirm the tasks list and ranking now agree
+
 ---
 
 ## 48. Split shared queries by entity into `db/sharedQueries/` (`shared-queries-by-entity`) — high priority
@@ -225,6 +238,24 @@ Current contents (31 lines): `queryTasks` and `groupTasksByParent`, both task-re
 - [ ] Record the decision in `documentation/ARCHITECTURE.md` in the same commit (why per-entity, why shared-only, why no barrel `index.ts`), and update its existing `queries.ts` mentions (the directory tree, the `hasChildren` note, the shared-query rule, the `groupTasksByParent` note)
 - [ ] Update the `queries.ts` mention in `documentation/techDesign/user-provisioning/design.md`
 - [ ] `npm test -w @priori/api` passes
+
+---
+
+## 50. Priority signal quality (`priority-signal`) — high priority
+
+Filed out of order, right after § 48, because it's high priority; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`).
+
+The ranking is only as good as its inputs, and priority is its main lever. If new tasks always get a middle default, users have little reason to set priority, and ranking ends up driven mostly by energy and duration fit. This touches the core of the product. Making things worse, the ranker doesn't use due dates at all: its urgency term is days since `priorityUpdatedAt`, so a task due tomorrow scores the same as one with no deadline.
+
+Interim in the AI task input design: the AI infers priority from cues in the text and relative to the user's existing tasks, records where the value came from, and the review screen shows priority as a one-tap control. This section decides the long-term approach.
+
+- [ ] Record each task's priority source (`stated | inferred | default`) so tasks with no real priority signal can be found
+- [ ] Add due-date proximity to the ranking score, and decide how it combines with priority and urgency aging
+- [ ] Decide how the AI infers priority: explicit cues (urgent, ASAP, someday), deadlines, consequences, people waiting, and placement relative to the user's existing tasks
+- [ ] Explore comparative prioritisation ("is X more important than Y?") as a quick triage for tasks still on a default priority, and when to prompt for it
+- [ ] Decide the default priority and duration used when nothing is stated or inferred, as one source of truth for the form, AI drafts and the engine fallback (today: form 3 / 20 min, engine 5 / 30 min, `resolveTask.ts` 30 min)
+- [ ] Coordinate with § 49 (parent and child priorities)
+- [ ] Record the decisions in `documentation/ARCHITECTURE.md`
 
 ---
 
@@ -944,7 +975,7 @@ No auth approach (self-rolled sessions vs. a third-party provider, e.g. Auth0/Cl
 
 - [ ] Decide the auth approach (provider vs. self-rolled) — raise the trade-off with the user before starting
 - [ ] Implement sign-up / sign-in / session handling per the chosen approach
-- [ ] Wire `provisionDefaultContexts` (§7) into the new-user path so every real signup gets its default contexts, same as `seed.ts`'s dev-user path
+- [ ] Wire `provisionDefaultContexts` (§7, implemented in § 54) into the new-user path so every real signup gets its default contexts, same as `seed.ts`'s dev-user path
 - [ ] Replace the loading gate's placeholder auth step (§19) with the real check
 - [ ] Update `ARCHITECTURE.md` recording the auth approach chosen and why
 
@@ -1184,6 +1215,88 @@ Once a Settings page exists (§23) and localization is implemented (§33), give 
 - [ ] Resolve the context-badge-on-context-slide redundancy
 - [ ] Replace the "medium energy" text with `EnergyIcon`
 - [ ] Review in Storybook — approved
+
+---
+
+## 49. Parent and child task priorities (`parent-child-priority`)
+
+Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`). Subtasks within a project or subproject can differ in urgency, so priority is **not** inherited from the parent the way context, location, energy and due date will be: every task keeps its own priority. What's not yet specified is how a parent's priority and its children's priorities relate.
+
+Current state: the engine ranks only leaf tasks (parents are excluded as `non_leaf`), but `normalizer.ts` still inherits `priority` from ancestors when a task has none, and `POST /api/tasks/:id/split` copies the original's priority onto the new parent and sibling.
+
+- [ ] Specify what a parent's priority means when only leaves are ranked: e.g. no effect, a tie-breaker, or a weight/cap applied to its children's scores
+- [ ] Specify the default priority for a new subtask when the user doesn't state one (the global default, or the parent's priority as a starting value that's then stored on the child and not inherited)
+- [ ] Decide whether a child may outrank its parent, and whether changing a parent's priority should offer to adjust its children
+- [ ] Update the engine (`normalizer.ts` priority inheritance) and the split endpoint to match
+- [ ] Record the decision in `documentation/ARCHITECTURE.md`
+
+---
+
+## 51. Recurring tasks (`recurring-tasks`)
+
+Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`). Until this lands, AI input creates a recurring request ("water plants every Sunday") as a one-off task, and the review card notes that repeats aren't supported yet.
+
+Current state: the engine reads `recurrence` (`RawTask`, `NormalizedTask`) and requires it for priority 10 (`normalizer.ts`), but nothing stores it: there's no `recurrence` column in `tasks`, and neither the API nor the manual form accepts it. § 13 also treats priority 10 as "ongoing" (a parent that keeps gaining children), which isn't the same as a task that repeats on a schedule.
+
+- [ ] Decide what recurrence means: a task that repeats on a schedule, an ongoing parent (the § 13 sense), or both as separate concepts, and whether priority 10 should keep requiring it
+- [ ] Choose a storage format (e.g. an RRULE subset vs a small custom shape) and what happens on completion (next occurrence created, or the same task reset with a new due date)
+- [ ] Add the `recurrence` column and accept it in the task API and `openapi.yaml`
+- [ ] Add recurrence to the manual task form
+- [ ] Have AI task input parse recurrence instead of flagging it
+- [ ] Record the decisions in `documentation/ARCHITECTURE.md`
+
+---
+
+## 52. AI integration (`ai-integration`)
+
+Design: `documentation/techDesign/ai-integration/design.md`. Project-wide foundation for AI features: Claude via `@anthropic-ai/sdk` in one `apps/api/src/ai/` module, structured output only (no tools), user input treated as data never instructions, opt-in consent with a Settings toggle, a strictly enforced per-user allowance, and metadata-only usage logging. First consumer: § 53.
+
+**Blocked by:** § 34 (Auth). The allowance and consent are per user. The pricing research below is not blocked and can start now.
+
+- [ ] **First: research AI pricing.** Per-model token prices, what one task-drafting call costs (typical and worst-case input, `max_tokens` output, with and without prompt caching), the Console's spend limits, and what an allowance per user per period would cost at expected usage. Leaning towards a low-cost model, since task drafting is a fairly simple extraction job; the research should confirm it's enough. Write the findings into the AI integration doc
+- [ ] Decide the allowance period (daily, monthly or rolling) and size, from the pricing research
+- [ ] Decide the model, from the pricing research and the first feature's evaluation set (starting with the low-cost candidate)
+- [ ] Check the Anthropic organisation's data retention settings, and whether the consent notice should mention them
+- [ ] Add `@anthropic-ai/sdk` to `apps/api`; record the provider decision in `documentation/ARCHITECTURE.md`
+- [ ] `src/ai/client.ts`, `allowance.ts`, `inputHygiene.ts`
+- [ ] DB migration: `users.ai_enabled`, `users.ai_consented_at`, table `ai_usage_events`
+- [ ] `routes/ai.ts`: `GET /api/ai/status`, `PATCH /api/ai/settings`; documented in `openapi.yaml`
+- [ ] Real-DB tests for allowance: concurrent reservations never exceed the limit, refunds on provider error, period boundaries
+- [ ] Web: `aiService.ts`, `useAiStatus`, `AllowanceIndicator`, `AiConsentNotice`, with Storybook stories
+- [ ] "Use AI" toggle in Settings. Needs a Settings page (§ 23 and § 44 are deferred); build a minimal one if neither exists yet
+- [ ] Set a monthly spend limit in the Anthropic Console before any deployment (§ 38)
+
+---
+
+## 53. AI task input (`ai-task-input`)
+
+Design: `documentation/techDesign/ai-task-input/design.md`. Describe tasks in free text on `/tasks/new`, review an editable draft tree (questions inline, fixed restructure actions), and confirm to create everything in one transaction.
+
+**Blocked by:** § 34 (Auth), § 52 (AI integration), and the results design for draft presentation. Related: § 49, § 50 (interim priority handling ships here), § 51 (recurrence is flagged, not parsed).
+
+- [ ] Results design for draft presentation (extend `TaskCard` or compose it in a review page), coordinated with § 47
+- [ ] DB migration: `tasks.energy_required` and `tasks.location` nullable (drop the `'anywhere'` default), add `tasks.priority_source`
+- [ ] Confirm § 10.8 is fixed (`routes/rank.ts` passes DB `null` to the engine as missing). It's a prerequisite, since nullable energy and location rely on the same fix
+- [ ] `POST /api/tasks` accepts `null` inheritable fields and `prioritySource`; `POST /api/tasks/batch` (one transaction, new contexts, parent-first, `tempId` resolution); real-DB tests; `openapi.yaml`
+- [ ] Shared query for open parent tasks with ancestor paths
+- [ ] Shared default priority and duration constant used by the manual form and drafting (values from § 50)
+- [ ] `src/ai/taskDrafting.ts` and `src/ai/draftResolution.ts`; `POST /api/ai/task-drafts`, `PATCH /api/ai/task-drafts/:eventId/outcome`; `openapi.yaml`
+- [ ] Evaluation set (see the design's Testing section), including injection cases
+- [ ] Web: extend `resolveTask.ts` and `types/task.ts` for nullable inheritable fields
+- [ ] Web: `AiTaskInput`, `DraftReview`, `DraftActionBar`, `draftTree.ts`; `TaskCreationPage` gating states; Storybook stories
+- [ ] Record the inheritance decision (context, location, energy and due date inherited; priority and duration not) in `documentation/ARCHITECTURE.md`
+
+---
+
+## 54. User provisioning: extract `provisionDefaultContexts` (`user-provisioning-impl`)
+
+Design: `documentation/techDesign/user-provisioning/design.md`. The plan was written and archived under § 7 (`TASKS-DONE.md`), but never implemented: `seed.ts` still inlines the default-context insert, and `provisionDefaultContexts` doesn't exist. Per the design's Verification section, the extraction can land on its own ahead of auth. § 34 then wires it into the signup path.
+
+- [ ] Add `apps/api/src/db/provisioning.ts` with `DEFAULT_CONTEXTS` and `provisionDefaultContexts(db, userId)`. The design's sample insert predates the `slide_index` column: assign `slideIndex` the way `seed.ts` does today, and keep it consistent with the slide-index invariant `POST /api/contexts` enforces (§ 14)
+- [ ] Make `seed.ts` a thin caller: insert the user, check the row came back, call `provisionDefaultContexts`
+- [ ] Real-DB tests in `apps/api/test/db/provisioning.test.ts`: a fresh user gets all four default contexts; calling it twice doesn't duplicate rows; another user's contexts are untouched
+- [ ] Manual check: `npm run db:seed` on a clean DB gives the same result as today
+- [ ] Update the design's Approach snippet to include `slideIndex`
 
 ---
 
