@@ -10,7 +10,11 @@ The backend ranking engine (`packages/engine`) is called **Priori Engine** — t
 
 ## Approval Policy
 
-Per `AGENTS.md`: do not execute implementation steps or make code changes unless the user explicitly approves. Default to planning/discussion only until approval is given.
+The execution approval policy and the component implementation policy live in `AGENTS.md` (shared with other AI tools) and are imported here so every session loads them:
+
+@AGENTS.md
+
+Why: see `documentation/PROCESS.md` § Approval and pacing.
 
 ## Task Tracking
 
@@ -21,6 +25,8 @@ Per `AGENTS.md`: do not execute implementation steps or make code changes unless
 **Design docs: HLD, then LLD, then implementation.** Design docs live in `documentation/techDesign/<topic>/`, as `hld.md` (high-level design: decisions, flow, and which components, endpoints and tables are reused, extended or added) and `lld.md` (low-level design: implementation details such as API signatures, data objects, DB table structures and UI components). A new design doc gets a `TASKS.md` section in the same change; the section links to the doc, and the doc names its `TASKS.md` section near the top, so each can be found from the other. When a task attached to an HLD is started, the first step is to write its LLD and get it approved. Implementation starts only after that approval.
 
 **Pushing without a TASKS.md change.** A `git push` hook (`.claude/hooks/check-tasks.sh`) blocks pushes whose outgoing commits don't touch `TASKS.md`. When a change genuinely has nothing to track, add a line `Tasks: none — <reason>` to one of the commit messages.
+
+Why: see `documentation/PROCESS.md` § Task tracking and § Hooks.
 
 ## Branch Workflow
 
@@ -41,9 +47,17 @@ Every change lands on `main` through a GitHub PR, even as a solo contributor —
 
 To finalize a PR, use /finish-pr.
 
+Why: see `documentation/PROCESS.md` § Branch and PR workflow.
+
 ## Architecture Documentation
 
-Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it.
+Architectural decisions must be recorded in `documentation/ARCHITECTURE.md`. Update this file in the same commit as the decision — not after the fact. Each entry should capture: what was decided, why (the forces that drove it), and what alternatives were rejected. If a prior decision is superseded, mark it as such rather than deleting it. Process decisions don't go here; see § Process Decisions.
+
+Why: see `documentation/PROCESS.md` § Documentation.
+
+## Process Decisions
+
+Before changing or proposing a change to a process rule (approval, task tracking, branch workflow, hooks, documentation rules), read its entry in `documentation/PROCESS.md`. Record the new decision there in the same commit as the rule change: what was decided, why, and the alternatives rejected. The rule itself stays in this file (or `AGENTS.md`), since this file is loaded into every session and `PROCESS.md` isn't.
 
 ## Technology and Architecture Choices
 
