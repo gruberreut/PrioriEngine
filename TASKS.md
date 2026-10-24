@@ -206,7 +206,7 @@ Found while refreshing the agent docs (`docs/claude-md-split`). Filed as a bug a
 
 ### 10.8 Stored subtasks don't inherit context or due date when ranked
 
-Found while designing AI task input (`documentation/techDesign/ai-task-input/design.md`), by reading the code (not yet reproduced in a test). Filed as a bug at the user's request rather than waiting for § 53.
+Found while designing AI task input (`documentation/techDesign/ai-task-input/hld.md`), by reading the code (not yet reproduced in a test). Filed as a bug at the user's request rather than waiting for § 53.
 
 The engine's `inheritedValue` (`normalizer.ts`) walks up to the parent only when a field is `undefined`; any other value, including `null` and `[]`, counts as set. `routes/rank.ts` builds the engine input from DB rows with `dueDate: t.dueDate?.toISOString() ?? null` and `contexts: t.contextId ? [...] : []`, so a subtask with no due date or context of its own never inherits its parent's.
 
@@ -236,14 +236,14 @@ Current contents (31 lines): `queryTasks` and `groupTasksByParent`, both task-re
 - [ ] Move `test/db/queries.test.ts` to `test/db/sharedQueries/tasks.test.ts`, mirroring the new structure
 - [ ] Update the Database Access Pattern section in `apps/api/CLAUDE.md`: new path, one file per entity, shared-only scope, import-or-comment link from the route file
 - [ ] Record the decision in `documentation/ARCHITECTURE.md` in the same commit (why per-entity, why shared-only, why no barrel `index.ts`), and update its existing `queries.ts` mentions (the directory tree, the `hasChildren` note, the shared-query rule, the `groupTasksByParent` note)
-- [ ] Update the `queries.ts` mention in `documentation/techDesign/user-provisioning/design.md`
+- [ ] Update the `queries.ts` mention in `documentation/techDesign/user-provisioning/lld.md`
 - [ ] `npm test -w @priori/api` passes
 
 ---
 
 ## 50. Priority signal quality (`priority-signal`) — high priority
 
-Filed out of order, right after § 48, because it's high priority; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`).
+Filed out of order, right after § 48, because it's high priority; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/hld.md`).
 
 The ranking is only as good as its inputs, and priority is its main lever. If new tasks always get a middle default, users have little reason to set priority, and ranking ends up driven mostly by energy and duration fit. This touches the core of the product. Making things worse, the ranker doesn't use due dates at all: its urgency term is days since `priorityUpdatedAt`, so a task due tomorrow scores the same as one with no deadline.
 
@@ -969,7 +969,7 @@ No i18n library, translation source, or language list is chosen yet — per `CLA
 
 ## 34. Authentication (`auth-implementation`)
 
-**Depends on:** the deferred "User provisioning" design (§7, archived — `documentation/techDesign/user-provisioning/design.md`), written ahead of auth specifically so the provisioning shape would already be settled once this starts.
+**Depends on:** the deferred "User provisioning" design (§7, archived — `documentation/techDesign/user-provisioning/lld.md`), written ahead of auth specifically so the provisioning shape would already be settled once this starts.
 
 No auth approach (self-rolled sessions vs. a third-party provider, e.g. Auth0/Clerk/Supabase Auth) has been chosen yet. Per `CLAUDE.md`'s "smallest footprint" guidance, this is a real trade-off to raise explicitly rather than default into: a third-party provider is far less code but adds an external dependency and cost; self-rolled keeps the footprint small but is more to build and secure correctly.
 
@@ -1220,7 +1220,7 @@ Once a Settings page exists (§23) and localization is implemented (§33), give 
 
 ## 49. Parent and child task priorities (`parent-child-priority`)
 
-Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`). Subtasks within a project or subproject can differ in urgency, so priority is **not** inherited from the parent the way context, location, energy and due date will be: every task keeps its own priority. What's not yet specified is how a parent's priority and its children's priorities relate.
+Came up while designing AI task input (`documentation/techDesign/ai-task-input/hld.md`). Subtasks within a project or subproject can differ in urgency, so priority is **not** inherited from the parent the way context, location, energy and due date will be: every task keeps its own priority. What's not yet specified is how a parent's priority and its children's priorities relate.
 
 Current state: the engine ranks only leaf tasks (parents are excluded as `non_leaf`), but `normalizer.ts` still inherits `priority` from ancestors when a task has none, and `POST /api/tasks/:id/split` copies the original's priority onto the new parent and sibling.
 
@@ -1234,7 +1234,7 @@ Current state: the engine ranks only leaf tasks (parents are excluded as `non_le
 
 ## 51. Recurring tasks (`recurring-tasks`)
 
-Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`). Until this lands, AI input creates a recurring request ("water plants every Sunday") as a one-off task, and the review card notes that repeats aren't supported yet.
+Came up while designing AI task input (`documentation/techDesign/ai-task-input/hld.md`). Until this lands, AI input creates a recurring request ("water plants every Sunday") as a one-off task, and the review card notes that repeats aren't supported yet.
 
 Current state: the engine reads `recurrence` (`RawTask`, `NormalizedTask`) and requires it for priority 10 (`normalizer.ts`), but nothing stores it: there's no `recurrence` column in `tasks`, and neither the API nor the manual form accepts it. § 13 also treats priority 10 as "ongoing" (a parent that keeps gaining children), which isn't the same as a task that repeats on a schedule.
 
@@ -1249,7 +1249,7 @@ Current state: the engine reads `recurrence` (`RawTask`, `NormalizedTask`) and r
 
 ## 52. AI integration (`ai-integration`)
 
-Design: `documentation/techDesign/ai-integration/design.md`. Project-wide foundation for AI features: Claude via `@anthropic-ai/sdk` in one `apps/api/src/ai/` module, structured output only (no tools), user input treated as data never instructions, opt-in consent with a Settings toggle, a strictly enforced per-user allowance, and metadata-only usage logging. First consumer: § 53.
+HLD: `documentation/techDesign/ai-integration/hld.md`. **Has an HLD: its LLD must be written and approved before implementation starts.** Project-wide foundation for AI features: Claude via `@anthropic-ai/sdk` in one `apps/api/src/ai/` module, structured output only (no tools), user input treated as data never instructions, opt-in consent with a Settings toggle, a strictly enforced per-user allowance, and metadata-only usage logging. First consumer: § 53.
 
 **Blocked by:** § 34 (Auth). The allowance and consent are per user. The pricing research below is not blocked and can start now.
 
@@ -1257,6 +1257,7 @@ Design: `documentation/techDesign/ai-integration/design.md`. Project-wide founda
 - [ ] Decide the allowance period (daily, monthly or rolling) and size, from the pricing research
 - [ ] Decide the app's single model, from the pricing research and the first feature's evaluation set (starting with the low-cost candidate)
 - [ ] Check the Anthropic organisation's data retention settings, and whether the consent notice should mention them
+- [ ] Write the LLD, `documentation/techDesign/ai-integration/lld.md` (API signatures, data objects, DB table structures, UI components), using the decisions above, and get it approved. Implementation starts only after approval
 - [ ] Add `@anthropic-ai/sdk` to `apps/api`; record the provider decision in `documentation/ARCHITECTURE.md`
 - [ ] `src/ai/client.ts`, `allowance.ts`, `inputHygiene.ts`
 - [ ] DB migration: `users.ai_enabled`, `users.ai_consented_at`, table `ai_usage_events`
@@ -1270,7 +1271,7 @@ Design: `documentation/techDesign/ai-integration/design.md`. Project-wide founda
 
 ## 55. Subtasks can inherit energy and location (`inherit-energy-location`)
 
-Placed before § 53 because § 53 depends on it; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`), but it's a change to the task model that the manual form needs too.
+Placed before § 53 because § 53 depends on it; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/hld.md`), but it's a change to the task model that the manual form needs too.
 
 A project can contain tasks with different energy levels and locations, so each subtask can have its own value. When a subtask's value is left empty, it inherits the nearest ancestor's. Today that isn't possible: `tasks.energy_required` and `tasks.location` are `NOT NULL`, and the manual form always sets both, so every subtask stores its own value and changing a parent never reaches its children. (Context and due date can already be empty, but don't inherit when ranked; that's bug § 10.8.)
 
@@ -1290,24 +1291,25 @@ Scope: energy and location only. Duration and priority stay per task and are nev
 
 ## 53. AI task input (`ai-task-input`)
 
-Design: `documentation/techDesign/ai-task-input/design.md`. Describe tasks in free text on `/tasks/new`, review an editable draft tree (questions inline, fixed restructure actions), and confirm to create everything in one transaction.
+HLD: `documentation/techDesign/ai-task-input/hld.md`. **Has an HLD: its LLD must be written and approved before implementation starts.** Describe tasks in free text on `/tasks/new`, review an editable draft tree (questions inline, fixed restructure actions), and confirm to create everything in one transaction.
 
 **Blocked by:** § 34 (Auth), § 52 (AI integration), § 55 (energy and location inheritance), and the results design for draft presentation. Related: § 49, § 50 (interim priority handling ships here), § 51 (recurrence is flagged, not parsed).
 
 - [ ] Results design for draft presentation (extend `TaskCard` or compose it in a review page), coordinated with § 47
+- [ ] Write the LLD, `documentation/techDesign/ai-task-input/lld.md` (API signatures, data objects, DB table structures, UI components), using the results design, and get it approved. Implementation starts only after approval
 - [ ] DB migration: add `tasks.priority_source`
 - [ ] `POST /api/tasks` accepts `prioritySource`; `POST /api/tasks/batch` (one transaction, new contexts, parent-first, `tempId` resolution, `null` for inherited fields as in § 55); real-DB tests; `openapi.yaml`
 - [ ] Shared query for open parent tasks with ancestor paths
 - [ ] Shared default priority and duration constant used by the manual form and drafting (values from § 50)
 - [ ] `src/ai/taskDrafting.ts` and `src/ai/draftResolution.ts`; `POST /api/ai/task-drafts`, `PATCH /api/ai/task-drafts/:eventId/outcome`; `openapi.yaml`
-- [ ] Evaluation set (see the design's Testing section), including injection cases
+- [ ] Evaluation set (see the HLD's Testing section), including injection cases
 - [ ] Web: `AiTaskInput`, `DraftReview`, `DraftActionBar`, `draftTree.ts`; `TaskCreationPage` gating states; Storybook stories
 
 ---
 
 ## 54. User provisioning: extract `provisionDefaultContexts` (`user-provisioning-impl`)
 
-Design: `documentation/techDesign/user-provisioning/design.md`. The plan was written and archived under § 7 (`TASKS-DONE.md`), but never implemented: `seed.ts` still inlines the default-context insert, and `provisionDefaultContexts` doesn't exist. Per the design's Verification section, the extraction can land on its own ahead of auth. § 34 then wires it into the signup path.
+LLD: `documentation/techDesign/user-provisioning/lld.md`. The plan was written and archived under § 7 (`TASKS-DONE.md`), but never implemented: `seed.ts` still inlines the default-context insert, and `provisionDefaultContexts` doesn't exist. Per the design's Verification section, the extraction can land on its own ahead of auth. § 34 then wires it into the signup path.
 
 - [ ] Add `apps/api/src/db/provisioning.ts` with `DEFAULT_CONTEXTS` and `provisionDefaultContexts(db, userId)`. The design's sample insert predates the `slide_index` column: assign `slideIndex` the way `seed.ts` does today, and keep it consistent with the slide-index invariant `POST /api/contexts` enforces (§ 14)
 - [ ] Make `seed.ts` a thin caller: insert the user, check the row came back, call `provisionDefaultContexts`

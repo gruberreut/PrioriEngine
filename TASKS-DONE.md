@@ -182,6 +182,8 @@ contexts for every new user. Full plan in
 auth so the provisioning shape is settled before it has to be threaded
 through whichever auth approach gets picked.
 
+(Since renamed to `documentation/techDesign/user-provisioning/lld.md`.)
+
 Decided: default context list stays hardcoded (no config table — nothing
 has ever needed to edit it without a deploy) but extracted to one shared
 constant/function (`provisionDefaultContexts`) instead of living only in
@@ -490,6 +492,7 @@ Adds delete for the plain task-browsing list (`TasksPage` → `TaskTreeItem`),
 reusing the `DELETE /api/tasks/:id` endpoint and `ConfirmDialog`
 children-choice flow already built in §12 for the in-progress block. Full
 design in `documentation/techDesign/task-list-delete/design.md`.
+(Since renamed to `documentation/techDesign/task-list-delete/lld.md`.)
 
 Leaf rows switch off `TaskCard`'s `dense` flavor (which blocked its
 `actions` prop) onto the normal `TaskCard`, since more per-task actions are
