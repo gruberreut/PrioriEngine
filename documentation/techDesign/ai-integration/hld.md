@@ -1,10 +1,10 @@
-# AI integration
+# AI integration — HLD
 
-Tracked in `TASKS.md` § 52.
+Tracked in `TASKS.md` § 52. This is the high-level design. The low-level design (`lld.md`, next to this file) is written and approved before implementation starts.
 
 ## Context
 
-TempAppName is adding its first AI feature, AI task input (`documentation/techDesign/ai-task-input/design.md`): the user describes one or more tasks in free text and gets back a draft task tree to review. More AI features are likely to follow. This document sets the project-wide rules every AI feature follows: where AI code lives, how the provider is called, how users opt in and out, how cost is capped, what is logged, and how untrusted input is kept from steering the model.
+TempAppName is adding its first AI feature, AI task input (`documentation/techDesign/ai-task-input/hld.md`): the user describes one or more tasks in free text and gets back a draft task tree to review. More AI features are likely to follow. This document sets the project-wide rules every AI feature follows: where AI code lives, how the provider is called, how users opt in and out, how cost is capped, what is logged, and how untrusted input is kept from steering the model.
 
 Nothing in the repo calls an AI provider today. There is no auth yet (§ 34), the API runs only on `localhost` (§ 38), and all data belongs to a single dev user.
 
@@ -144,7 +144,7 @@ Put the fixed system prompt and output schema first in the request and mark them
 - `GET /api/ai/status`: `{ enabled, consentedAt, allowance: { percentLeft, resetsAt } }`
 - `PATCH /api/ai/settings`: `{ enabled }`. Turning AI on for the first time records consent.
 
-Feature endpoints are listed in each feature's design doc. All endpoints are documented in `apps/api/openapi.yaml`.
+Feature endpoints are listed in each feature's HLD, and their full signatures in its LLD. All endpoints are documented in `apps/api/openapi.yaml`.
 
 **DB:**
 - `users`: add `ai_enabled boolean not null default false` and `ai_consented_at timestamptz null`.
