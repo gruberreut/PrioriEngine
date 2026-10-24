@@ -43,7 +43,9 @@ At most **3 questions per batch**, and there's never a second round. The model r
 
 ### Inheritance: context, location, energy and due date are inherited; priority and duration are not
 
-Subtasks really inherit **context, location, energy and due date**: a subtask stores `null` and resolves the value from the nearest ancestor that has one, so changing a parent changes its children. A value the user states on a subtask is stored and overrides the parent.
+Each subtask can have its own **context, location, energy and due date**, and a project can contain tasks that differ in all of them. When one of these is left empty, the subtask inherits it from the nearest ancestor that has one, so changing a parent changes the children that didn't set their own. A value stated on a subtask is stored and overrides the parent. For AI drafts, a field counts as empty when the model didn't state or infer it.
+
+The task-model change behind this (energy and location becoming optional, display and form support) is its own task, **§ 55**, which this feature depends on. Context and due date are already optional but don't inherit when ranked: bug **§ 10.8**.
 
 **Priority is not inherited.** Tasks inside one project can differ in urgency, so each task keeps its own priority. How parent and child priorities relate is specified separately in § 49. **Duration is not inherited** either: a project's duration says nothing about one of its steps.
 
@@ -185,21 +187,21 @@ Fields the model omits are filled by the server's inheritance and default step, 
 | `components/Skeleton` | **Reuse** while drafting |
 | `components/Select`, `features/tasks/PriorityPicker`, `features/tasks/DurationPicker` | **Reuse** for inline field editing on draft cards |
 | `components/Switch` | **Reuse** for the Settings "Use AI" toggle |
-| `services/taskCreationService.ts` | **Extend:** `createTaskBatch(...)`; `CreateTaskPayload` gains nullable inheritable fields |
+| `services/taskCreationService.ts` | **Extend:** `createTaskBatch(...)` (`CreateTaskPayload`'s nullable inheritable fields come from § 55) |
 | `services/contextService.ts` | **Reuse** `getContextItems` to show context names on drafts |
-| `features/tasks/resolveTask.ts` | **Extend:** resolve every inheritable field (`dueDate`, `contextId` too) so nullable DB values display correctly everywhere |
-| `types/task.ts` | **Extend:** `energyRequired` and `location` become nullable; add `prioritySource` |
+| `features/tasks/resolveTask.ts` | **Reuse** to show inherited values on drafts (resolving every inheritable field is § 55) |
+| `types/task.ts` | **Extend:** add `prioritySource` (nullable `energyRequired` and `location` come from § 55) |
 
 ### API (`apps/api`)
 
 | Existing | Reuse / extend |
 |---|---|
-| `routes/tasks.ts` | **Extend:** add `POST /api/tasks/batch`; `POST /api/tasks` accepts `null` for inheritable fields and records `prioritySource` |
-| `routes/rank.ts` | **Fixed separately as bug § 10.8:** DB `null` must reach the engine as a missing field. Today it passes `null`/`[]`, which stops the engine's inheritance (`inheritedValue` only walks up on `undefined`), so stored subtasks never inherit context or due date. Newly nullable energy and location depend on the same fix |
+| `routes/tasks.ts` | **Extend:** add `POST /api/tasks/batch`; `POST /api/tasks` records `prioritySource` (accepting `null` for inherited fields is § 55) |
+| `routes/rank.ts` | **Fixed separately as bug § 10.8:** DB `null` must reach the engine as a missing field. Today it passes `null`/`[]`, which stops the engine's inheritance (`inheritedValue` only walks up on `undefined`), so stored subtasks never inherit context or due date. § 55's optional energy and location depend on the same fix |
 | `db/queries.ts` (→ `db/sharedQueries/tasks.ts` after § 48) | **Extend:** a shared query for open parent tasks with ancestor paths, used by drafting |
 | `lib/http.ts` | **Reuse** `json`, `readBody` |
 | `openapi.yaml` | **Extend** with every new and changed endpoint |
-| `POST /api/tasks/:id/split` | **Revisit** (not in scope): it copies energy and location onto the new child instead of leaving them to inherit |
+| `POST /api/tasks/:id/split` | **Revisit in § 55** (not in this feature): it copies energy and location onto the new child instead of leaving them to inherit |
 
 ### Engine (`packages/engine`)
 
@@ -233,18 +235,17 @@ The shared `GET /api/ai/status` and `PATCH /api/ai/settings` are specified in th
 
 | Change | Detail |
 |---|---|
-| `tasks.energy_required` | Becomes nullable (`null` = inherit) |
-| `tasks.location` | Becomes nullable (`null` = inherit); the column default `'anywhere'` is dropped, and top-level tasks get the default from the API |
-| `tasks.due_date`, `tasks.context_id` | Already nullable; `null` now consistently means "inherit" (needs the § 10.8 fix) |
+| `tasks.energy_required`, `tasks.location` | Become nullable (`null` = inherit) in **§ 55**, a prerequisite; listed here for completeness |
+| `tasks.due_date`, `tasks.context_id` | Already nullable; `null` means "inherit" once bug § 10.8 is fixed |
 | `tasks.priority_source` | New, `text not null default 'stated'` (`stated \| inferred \| default`); existing rows are `stated`, since they came from the form. Kept here because § 50 builds on it |
 | `tasks.priority`, `tasks.duration` | Unchanged, `not null` (not inherited) |
 | `users.ai_enabled`, `users.ai_consented_at`, table `ai_usage_events` | From the AI integration doc |
 
-Top-level tasks always store concrete values for energy and location (the API fills defaults), so `null` appears only on subtasks. One Drizzle migration (`npm run db:generate -w @priori/api`) covers the task columns. A data-cleanup step to convert existing children that copied their parent's values back to `null` is **not** included: existing data stays as it is.
+This feature's own migration (`npm run db:generate -w @priori/api`) adds only `tasks.priority_source`, plus the AI integration tables if they haven't landed yet.
 
 ## Testing
 
-- **API, real DB:** `POST /api/tasks/batch` (parent-first insertion, `tempId` resolution, new contexts, rollback on any failure, rejects foreign parent ids), `rank.ts` inheritance of the newly nullable energy and location (extending the § 10.8 test), the new parent-tasks query.
+- **API, real DB:** `POST /api/tasks/batch` (parent-first insertion, `tempId` resolution, new contexts, rollback on any failure, rejects foreign parent ids), batch-created subtasks with empty fields inherit when ranked, the new parent-tasks query.
 - **API, AI module replaced with canned output:** `POST /api/ai/task-drafts` gating (AI off → 403, no consent → 403, length → 400, allowance → 429), invalid output → 502 with units kept, provider error → units refunded.
 - **Unit:** `draftResolution.ts` (each source rule, the inheritable vs non-inheritable fields, the question cap), `draftTree.ts` (every restructure action, cycles prevented).
 - **Web:** `TaskCreationPage` state table; Storybook stories for every new component and draft-card state, per `apps/web/CLAUDE.md`.
@@ -256,7 +257,7 @@ Top-level tasks always store concrete values for energy and location (the API fi
 - AI integration (§ 52): `src/ai/`, consent, allowance, usage log, status endpoints
 - A Settings page for the "Use AI" toggle (§ 23 / § 44 are both deferred)
 - The results design (draft presentation)
-- Bug § 10.8 (stored subtasks don't inherit when ranked), which nullable energy and location rely on
+- § 55 (subtasks can inherit energy and location), which itself depends on bug § 10.8 (stored subtasks don't inherit when ranked)
 - § 48 if it lands first: the new parent-tasks query goes in `db/sharedQueries/tasks.ts`
 
 Related but not blocking: § 49 (parent/child priority), § 50 (priority signal; this feature ships its interim), § 51 (recurrence; this feature flags it).

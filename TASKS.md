@@ -1268,23 +1268,40 @@ Design: `documentation/techDesign/ai-integration/design.md`. Project-wide founda
 
 ---
 
+## 55. Subtasks can inherit energy and location (`inherit-energy-location`)
+
+Placed before § 53 because § 53 depends on it; the section number doesn't reflect that. Came up while designing AI task input (`documentation/techDesign/ai-task-input/design.md`), but it's a change to the task model that the manual form needs too.
+
+A project can contain tasks with different energy levels and locations, so each subtask can have its own value. When a subtask's value is left empty, it inherits the nearest ancestor's. Today that isn't possible: `tasks.energy_required` and `tasks.location` are `NOT NULL`, and the manual form always sets both, so every subtask stores its own value and changing a parent never reaches its children. (Context and due date can already be empty, but don't inherit when ranked; that's bug § 10.8.)
+
+Scope: energy and location only. Duration and priority stay per task and are never inherited (priority: § 49). There's no field-editing endpoint yet (`PUT /api/tasks/:id` only changes status), so editing an existing task to "same as parent" is out of scope until one exists.
+
+**Blocked by:** § 10.8. The ranking must treat an empty value as missing, or inherited values never reach the engine.
+
+- [ ] DB migration: `tasks.energy_required` and `tasks.location` nullable; drop the `'anywhere'` column default. Existing rows keep their values (no back-fill to `null`)
+- [ ] `POST /api/tasks`: subtasks may send `null` for energy and location to inherit; a top-level task always gets a concrete value (defaults from the API when omitted). Real-DB tests; update `openapi.yaml`
+- [ ] Ranking: extend the § 10.8 test so a subtask with empty energy and location is ranked with its parent's values
+- [ ] Web: `types/task.ts` makes `energyRequired` and `location` nullable; `resolveTask.ts` resolves every inheritable field (energy, location, context, due date) from ancestors; every display (`TaskCard`, `TaskTreeItem`, `TaskCreationPage`'s created-task rows, `RankingPage`) shows the resolved value
+- [ ] Decide how the manual form offers inheritance for a subtask (e.g. a "Same as parent" option on the energy and location pickers, selected by default when a parent is chosen), and implement it
+- [ ] Decide whether `POST /api/tasks/:id/split` should leave the new child's energy and location to inherit instead of copying them
+- [ ] Record the inheritance decision (context, location, energy and due date inherited when empty; priority and duration never) in `documentation/ARCHITECTURE.md`
+
+---
+
 ## 53. AI task input (`ai-task-input`)
 
 Design: `documentation/techDesign/ai-task-input/design.md`. Describe tasks in free text on `/tasks/new`, review an editable draft tree (questions inline, fixed restructure actions), and confirm to create everything in one transaction.
 
-**Blocked by:** § 34 (Auth), § 52 (AI integration), and the results design for draft presentation. Related: § 49, § 50 (interim priority handling ships here), § 51 (recurrence is flagged, not parsed).
+**Blocked by:** § 34 (Auth), § 52 (AI integration), § 55 (energy and location inheritance), and the results design for draft presentation. Related: § 49, § 50 (interim priority handling ships here), § 51 (recurrence is flagged, not parsed).
 
 - [ ] Results design for draft presentation (extend `TaskCard` or compose it in a review page), coordinated with § 47
-- [ ] DB migration: `tasks.energy_required` and `tasks.location` nullable (drop the `'anywhere'` default), add `tasks.priority_source`
-- [ ] Confirm § 10.8 is fixed (`routes/rank.ts` passes DB `null` to the engine as missing). It's a prerequisite, since nullable energy and location rely on the same fix
-- [ ] `POST /api/tasks` accepts `null` inheritable fields and `prioritySource`; `POST /api/tasks/batch` (one transaction, new contexts, parent-first, `tempId` resolution); real-DB tests; `openapi.yaml`
+- [ ] DB migration: add `tasks.priority_source`
+- [ ] `POST /api/tasks` accepts `prioritySource`; `POST /api/tasks/batch` (one transaction, new contexts, parent-first, `tempId` resolution, `null` for inherited fields as in § 55); real-DB tests; `openapi.yaml`
 - [ ] Shared query for open parent tasks with ancestor paths
 - [ ] Shared default priority and duration constant used by the manual form and drafting (values from § 50)
 - [ ] `src/ai/taskDrafting.ts` and `src/ai/draftResolution.ts`; `POST /api/ai/task-drafts`, `PATCH /api/ai/task-drafts/:eventId/outcome`; `openapi.yaml`
 - [ ] Evaluation set (see the design's Testing section), including injection cases
-- [ ] Web: extend `resolveTask.ts` and `types/task.ts` for nullable inheritable fields
 - [ ] Web: `AiTaskInput`, `DraftReview`, `DraftActionBar`, `draftTree.ts`; `TaskCreationPage` gating states; Storybook stories
-- [ ] Record the inheritance decision (context, location, energy and due date inherited; priority and duration not) in `documentation/ARCHITECTURE.md`
 
 ---
 
