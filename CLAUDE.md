@@ -26,7 +26,7 @@ Why: see `documentation/PROCESS.md` § Approval and pacing.
 
 **Pushing without a TASKS.md change.** A `git push` hook (`.claude/hooks/check-tasks.sh`) blocks pushes whose outgoing commits don't touch `TASKS.md`. When a change genuinely has nothing to track, add a line `Tasks: none — <reason>` to one of the commit messages.
 
-Why: see `documentation/PROCESS.md` § Task tracking and § Hooks.
+Why: see `documentation/PROCESS.md` § Task tracking, § Hooks and § Documentation.
 
 ## Branch Workflow
 

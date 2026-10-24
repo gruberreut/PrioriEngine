@@ -61,3 +61,10 @@ Coding conventions for components (presentational vs page/container, props in an
   - Keeping process decisions in `ARCHITECTURE.md`. It mixes two audiences and topics.
   - Moving the rules themselves out of `CLAUDE.md` into this file. `CLAUDE.md` is loaded into every agent session and other files aren't, so the rules stay there. This file holds only the reasoning, which is needed when a rule is being changed.
   - Importing this file into `CLAUDE.md` (`@documentation/PROCESS.md`). That would load the reasoning into every session, when it's only needed for process changes.
+
+**Design docs get a linked task.** A new design doc under `documentation/techDesign/<topic>/` gets a `TASKS.md` section in the same change. The section links to the doc, and the doc names its section near the top. Rule: `CLAUDE.md` § Task Tracking.
+- **Why:** a design that no task points to is easily forgotten, and a task without its design loses the decisions behind it. Linking both ways means each can be found from the other. When the rule was applied to the existing designs, it showed that the user-provisioning plan had been archived as done but never implemented (§ 54).
+
+**HLD, then LLD, then implementation.** Design docs are either `hld.md` (high-level design: decisions, flow, and which components, endpoints and tables are reused, extended or added) or `lld.md` (low-level design: API signatures, data objects, DB table structures, UI components). When a task attached to an HLD is started, its first step is writing the LLD and getting it approved; implementation waits for that approval. Rule: `CLAUDE.md` § Task Tracking.
+- **Why:** an HLD settles direction but leaves the details open. Writing and approving the LLD first means the user sees and discusses those details before anything is built, which is the same reason as approval before execution (§ Approval and pacing). Separate file names also say what level of detail a doc has, which a generic `design.md` didn't.
+- **Rejected:** going straight from an HLD to implementation. The details would be decided while coding, without review.
