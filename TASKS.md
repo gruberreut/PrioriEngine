@@ -2,7 +2,7 @@
 
 Implementation tasks for the engine ↔ web integration.
 
-**Priority order:** at this point in development, work through sections in order: known bugs (10), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
+**Priority order:** at this point in development, work through sections in order: known bugs (10), then §48 (shared queries split by entity, placed right after § 10 for that reason), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
 
 **§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing the sections above plus two new ones (§38 Deployment, §39 Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
@@ -203,6 +203,28 @@ Found while refreshing the agent docs (`docs/claude-md-split`). Filed as a bug a
 - [ ] Add `coverage` to `globalIgnores` in `apps/web/eslint.config.js`
 - [ ] Confirm `npm run lint -w @priori/web` exits 0. Decide whether warnings must also be zero (e.g. `eslint --max-warnings 0`)
 - [ ] Once it passes, make it mandatory: add a rule to `apps/web/CLAUDE.md` that lint must pass after any change in `apps/web` before the work is considered complete. Decide whether to also enforce it mechanically (a hook like `.claude/hooks/check-tasks.sh`, or CI once § 38 adds one) so it doesn't depend on remembering
+
+---
+
+## 48. Split shared queries by entity into `db/sharedQueries/` (`shared-queries-by-entity`) — high priority
+
+Filed out of order, right after Known Bugs, because it's high priority; the section number doesn't reflect that.
+
+`apps/api/src/db/queries.ts` holds the queries that more than one file needs, so they aren't duplicated when one entity's code reads another entity's data (e.g. `routes/rank.ts` reading tasks through `queryTasks`). With every entity in one file it will keep growing and mix entities together. Split it into one file per entity so each entity's shared access is easy to find and review.
+
+Scope stays **shared queries only**: the directory's purpose is de-duplication across files. Queries used by just one route stay inline in that route, as today.
+
+Current contents (31 lines): `queryTasks` and `groupTasksByParent`, both task-related, used by `routes/tasks.ts` and `routes/rank.ts`. `contexts` and `users` have no shared queries yet.
+
+- [ ] Replace `apps/api/src/db/queries.ts` with a directory `apps/api/src/db/sharedQueries/`, one file per entity named after its table in `schema.ts` (`tasks.ts` now; `contexts.ts`, `users.ts` only when their first shared query exists, no empty placeholder files)
+- [ ] Move the `Db` type into a shared `sharedQueries/types.ts`, so each entity file doesn't redefine it
+- [ ] No re-exporting `index.ts`: callers import from the entity file directly (`../db/sharedQueries/tasks.js`), so the import shows which entity is being accessed
+- [ ] Connect each entity's route file to its shared-queries file: import from it where the route uses a shared query; where it doesn't (yet), a short comment at the top of the route file pointing at `db/sharedQueries/<entity>.ts`, only once that file exists
+- [ ] Move `test/db/queries.test.ts` to `test/db/sharedQueries/tasks.test.ts`, mirroring the new structure
+- [ ] Update the Database Access Pattern section in `apps/api/CLAUDE.md`: new path, one file per entity, shared-only scope, import-or-comment link from the route file
+- [ ] Record the decision in `documentation/ARCHITECTURE.md` in the same commit (why per-entity, why shared-only, why no barrel `index.ts`), and update its existing `queries.ts` mentions (the directory tree, the `hasChildren` note, the shared-query rule, the `groupTasksByParent` note)
+- [ ] Update the `queries.ts` mention in `documentation/techDesign/user-provisioning/design.md`
+- [ ] `npm test -w @priori/api` passes
 
 ---
 
