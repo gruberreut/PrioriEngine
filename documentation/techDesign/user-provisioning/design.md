@@ -1,5 +1,7 @@
 # User provisioning flow
 
+Tracked in `TASKS.md` § 54 (implementation). The plan itself was archived under `TASKS-DONE.md` § 7.
+
 ## Context
 
 Today there is exactly one user: `apps/api/src/db/seed.ts` inserts a single
