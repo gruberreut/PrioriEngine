@@ -25,7 +25,7 @@ decisions came out of discussion:
    immediately, call the API in the background, and only if that call fails
    tell the user and resync from the server. This is a deliberately
    narrow, page-local version of a problem that's bigger than this task —
-   three follow-up backlog items (TASKS.md §29–§31) capture the broader work
+   three follow-up backlog items (§29–§31; §29 is now in TASKS-DONE.md, §30–§31 in TASKS-TECH.md) capture the broader work
    (generalizing this pattern, applying it to `RankingPage`, and eventually
    observability) without pulling any of it into this change.
 
@@ -142,9 +142,9 @@ No changes to API routes/services (reuses `DELETE /api/tasks/:id` and
 `taskService.deleteTask` from §12); no `ARCHITECTURE.md` entry (no new
 architectural decision for this page-local pattern).
 
-### New TASKS.md backlog items
+### New task backlog items
 
-Added as §29–§31 (see `TASKS.md`):
+Added as §29–§31 (§29 is now in `TASKS-DONE.md`, §30–§31 in `TASKS-TECH.md`):
 
 **§29 `RankingPage` optimistic updates (`ranking-optimistic-updates`)** —
 today `RankingPage.handleInProgressAction`/`handleStartTask`/

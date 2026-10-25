@@ -1,10 +1,12 @@
 # Bugs
 
+Known bugs. When choosing what to work on, read this file first: open bugs come before everything in `TASKS-TECH.md` and `TASKS-FEATURES.md` (see `CLAUDE.md` § Task Tracking). This file always exists, even with no open bugs, because it's where new bugs are filed. Fixed bugs move to `TASKS-DONE.md` § 10.
+
 ---
 
 ## 10. Known Bugs (`known-bugs`)
 
-Per-user decision: this section header stays in `TASKS.md` even when its list is empty, rather than being archived away like other fully-completed sections — it's the standing place new bugs get filed. An individual bug still moves to `TASKS-DONE.md` once fixed; only the section title itself is exempt from archiving. See the priority note at the top of this file: known bugs come first.
+Per-user decision: this section (and this file) stays even when its list is empty, rather than being archived away like other fully-completed sections — it's the standing place new bugs get filed. An individual bug still moves to `TASKS-DONE.md` once fixed; only the section title itself is exempt from archiving. See the note at the top of this file: known bugs come first.
 
 Resolved bugs are in `TASKS-DONE.md` § 10 (most recently § 10.6, the duplicate-context-option bug).
 
