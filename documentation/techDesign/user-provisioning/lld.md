@@ -1,6 +1,6 @@
 # User provisioning flow
 
-Tracked in `TASKS.md` § 54 (implementation). The plan itself was archived under `TASKS-DONE.md` § 7.
+Tracked in `TASKS-TECH.md` § 54 (implementation). The plan itself was archived under `TASKS-DONE.md` § 7.
 
 ## Context
 
@@ -12,7 +12,7 @@ resulting `devUserId` into every route handler
 (`documentation/ARCHITECTURE.md` § Authentication). There is no auth, no
 sign-up flow, and no `POST /api/users` endpoint.
 
-TASKS.md §7 flagged that once real user accounts exist, the server needs to
+TASKS-DONE.md §7 flagged that once real user accounts exist, the server needs to
 automatically provision the same default contexts for every *new* user —
 today's seed script only covers the one dev user and isn't a mechanism, just
 a one-off script. This doc is that plan, written ahead of auth so the
@@ -35,7 +35,7 @@ so it has exactly one definition instead of becoming duplicated between
 
 ### Trigger point: immediately after the `users` row is first inserted
 
-Rejected the other two options named in TASKS.md:
+Rejected the other two options named in TASKS-DONE.md §7:
 
 - **A DB trigger** — would move business logic out of the app layer this
   codebase otherwise keeps it in (`queries.ts`'s shared-query pattern,

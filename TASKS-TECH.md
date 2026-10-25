@@ -1,12 +1,12 @@
-# Tasks
+# Technical tasks
 
-Implementation tasks for the engine ↔ web integration.
+Technical work: the goal is not a change users can see (refactors, infrastructure, tooling, docs, quality). Read this file when `TASKS-BUGS.md` has no open, unblocked items, and before `TASKS-FEATURES.md` (see `CLAUDE.md` § Task Tracking).
 
-**Priority order:** at this point in development, work through sections in order: known bugs (10), then §48 (shared queries split by entity, placed right after § 10 for that reason), then §50 (priority signal quality, placed after § 48 for the same reason), then the OpenAPI documentation migration (11), then new feature work (12 onward). Within new feature work, §35 (Onboarding sequence) is relatively high priority — take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open.
+**Priority order:** §48 (shared queries split by entity) first, then the rest of this file in order.
 
-**§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing the sections above plus two new ones (§38 Deployment, §39 Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
+**§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing sections in all the task files, including §38 (Deployment) and §39 (Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
-Fully-completed top-level sections are moved to `TASKS-DONE.md` (see `CLAUDE.md` § Task Tracking), leaving a one-line stub in their place. A missing section number here means it's archived there, not deleted.
+Section numbers are shared with `TASKS-BUGS.md`, `TASKS-FEATURES.md` and `TASKS-DONE.md`, and never reused. A number missing here is in one of those files.
 
 ---
 
@@ -712,7 +712,7 @@ testing.
 - [ ] Decide on a provider/approach once this becomes relevant (a hosted product analytics tool, a self-hosted event log, or piggybacking on whatever error-tracking service is chosen for the backend) — no research done yet, intentionally deferred
 - [ ] Once §31 (general failed-backend-call handling) exists, wire it to also emit an error event through this mechanism, so failures are visible in aggregate and not just shown to the one user who hit them
 
-**Trigger:** production deployment is actually being planned, or the "single dev user" assumption elsewhere in this file stops holding.
+**Trigger:** production deployment is actually being planned, or the "single dev user" assumption elsewhere in the task files stops holding.
 
 ---
 

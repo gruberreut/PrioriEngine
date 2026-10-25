@@ -5,7 +5,7 @@ export type Theme = "light" | "dark" | "auto";
 declare global {
   interface Window {
     /** Dev-only escape hatch until a settings screen lets the user set this
-     *  (see TASKS.md). Call switchTheme('light' | 'dark' | 'auto') from the
+     *  (see TASKS-FEATURES.md § 23). Call switchTheme('light' | 'dark' | 'auto') from the
      *  console. */
     switchTheme?: (theme: Theme) => void;
   }

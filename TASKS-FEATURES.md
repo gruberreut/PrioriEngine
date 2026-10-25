@@ -1,5 +1,11 @@
 # Feature tasks
 
+Features: the goal is a behaviour users see. Read this file only when `TASKS-BUGS.md` and `TASKS-TECH.md` have no open, unblocked items, or when asked (see `CLAUDE.md` § Task Tracking). Before starting a section here, check `TASKS-BUGS.md` and `TASKS-TECH.md` for open items in the same area and do those first, or ask.
+
+**Priority order:** §50 (priority signal quality) first. §35 (Onboarding sequence) is relatively high priority: take it up once its dependency, §34 (Auth), is done, ahead of lower-numbered sections that are still open. Otherwise, work through the sections in order.
+
+Section numbers are shared with `TASKS-BUGS.md`, `TASKS-TECH.md` and `TASKS-DONE.md`, and never reused. A number missing here is in one of those files.
+
 ---
 
 ## 50. Priority signal quality (`priority-signal`) — high priority
@@ -210,7 +216,7 @@ Decided: testers reach the "Priori Beta Feedback" Google Form through a button i
 
 ## 41. Integrate the app's real name (`real-name-integration`)
 
-"Tendril" turned out to already be in use by another app/company; a real replacement name hasn't been chosen yet. In the meantime, every user-facing mention of the app's name was swept to the placeholder **"TempAppName"** (`CLAUDE.md`'s Naming section, `LoadingScreen.tsx`, `Button.mdx`, `ARCHITECTURE.md`, `DESIGN-TOKENS-BY-COMPONENT.md`, and the relevant prose in this file). This task is the follow-up once a real name lands — both applying it, and finishing the parts the placeholder pass deliberately deferred.
+"Tendril" turned out to already be in use by another app/company; a real replacement name hasn't been chosen yet. In the meantime, every user-facing mention of the app's name was swept to the placeholder **"TempAppName"** (`CLAUDE.md`'s Naming section, `LoadingScreen.tsx`, `Button.mdx`, `ARCHITECTURE.md`, `DESIGN-TOKENS-BY-COMPONENT.md`, and the relevant prose in the task files). This task is the follow-up once a real name lands — both applying it, and finishing the parts the placeholder pass deliberately deferred.
 
 **Deliberately left untouched by the TempAppName pass** — the placeholder swap was user-facing text only, not internal identifiers, since renaming those twice (once to a placeholder, again to the real name) is wasted effort. This task does that rename for real, once, when there's a real name to land on:
 - The `--tendril-*` CSS custom-property prefix — Layer 1 of the token system, 129 occurrences in `tokens.css` alone (`CLAUDE.md`'s Design tokens section, `documentation/DESIGN-TOKENS-BY-COMPONENT.md`)
@@ -222,7 +228,7 @@ Decided: testers reach the "Priori Beta Feedback" Google Form through a button i
 - [ ] Update `CLAUDE.md`'s Naming section from "unsettled, use TempAppName" to the real name, and state it as settled
 - [ ] Sweep every "TempAppName" occurrence (the files listed above) to the real name
 - [ ] Rename the internal identifiers listed above, handling the `localStorage` key migration decision
-- [ ] Rename the two docs and the artboard image (`git mv`) and update the ~15 cross-references to their filenames elsewhere in this file and `DESIGN-TOKENS-BY-COMPONENT.md`
+- [ ] Rename the two docs and the artboard image (`git mv`) and update the ~15 cross-references to their filenames in the task files, `TASKS-DONE.md` and `DESIGN-TOKENS-BY-COMPONENT.md`
 - [ ] Update §36's naming-lint target string from "TempAppName" to the real name
 - [ ] Rename the "Priori Beta Feedback" Google Form's title and question text (§37) — first real rename for the form, since it was deliberately left saying "Priori" through the TempAppName pass
 - [ ] Decide whether repo-identity naming (`package.json`'s `"name": "priori"`, `README.md`) should also change, as a separate call from the in-app product name

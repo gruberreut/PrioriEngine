@@ -1,6 +1,6 @@
 # AI task input — HLD
 
-Tracked in `TASKS.md` § 53. This is the high-level design. The low-level design (`lld.md`, next to this file) is written and approved before implementation starts. Project-wide AI rules (provider, consent, allowance, logging, injection defence) are in `documentation/techDesign/ai-integration/hld.md`; this document only adds what is specific to task input.
+Tracked in `TASKS-FEATURES.md` § 53. This is the high-level design. The low-level design (`lld.md`, next to this file) is written and approved before implementation starts. Project-wide AI rules (provider, consent, allowance, logging, injection defence) are in `documentation/techDesign/ai-integration/hld.md`; this document only adds what is specific to task input.
 
 ## Context
 

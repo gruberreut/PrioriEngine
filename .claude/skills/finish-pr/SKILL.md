@@ -1,6 +1,6 @@
 ---
 name: finish-pr
-description: Finalize a GitHub PR for this repo — the PR number given, or else the current branch's PR. If it is OPEN, audit it for merge readiness (every PR template section filled, commits match the description, TASKS.md rule met) and report "ready to merge" or what's missing, without ever merging. If it is MERGED, run the post-merge cleanup from CLAUDE.md § Branch Workflow and confirm a clean main in sync with origin/main. If it is CLOSED unmerged, report and stop. Use when the user types /finish-pr or asks to finish, wrap up, check, or clean up after a PR.
+description: Finalize a GitHub PR for this repo — the PR number given, or else the current branch's PR. If it is OPEN, audit it for merge readiness (every PR template section filled, commits match the description, task-file rule met) and report "ready to merge" or what's missing, without ever merging. If it is MERGED, run the post-merge cleanup from CLAUDE.md § Branch Workflow and confirm a clean main in sync with origin/main. If it is CLOSED unmerged, report and stop. Use when the user types /finish-pr or asks to finish, wrap up, check, or clean up after a PR.
 argument-hint: "[pr-number]"
 ---
 
@@ -27,8 +27,8 @@ Run `git fetch origin` first. If the PR's `headRefName` isn't the current branch
 
 **b. Commits vs description.** Run `git log origin/main..HEAD` (and `git diff --stat origin/main...HEAD`). Check the commits and changed files match what "What changed" describes: flag commits or files the description doesn't account for, and described changes with no matching commit. Also note if `git log HEAD..origin/main` is non-empty (the branch is behind main).
 
-**c. TASKS.md rule** (see `CLAUDE.md` § Task Tracking and the push hook `.claude/hooks/check-tasks.sh`). Met if either:
-- some commit in `origin/main..HEAD` changes `TASKS.md` (`git log --format=%h origin/main..HEAD -- TASKS.md`) and the change reflects this PR's work, or
+**c. Task-file rule** (see `CLAUDE.md` § Task Tracking and the push hook `.claude/hooks/check-tasks.sh`). Met if either:
+- some commit in `origin/main..HEAD` changes a task file (`git log --format=%h origin/main..HEAD -- TASKS-BUGS.md TASKS-TECH.md TASKS-FEATURES.md`) and the change reflects this PR's work, or
 - a commit message has a `Tasks: none — <reason>` line, and the reason is accurate (the change really has nothing to track).
 
 **d. Report.** End with either **Ready to merge** (and the PR URL) or a short list of what's missing. Merging is the user's step on GitHub.

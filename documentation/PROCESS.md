@@ -26,11 +26,23 @@ Coding conventions for components (presentational vs page/container, props in an
 
 ## Task tracking
 
-**Archive finished sections to `TASKS-DONE.md`, leaving a stub.** A top-level `TASKS.md` section moves to `TASKS-DONE.md` only when every item in it is checked. A one-line stub stays in its place. Rule: `CLAUDE.md` § Task Tracking.
-- **Why:** `TASKS.md` keeps growing, so moving finished work out keeps it a manageable size. The stub keeps section numbers and `§N` references working without opening the archive. Partially done sections stay in full so open items are never hidden in the archive.
+**Split task files: bugs, then technical work, then features.** Active work is tracked in `TASKS-BUGS.md` (§ 10 Known Bugs only), `TASKS-TECH.md` (the goal is not a change users can see: refactors, infrastructure, tooling, docs, quality) and `TASKS-FEATURES.md` (the goal is a behaviour users see), replacing the single `TASKS.md`. The agent reads them in that order and moves to the next file only when the current one has no open, unblocked items, or when the user asks. A large feature keeps its technical subtasks, unless a technical part blocks other work or is needed by more than one feature; then it becomes its own `TASKS-TECH.md` section, linked with "Depends on §N". Dependencies between the files are fine in any direction. Section numbers are shared across all four task files (including `TASKS-DONE.md`) and never renumbered; `CLAUDE.md` gives the command that finds the next free number. Rule: `CLAUDE.md` § Task Tracking.
+- **Why:** `TASKS.md` had grown to about 1,330 lines (about 55k tokens), and the agent read it every time it chose work. Bugs and technical work come first, so they don't compound and don't block features; splitting by that precedence means the file read first is the one that usually decides the next task. Bugs got their own file because they're few and short (about 40 lines, against about 560 for technical work), so `TASKS-TECH.md` isn't read at all while bugs are open. Shared numbers keep every existing `§N` reference valid without saying which file holds the section.
+- **Rejected:**
+  - Per-package task files (engine, API, web). Most sections span packages (e.g. § 55 touches the DB, API, engine and web), so a section would have to be split or duplicated, and the bugs-first precedence isn't per package.
+  - Per-feature task files. Most features are a single short section, so a file each adds overhead without saving much reading. Revisit when the first feature with an HLD starts (§ 52, § 53), since those carry an LLD and long checklists.
+  - Bugs as a section at the top of `TASKS-TECH.md`. It reads first anyway, but it means reading the whole technical file (about 23k tokens) to find two bugs.
+  - One archive per active file. `TASKS-DONE.md` stays the single archive; each newly archived section records its type instead (below).
 
-**The Known Bugs section is never archived, and comes first.** `## 10. Known Bugs` stays in `TASKS.md` even with no open bugs. Individual fixed bugs still move to `TASKS-DONE.md`. Rule: `CLAUDE.md` § Task Tracking, and the priority order at the top of `TASKS.md`.
-- **Why:** bugs are fixed early so they don't compound, which makes them high priority. The section is the standing place new bugs are filed, so it has to exist and be findable even when empty.
+**Archive finished sections to `TASKS-DONE.md`, with their type.** A top-level section moves to `TASKS-DONE.md`, in numeric order, only when every item in it is checked. A `Type: tech` or `Type: feature` line goes directly under its heading. No stub is left behind. Rule: `CLAUDE.md` § Task Tracking.
+- **Why:** moving finished work out keeps the active files a manageable size. Partially done sections stay in full so open items are never hidden in the archive. The type line keeps one archive while still recording which kind of work each section was, which the split files would otherwise lose once a section leaves them.
+
+**Superseded — archive finished sections to `TASKS-DONE.md`, leaving a stub.** A top-level `TASKS.md` section moved to `TASKS-DONE.md` only when every item in it was checked. A one-line stub stayed in its place.
+- **Why (at the time):** `TASKS.md` kept growing, so moving finished work out kept it a manageable size. The stub kept section numbers and `§N` references working without opening the archive.
+- **Superseded by** the split task files (above). With active work spread over three files, a stub would sit in whichever file the section happened to leave, so finding a number means searching all the files anyway. The archive itself answers "where did § N go", and the shared-number command finds the next free number. Stubs also cost reading tokens in exactly the files read most often: 17 of them were removed in the split.
+
+**The Known Bugs file always exists, and is read first.** `TASKS-BUGS.md` and its `## 10. Known Bugs` header stay even with no open bugs. Individual fixed bugs still move to `TASKS-DONE.md` § 10. Rule: `CLAUDE.md` § Task Tracking. Before the split, this was a section of `TASKS.md` that was never archived, with the bugs-first priority stated at the top of that file.
+- **Why:** bugs are fixed early so they don't compound, which makes them high priority. The file is the standing place new bugs are filed, so it has to exist and be findable even when empty.
 
 ---
 
@@ -47,9 +59,9 @@ Coding conventions for components (presentational vs page/container, props in an
 
 ## Hooks
 
-**`TASKS.md`: a reminder at commit, a block at push.** A `git commit` PreToolUse hook only reminds the agent to check `TASKS.md`. A `git push` PreToolUse hook (`.claude/hooks/check-tasks.sh`) blocks with exit 2 when none of the outgoing commits (`origin/main..HEAD`) touch `TASKS.md` and no commit message opts out with a `Tasks: none — <reason>` line. Rule: `CLAUDE.md` § Task Tracking. Moved from `documentation/ARCHITECTURE.md` § Development Workflow.
-- **Why:** push is the right granularity. A branch is the unit of work, and it needs a `TASKS.md` update once, not in every commit.
-- **Rejected:** blocking at commit. Intermediate commits (WIP, refactors, fixups) legitimately don't touch `TASKS.md`, so a commit-level block would mostly produce false positives and train opt-out habits.
+**Task files: a reminder at commit, a block at push.** A `git commit` PreToolUse hook only reminds the agent to check the task files. A `git push` PreToolUse hook (`.claude/hooks/check-tasks.sh`) blocks with exit 2 when none of the outgoing commits (`origin/main..HEAD`) touch `TASKS-BUGS.md`, `TASKS-TECH.md` or `TASKS-FEATURES.md` and no commit message opts out with a `Tasks: none — <reason>` line. A change to `TASKS-DONE.md` alone doesn't count, since archiving always also removes the section from an active file. Rule: `CLAUDE.md` § Task Tracking. Moved from `documentation/ARCHITECTURE.md` § Development Workflow; before the split task files, both hooks checked `TASKS.md`.
+- **Why:** push is the right granularity. A branch is the unit of work, and it needs a task-file update once, not in every commit.
+- **Rejected:** blocking at commit. Intermediate commits (WIP, refactors, fixups) legitimately don't touch the task files, so a commit-level block would mostly produce false positives and train opt-out habits.
 
 ---
 
@@ -62,7 +74,7 @@ Coding conventions for components (presentational vs page/container, props in an
   - Moving the rules themselves out of `CLAUDE.md` into this file. `CLAUDE.md` is loaded into every agent session and other files aren't, so the rules stay there. This file holds only the reasoning, which is needed when a rule is being changed.
   - Importing this file into `CLAUDE.md` (`@documentation/PROCESS.md`). That would load the reasoning into every session, when it's only needed for process changes.
 
-**Design docs get a linked task.** A new design doc under `documentation/techDesign/<topic>/` gets a `TASKS.md` section in the same change. The section links to the doc, and the doc names its section near the top. Rule: `CLAUDE.md` § Task Tracking.
+**Design docs get a linked task.** A new design doc under `documentation/techDesign/<topic>/` gets a section in `TASKS-TECH.md` or `TASKS-FEATURES.md` in the same change. The section links to the doc, and the doc names its section (file and number) near the top. Rule: `CLAUDE.md` § Task Tracking.
 - **Why:** a design that no task points to is easily forgotten, and a task without its design loses the decisions behind it. Linking both ways means each can be found from the other. When the rule was applied to the existing designs, it showed that the user-provisioning plan had been archived as done but never implemented (§ 54).
 
 **HLD, then LLD, then implementation.** Design docs are either `hld.md` (high-level design: decisions, flow, and which components, endpoints and tables are reused, extended or added) or `lld.md` (low-level design: API signatures, data objects, DB table structures, UI components). When a task attached to an HLD is started, its first step is writing the LLD and getting it approved; implementation waits for that approval. Rule: `CLAUDE.md` § Task Tracking.

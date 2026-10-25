@@ -1,8 +1,10 @@
 # Completed Tasks
 
-Archive of fully-completed top-level sections from `TASKS.md` — see `CLAUDE.md` § Task Tracking for the archiving policy. Each section here was moved verbatim once every item in it (including all subsections) was checked off; `TASKS.md` keeps a one-line stub at that section number pointing back here.
+Archive of fully-completed top-level sections from `TASKS-BUGS.md`, `TASKS-TECH.md` and `TASKS-FEATURES.md` (before those, `TASKS.md`) — see `CLAUDE.md` § Task Tracking for the archiving policy. Each section here was moved verbatim once every item in it (including all subsections) was checked off. No stub is left behind in the active files: a section number missing from them is here.
 
-Sections are appended in numeric order as they're archived.
+Sections archived after the split carry a `Type: tech` or `Type: feature` line under their heading. Fixed bugs are archived individually under § 10.
+
+Sections are kept in numeric order.
 
 ---
 
