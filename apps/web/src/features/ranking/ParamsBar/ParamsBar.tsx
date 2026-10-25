@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Sheet } from "../../../components/Sheet/Sheet";
-import { LocationIcon, LOCATION_LABELS, type LocationRequirement } from "../LocationIcon/LocationIcon";
+import { LocationIcon } from "../LocationIcon/LocationIcon";
+import { LOCATION_LABELS, type LocationRequirement } from "../LocationIcon/location";
 import { EnergyIcon, type EnergyLevel } from "../EnergyIcon/EnergyIcon";
 import { LocationPicker } from "../LocationPicker/LocationPicker";
 import { EnergyPicker } from "../EnergyPicker/EnergyPicker";

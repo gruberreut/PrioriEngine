@@ -126,7 +126,7 @@ npm run dev                        # start API and web dev servers together (or 
 # Web (apps/web)
 npm test -w @priori/web            # vitest run
 npm run test:coverage -w @priori/web
-npm run lint -w @priori/web        # eslint + stylelint (src/**/*.module.css)
+npm run lint -w @priori/web        # eslint (zero warnings) + stylelint (src/**/*.module.css); must pass, see apps/web/CLAUDE.md
 npm run lint:css -w @priori/web    # stylelint only
 npm run build -w @priori/web       # tsc -b (type-check) + vite build — web has no separate typecheck script
 

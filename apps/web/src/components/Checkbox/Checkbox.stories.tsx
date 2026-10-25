@@ -1,5 +1,5 @@
 import { useArgs } from "storybook/preview-api";
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { Checkbox } from "./Checkbox";
 
 const defaultArgs = {

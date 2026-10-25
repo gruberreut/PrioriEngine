@@ -2,6 +2,12 @@
 
 Guidance for the web frontend (`apps/web`). Cross-cutting rules (naming, approval policy, task tracking, branch workflow, architecture docs) live in the root `CLAUDE.md`.
 
+## Lint must pass
+
+After any change in `apps/web`, `npm run lint -w @priori/web` (eslint with `--max-warnings 0`, plus stylelint) must exit 0 before the work is complete. Warnings fail it too. Fix the cause rather than disabling a rule; if a rule genuinely doesn't fit, raise it with the user first.
+
+A `git commit` hook (`.claude/hooks/check-web-lint.sh`) enforces this: it blocks the commit when `apps/web` has changes and lint fails. Lint doesn't type-check, so also run `npm run build -w @priori/web` (`tsc -b`) after changes that move or rename exports.
+
 ## Web frontend layout (`apps/web/src/`)
 
 ```

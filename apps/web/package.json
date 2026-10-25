@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint . && stylelint \"src/**/*.module.css\"",
+    "lint": "eslint . --max-warnings 0 && stylelint \"src/**/*.module.css\"",
     "lint:css": "stylelint \"src/**/*.module.css\"",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",

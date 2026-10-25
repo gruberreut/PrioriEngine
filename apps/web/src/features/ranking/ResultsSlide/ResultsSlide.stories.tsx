@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import type { Meta, StoryObj } from "@storybook/react-vite";
 import { ResultsSlide } from "./ResultsSlide";
 import type { RankResultMode } from "../ResultsPanel/ResultsPanel";
 

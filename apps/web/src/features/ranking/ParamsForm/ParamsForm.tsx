@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useEffectEvent, useRef } from "react";
 import { Checkbox } from "../../../components/Checkbox/Checkbox";
 import { Card } from "../../../components/Card/Card";
 import { EnergyPicker, type EnergyLevel } from "../EnergyPicker/EnergyPicker";
@@ -29,10 +29,15 @@ export function ParamsForm({ onParamsChange, disabled = false }: ParamsFormProps
 
   const paramsRef = useRef<RankParams>({ location, availableTime, energy, explain });
 
+  // Fires on param changes only, not when the parent passes a new callback.
+  const notifyParamsChange = useEffectEvent((params: RankParams) => {
+    onParamsChange(params);
+  });
+
   useEffect(() => {
     const params = { location, availableTime, energy, explain };
     paramsRef.current = params;
-    onParamsChange(params);
+    notifyParamsChange(params);
   }, [location, availableTime, energy, explain]);
 
   return (
