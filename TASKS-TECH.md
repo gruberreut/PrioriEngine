@@ -2,11 +2,39 @@
 
 Technical work: the goal is not a change users can see (refactors, infrastructure, tooling, docs, quality). Read this file when `TASKS-BUGS.md` has no open, unblocked items, and before `TASKS-FEATURES.md` (see `CLAUDE.md` § Task Tracking).
 
-**Priority order:** §48 (shared queries split by entity) first, then the rest of this file in order.
+**Priority order:** §56 (client data store) first, then §48 (shared queries split by entity), then the rest of this file in order.
 
 **§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing sections in all the task files, including §38 (Deployment) and §39 (Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
 Section numbers are shared with `TASKS-BUGS.md`, `TASKS-FEATURES.md` and `TASKS-DONE.md`, and never reused. A number missing here is in one of those files.
+
+---
+
+## 56. Client data store and data-management rules (`client-data-store`) — high priority
+
+Today the web app has no shared client state. Each page fetches its own data and keeps it in local state. For example, `RankingPage` and `TaskCreationPage` each call `getContextItems()` separately. When a page creates something, it waits for the backend before updating its own copy, and nothing else in the app sees the change. This is why `TaskCreationForm` keeps a second list of contexts it created and needs `mergeContexts` to dedupe it against the parent's list (§ 10.6 in `TASKS-DONE.md`).
+
+The intended model (user decision):
+- Data comes from a store, and reaches components through the Page/Container component that reads it. Presentational components get it as props, as they do today.
+- A create (and, by extension, an update or delete) is applied to the store optimistically and sent to the backend at the same time. If the call succeeds, nothing else happens.
+- If the call fails, the user sees an error message and the page refreshes after they confirm. That flow is § 31's. Until § 31 lands, a failure can keep today's per-page handling.
+- Merging and deduplication happen in the store, once, so every place in the app that creates the same kind of data gets the same behaviour.
+
+Contexts are the first data to move. The task-creation form is today's only place that creates one.
+
+- [ ] Write the HLD in `documentation/techDesign/client-data-store/hld.md` and get it approved. It should cover:
+  - the store's shape. Per `CLAUDE.md` § Technology and Architecture Choices, prefer no new dependency (e.g. a React context provider with a reducer, or a module store read with `useSyncExternalStore`) unless there's a reason. Also decide whether to design it generically for every entity or for contexts only to start
+  - which data moves into it now (contexts) and later (tasks, ranking results; see § 30)
+  - how a page loads data into it and when it refetches
+  - how optimistic creates get an id before the server responds. Tasks already use client-generated ids (`tasks.id` has no DB default), but `contexts.id` is DB-generated
+  - for contexts, how `slideIndex` (the colour) is predicted client-side while the server stays authoritative (the invariant from § 14), and how a duplicate name (today a 409) is caught in the store first
+  - how Storybook stories for pages provide the store
+- [ ] Write the data-management rules: where data lives, how pages read it, how mutations go through the store, and what components may not do (e.g. keep their own copy of store data). The rules go in `apps/web/CLAUDE.md`, and the decision in `documentation/ARCHITECTURE.md`
+- [ ] Write the LLD and get it approved
+- [ ] API: let `POST /api/contexts` accept a client-generated id if the HLD chooses that. Real-DB tests, and update `openapi.yaml` in the same commit
+- [ ] Build the store with tests, and move contexts into it. `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
+- [ ] `TaskCreationForm`: remove `addedContexts` and `mergeContexts.ts` (and its test). The form calls `onCreateContext` and renders the `contexts` it receives. Update its stories to pass created contexts back through `useArgs`
+- [ ] Check § 30 and § 31 against the store, and update their wording where the store changes their premise (e.g. § 31's "each page owns its own fetch")
 
 ---
 
@@ -572,7 +600,7 @@ failure) — notify the user once, in one consistent way, and refresh the
 current page's data afterward.
 
 - [ ] Design where this mechanism lives — a shared hook (e.g. `useBackendCall`/`useMutation`-style wrapper other pages/actions call through), a top-level error boundary/interceptor, or a shared notice component + a small utility both `TasksPage` and (eventually) `RankingPage` call into
-- [ ] Decide the notification UX: a modal/dialog requiring acknowledgment before refresh (current `TasksPage` MVP behavior) vs. a dismissible toast that refreshes in the background
+- [x] Decide the notification UX. **Decided (user):** show the user an error message, and refresh the page after they confirm it (the current `TasksPage` MVP behaviour). This is the failure path for § 56's optimistic store updates. Rejected: a dismissible toast that refreshes in the background
 - [ ] Decide what "refresh the current page" means generically across different pages (each page currently owns its own fetch — `getTasks()`, `rank()`, etc.) — likely each page needs to expose/register its own refetch function to this mechanism
 - [ ] Migrate `TasksPage`'s bespoke failure handling onto this mechanism once built, and revisit §30 (`RankingPage` optimistic updates) against it
 - [ ] Update `ARCHITECTURE.md` recording the decision
