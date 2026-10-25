@@ -690,3 +690,11 @@ Real design: `documentation/Selected filter component design.png` (frame 11c, "T
 - [x] Reviewed in the app and Storybook — **approved**
 
 ---
+
+## Resolved open issues
+
+Type: feature
+
+Unnumbered. Items from the Open Issues list at the end of `TASKS-FEATURES.md`, moved here once resolved.
+
+- ~~**ResultsSlide idle/loading text**~~ — replaced "Swipe here to load results" and "Loading…" text with a shimmer skeleton of 3 placeholder task cards for both `idle` and `loading` states. ✓
