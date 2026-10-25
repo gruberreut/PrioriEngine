@@ -17,12 +17,12 @@ Today the web app has no shared client state. Each page fetches its own data and
 The intended model (user decision):
 - Data comes from a store, and reaches components through the Page/Container component that reads it. Presentational components get it as props, as they do today.
 - A create (and, by extension, an update or delete) is applied to the store optimistically and sent to the backend at the same time. If the call succeeds, nothing else happens.
-- If the call fails, the user sees an error message and the page refreshes after they confirm. That flow is § 31's. Until § 31 lands, a failure can keep today's per-page handling.
+- If the call fails, the user sees an error message and the page refreshes after they confirm. That flow is § 31's, and per the HLD it's built first, before the store migration below (Depends on § 31).
 - Merging and deduplication happen in the store, once, so every place in the app that creates the same kind of data gets the same behaviour.
 
 Contexts are the first data to move. The task-creation form is today's only place that creates one.
 
-- [ ] Write the HLD in `documentation/techDesign/client-data-store/hld.md` and get it approved. It should cover:
+- [x] Write the HLD in [`documentation/techDesign/client-data-store/hld.md`](documentation/techDesign/client-data-store/hld.md) and get it approved (approved by the user). It should cover:
   - the store's shape. Per `CLAUDE.md` § Technology and Architecture Choices, prefer no new dependency (e.g. a React context provider with a reducer, or a module store read with `useSyncExternalStore`) unless there's a reason. Also decide whether to design it generically for every entity or for contexts only to start
   - which data moves into it now (contexts) and later (tasks, ranking results; see § 30)
   - how a page loads data into it and when it refetches
@@ -30,9 +30,11 @@ Contexts are the first data to move. The task-creation form is today's only plac
   - for contexts, how `slideIndex` (the colour) is predicted client-side while the server stays authoritative (the invariant from § 14), and how a duplicate name (today a 409) is caught in the store first
   - how Storybook stories for pages provide the store
 - [ ] Write the data-management rules: where data lives, how pages read it, how mutations go through the store, and what components may not do (e.g. keep their own copy of store data). The rules go in `apps/web/CLAUDE.md`, and the decision in `documentation/ARCHITECTURE.md`
+- [ ] Write `guidelines/STORE_BEST_PRACTICES.md`: the principles behind the HLD in general terms, so later store work (§ 30, § 42, new entities) applies them too (outline in the HLD § Data-management rules). This includes referring to data by key, not by string: ids rather than names in API calls and between entities, and query keys from a key factory rather than literals. `apps/web/CLAUDE.md` points to it
+- [ ] Study session on TanStack Query (the store chosen in the HLD), before the LLD: its principles and abilities, how it's structured, and what makes it the industry standard
 - [ ] Write the LLD and get it approved
 - [ ] API: let `POST /api/contexts` accept a client-generated id if the HLD chooses that. Real-DB tests, and update `openapi.yaml` in the same commit
-- [ ] Build the store with tests, and move contexts into it. `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
+- [ ] Build the store with tests, and move contexts into it (Depends on § 31: the central failure dialog). `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
 - [ ] `TaskCreationForm`: remove `addedContexts` and `mergeContexts.ts` (and its test). The form calls `onCreateContext` and renders the `contexts` it receives. Update its stories to pass created contexts back through `useArgs`
 - [ ] Check § 30 and § 31 against the store, and update their wording where the store changes their premise (e.g. § 31's "each page owns its own fetch")
 
@@ -587,6 +589,8 @@ instead of the current reload-every-slide approach.
 - [ ] Decide what "optimistic" means for a ranked result set specifically (removing a completed/deleted/started task from the currently-displayed slide is straightforward; snoozing changes ranking order, which arguably still needs a re-rank) — this isn't a 1:1 copy of `TasksPage`'s simpler flat-list case
 - [ ] Depends on §31 (a general failed-backend-call mechanism) landing first, or at least being designed, so this doesn't duplicate the same "what happens when the optimistic update turns out wrong" problem §29's MVP delete is deliberately punting on
 - [ ] Apply the chosen pattern consistently to complete/snooze/delete/start, replacing `refreshAfterMutation()` per-action rather than leaving a mix
+- [ ] API: validate `POST /api/tasks` before tasks move into the client store (§ 56; see `documentation/techDesign/client-data-store/hld.md` § Later moves). Required fields and their types/values give a 400. `id` must be a UUID. A retry with the same `id` and the same data returns the existing row with 200, and the same `id` with different data, or an `id` owned by another user, is a 409 (never overwrite). `contextId` and `parentId`, when given, must belong to the user. Real-DB tests, and update `openapi.yaml` in the same commit
+- [ ] API: `/api/rank` filters by `contextId` instead of the context name, and ranked tasks carry context ids instead of names (`task.contexts`). The page resolves names from the contexts store and passes them to `TaskCard` as props, so a renamed context (§ 42) needs no ranking refetch. Update `rankingService.rank()` and `RankingPage` to send the id. Real-DB tests, and update `openapi.yaml` in the same commit
 
 ---
 
@@ -599,9 +603,10 @@ that fails (whether following an optimistic update or any other unexpected
 failure) — notify the user once, in one consistent way, and refresh the
 current page's data afterward.
 
-- [ ] Design where this mechanism lives — a shared hook (e.g. `useBackendCall`/`useMutation`-style wrapper other pages/actions call through), a top-level error boundary/interceptor, or a shared notice component + a small utility both `TasksPage` and (eventually) `RankingPage` call into
+- [x] Design where this mechanism lives. **Decided (user, in `documentation/techDesign/client-data-store/hld.md` § Failure path):** one `ConfirmDialog` with a single OK button, mounted once at the app root. The § 56 data layer opens it when a mutation fails unexpectedly. Built before § 56 moves contexts into the store. Rejected: each page rendering its own dialog until this section lands
 - [x] Decide the notification UX. **Decided (user):** show the user an error message, and refresh the page after they confirm it (the current `TasksPage` MVP behaviour). This is the failure path for § 56's optimistic store updates. Rejected: a dismissible toast that refreshes in the background
-- [ ] Decide what "refresh the current page" means generically across different pages (each page currently owns its own fetch — `getTasks()`, `rank()`, etc.) — likely each page needs to expose/register its own refetch function to this mechanism
+- [x] Decide what "refresh the current page" means generically. **Decided (user, same HLD):** refetch the active queries in the § 56 store, so pages don't register their own refetch functions. It's a data refetch, not a page reload, so form input survives
+- [ ] Build it: the root-mounted failure dialog and the way the § 56 data layer opens it, with tests and a Storybook story. Its LLD is part of § 56's LLD or its own (decided in that LLD)
 - [ ] Migrate `TasksPage`'s bespoke failure handling onto this mechanism once built, and revisit §30 (`RankingPage` optimistic updates) against it
 - [ ] Update `ARCHITECTURE.md` recording the decision
 

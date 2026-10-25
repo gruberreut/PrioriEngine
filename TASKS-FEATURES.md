@@ -270,7 +270,7 @@ Not scoped yet beyond the rules above — this task starts with UX definition, t
 - [ ] `GET /api/contexts` excludes `archived` contexts by default
 - [ ] Update `openapi.yaml` for the new/changed endpoints
 - [ ] Real-DB integration tests: rename succeeds regardless of task status; archive succeeds when all tasks are completed or there are none; archive is rejected (409) when a pending/in_progress task exists; an archived context's completed tasks keep their `context_id` and still resolve correctly; `GET /api/contexts` omits archived contexts
-- [ ] Frontend: build the UI surface decided above, wire it to the new endpoints
+- [ ] Frontend: build the UI surface decided above, wire it to the new endpoints. Rename and archive go through the § 56 client store as mutations that update the cached contexts in place, with no refetch, like create (`documentation/techDesign/client-data-store/hld.md`)
 - [ ] Update `contextService.ts` with `renameContext`/`archiveContext` (or equivalent) client functions
 
 ---
