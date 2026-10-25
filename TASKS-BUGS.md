@@ -39,3 +39,13 @@ User-visible effect: a subtask under a project that has a context (e.g. *Garden*
 - [ ] Fix the mapping in `routes/rank.ts`: a DB `null` becomes an omitted field (`undefined`), and no context becomes no `contexts` key, so the engine inherits
 - [ ] Check the other fields in that mapping for the same problem (`lastSuggestedAt` should stay `null`, since it's per task and not inherited)
 - [ ] Check the web side: `resolveTask.ts` already inherits `contexts`, so confirm the tasks list and ranking now agree
+
+### 10.9 Ranking returns tasks longer than the available time
+
+Moved from the Open Issues list in `TASKS-FEATURES.md` at the user's request. Found by reading the code, not yet reproduced in a test.
+
+When ranking with an available time (e.g. 10 minutes), tasks whose duration exceeds it are still returned. `ranker.ts` only scores the fit (`durationBase` is `2` within budget, `-2` over it); nothing excludes an over-budget task, so it can still rank in the top results when its other scores are high.
+
+- [ ] Write a failing test in `packages/engine/test/ranker.test.ts`: a task longer than `availableTime` with otherwise high scores isn't returned
+- [ ] Decide whether over-budget tasks are excluded outright (a new exclusion reason, shown by `--explain` like the existing ones) or kept but always ranked below every task that fits, and fix accordingly
+- [ ] Record the decision in `documentation/ARCHITECTURE.md` (Engine Pipeline)
