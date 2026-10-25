@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mergeContexts } from "./TaskCreationForm";
+import { mergeContexts } from "./mergeContexts";
 import type { ContextItem } from "../../../services/contextService";
 
 function makeContext(overrides: Partial<ContextItem>): ContextItem {

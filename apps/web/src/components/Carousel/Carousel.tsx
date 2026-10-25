@@ -1,4 +1,4 @@
-import { Children, useRef, useCallback, useEffect, useState } from "react";
+import { Children, useRef, useCallback, useEffect, useEffectEvent, useState } from "react";
 import styles from "./Carousel.module.css";
 
 export type SwipeDirection = "ltr" | "rtl";
@@ -53,8 +53,14 @@ export function Carousel({
     return direction === "rtl" ? children.length - 1 - physicalIndex : physicalIndex;
   }, [activeIndex, direction, children.length]);
 
-  useEffect(() => {
+  // Re-snaps only when the slide count changes; reads the latest activeIndex
+  // without making index changes re-run it (the effect below handles those).
+  const snapToActiveIndex = useEffectEvent(() => {
     scrollToIndex(activeIndex, "instant");
+  });
+
+  useEffect(() => {
+    snapToActiveIndex();
   }, [children.length]);
 
   useEffect(() => {

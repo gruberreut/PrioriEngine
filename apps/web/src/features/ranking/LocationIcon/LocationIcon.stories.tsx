@@ -1,5 +1,6 @@
-import type { Meta, StoryObj } from "@storybook/react";
-import { LocationIcon, type LocationRequirement } from "./LocationIcon";
+import type { Meta, StoryObj } from "@storybook/react-vite";
+import { LocationIcon } from "./LocationIcon";
+import type { LocationRequirement } from "./location";
 
 const defaultArgs = {
   location: "home" as LocationRequirement,

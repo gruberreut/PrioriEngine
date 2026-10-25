@@ -63,6 +63,10 @@ Coding conventions for components (presentational vs page/container, props in an
 - **Why:** push is the right granularity. A branch is the unit of work, and it needs a task-file update once, not in every commit.
 - **Rejected:** blocking at commit. Intermediate commits (WIP, refactors, fixups) legitimately don't touch the task files, so a commit-level block would mostly produce false positives and train opt-out habits.
 
+**Web lint: a block at commit.** A `git commit` PreToolUse hook (`.claude/hooks/check-web-lint.sh`) runs `npm run lint -w @priori/web` whenever `apps/web` has changes (staged or not, so `git commit -a` is covered) and blocks with exit 2 if it fails. The lint script runs eslint with `--max-warnings 0`, so warnings block too. It lints the working tree, not the staged snapshot; accepted, since the whole tree must pass before the work is complete anyway. Rule: `apps/web/CLAUDE.md` § Lint must pass. Added with `TASKS-DONE.md` § 10.7, after lint had silently drifted to 22 errors on `main`.
+- **Why:** a written rule alone had already failed once, so enforcement mustn't depend on remembering. There's no CI planned to do it instead. Unlike the task-file check, every commit should pass lint, including intermediate ones, so a commit-level block doesn't produce false positives. Catching a failure before the commit also avoids follow-up fixup commits. Lint takes a few seconds, and commits that don't touch `apps/web` skip it.
+- **Rejected:** blocking at push. It would let lint failures into the branch history and push the fix into extra commits. Also rejected: waiting for CI (§ 38), because no CI is planned. Also rejected: allowing warnings. Warnings that are allowed pile up, and this cleanup brought them to zero anyway.
+
 ---
 
 ## Documentation

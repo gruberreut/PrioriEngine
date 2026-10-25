@@ -1,4 +1,5 @@
-import { LocationIcon, LOCATION_LABELS, type LocationRequirement } from "../LocationIcon/LocationIcon";
+import { LocationIcon } from "../LocationIcon/LocationIcon";
+import { LOCATION_LABELS, type LocationRequirement } from "../LocationIcon/location";
 import { SplitGroup } from "../../../components/SplitGroup/SplitGroup";
 import styles from "./LocationPicker.module.css";
 

@@ -37,42 +37,46 @@ const SLIDE_PALETTE = [
   "var(--color-slide-7)",
 ];
 
+// The "All" slide first, then one slide per context.
+function buildSlides(contexts: ContextItem[]): SlideData[] {
+  const allSlide: SlideData = { label: "All", context: undefined, slideIndex: undefined, state: "idle" };
+  const contextSlides: SlideData[] = contexts.map((c) => ({
+    label: c.name,
+    context: c.name,
+    slideIndex: c.slideIndex,
+    state: "idle",
+  }));
+  return [allSlide, ...contextSlides];
+}
+
 export function RankingPage() {
-  const [contexts, setContexts] = useState<ContextItem[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
   // Tracks the carousel's visible slide the same way its own dot indicator
   // does - continuously during a swipe, not just once it settles - so
   // ParamsBar appears in step with the results slide sliding into view
   // instead of lagging behind it until the data-fetch trigger below fires.
   const [visibleIndex, setVisibleIndex] = useState(0);
-  const [slides, setSlides] = useState<SlideData[]>([]);
+  const [slides, setSlides] = useState<SlideData[]>(() => buildSlides([]));
   const initialParams: RankParams = { location: "home", availableTime: 30, energy: "medium", explain: false };
   // ParamsBar needs to re-render on param changes, which the ref below
   // (read inside async closures to dodge stale values) doesn't provide.
   const [params, setParams] = useState<RankParams>(initialParams);
   const paramsRef = useRef<RankParams>(initialParams);
   const paramsVersionRef = useRef(0);
-  const slidesRef = useRef<SlideData[]>([]);
+  const slidesRef = useRef<SlideData[]>(slides);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
   useEffect(() => {
-    getContextItems().then(setContexts).catch(() => {});
+    getContextItems()
+      .then((contexts) => {
+        // getContextItems() already returns contexts ordered by slideIndex, so
+        // carousel pages display in the palette's intended ascending hue order.
+        const next = buildSlides(contexts);
+        setSlides(next);
+        slidesRef.current = next;
+      })
+      .catch(() => {});
   }, []);
-
-  useEffect(() => {
-    // getContextItems() already returns contexts ordered by slideIndex, so
-    // carousel pages display in the palette's intended ascending hue order.
-    const allSlide: SlideData = { label: "All", context: undefined, slideIndex: undefined, state: "idle" };
-    const contextSlides: SlideData[] = contexts.map((c) => ({
-      label: c.name,
-      context: c.name,
-      slideIndex: c.slideIndex,
-      state: "idle",
-    }));
-    const next = [allSlide, ...contextSlides];
-    setSlides(next);
-    slidesRef.current = next;
-  }, [contexts]);
 
   // Resets every slide to idle (dropping stale results) and, if a results
   // slide is already the one on screen, immediately reloads it - swiping

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "../../../components/Button/Button";
 import { Select } from "../../../components/Select/Select";
 import { TextInput } from "../../../components/TextInput/TextInput";
@@ -7,6 +7,7 @@ import { LocationPicker, type LocationRequirement } from "../../ranking/Location
 import { DurationPicker } from "../DurationPicker/DurationPicker";
 import { PriorityPicker } from "../PriorityPicker/PriorityPicker";
 import type { ContextItem } from "../../../services/contextService";
+import { mergeContexts } from "./mergeContexts";
 import styles from "./TaskCreationForm.module.css";
 
 export interface TaskCreationPayload {
@@ -30,18 +31,6 @@ export interface TaskCreationFormProps {
 
 const NEW_CONTEXT_VALUE = "__new__";
 
-/**
- * `contexts` is the caller's list; `addedContexts` is this form's own record of
- * contexts it has created this session. Once a created context round-trips back
- * into `contexts` (as it does on the real task-creation page, which appends to its
- * own state after `onCreateContext` resolves), the two lists briefly overlap by id —
- * dedupe here rather than assuming the caller never reflects it back.
- */
-export function mergeContexts(contexts: ContextItem[], addedContexts: ContextItem[]): ContextItem[] {
-  const knownIds = new Set(contexts.map((c) => c.id));
-  return [...contexts, ...addedContexts.filter((c) => !knownIds.has(c.id))];
-}
-
 export function TaskCreationForm({
   contexts,
   onSubmit,
@@ -54,10 +43,13 @@ export function TaskCreationForm({
   const [titleError, setTitleError] = useState(false);
   const [addedContexts, setAddedContexts] = useState<ContextItem[]>([]);
   const [contextId, setContextId] = useState<string | undefined>(defaultContextId ?? undefined);
-
-  useEffect(() => {
+  // Re-select when the caller's default changes, adjusting state during render
+  // rather than in an effect (https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
+  const [prevDefaultContextId, setPrevDefaultContextId] = useState(defaultContextId);
+  if (defaultContextId !== prevDefaultContextId) {
+    setPrevDefaultContextId(defaultContextId);
     setContextId(defaultContextId ?? undefined);
-  }, [defaultContextId]);
+  }
   const [isCreatingContext, setIsCreatingContext] = useState(false);
   const [newContextName, setNewContextName] = useState("");
   const [contextLoading, setContextLoading] = useState(false);
