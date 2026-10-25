@@ -381,6 +381,18 @@ Reported by the user. Repro: on the task-creation page, open the context `Select
 - [x] Fixed by extracting `mergeContexts(contexts, addedContexts)` in `TaskCreationForm.tsx` — dedupes by `id`, caller's `contexts` list wins on overlap; keeps `addedContexts` as a fallback for callers (e.g. Storybook) that don't reflect the new context back into `contexts` themselves. Also added a cheap `if (contextLoading) return;` guard at the top of `handleAddContext` as defense-in-depth against the originally-suspected double-invocation, even though it wasn't the actual cause
 - [x] Added `TaskCreationForm.test.ts` (first test file for this component) covering `mergeContexts`: appends a new context, dedupes when the caller's list already has it (caller's version wins), and the empty case
 
+### 10.7 Web lint fails on `main` — fix, then make lint a mandatory check
+
+Found while refreshing the agent docs (`docs/claude-md-split`). Filed as a bug at the user's request so it gets bug priority. `npm run lint -w @priori/web` failed on `main` with 22 ESLint errors and 5 warnings. Stylelint was clean.
+
+- [x] Switched the 18 story files from `@storybook/react` to `@storybook/react-vite`
+- [x] Fixed the two `set-state-in-effect` errors. `TaskCreationForm` now re-selects its context when `defaultContextId` changes by adjusting state during render, not in an effect. `RankingPage` builds its slides in the `getContextItems()` callback instead of copying `contexts` into state and deriving slides in an effect. Slides start as just the "All" slide, as they did before when the fetch failed
+- [x] Fixed the two `only-export-components` errors. `LOCATION_LABELS` and `LocationRequirement` moved to `LocationIcon/location.ts`. `mergeContexts` moved to `TaskCreationForm/mergeContexts.ts`, and its test was renamed to `mergeContexts.test.ts`
+- [x] Resolved the two `exhaustive-deps` warnings with `useEffectEvent` (React 19.2). `Carousel`'s instant re-snap still runs only when the slide count changes, and `ParamsForm` still notifies only on param changes, not when the parent passes a new callback
+- [x] Added `coverage` to `globalIgnores` in `apps/web/eslint.config.js`
+- [x] `npm run lint -w @priori/web` exits 0. Per user decision, warnings must be zero too: the script runs `eslint . --max-warnings 0`
+- [x] Made it mandatory. `apps/web/CLAUDE.md` § Lint must pass has the rule. Per user decision it's also enforced by a hook, since no CI is planned: `.claude/hooks/check-web-lint.sh` blocks `git commit` when `apps/web` has changes and lint fails. Decision recorded in `documentation/PROCESS.md` § Hooks
+
 ---
 
 ## 11. API Documentation Migration to OpenAPI (`openapi-docs`)
