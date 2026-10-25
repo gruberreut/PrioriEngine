@@ -488,6 +488,129 @@ Add a standalone route/page for the in-progress task, separate from the ranking 
 
 ---
 
+## 22. TempAppName design token rollout (`tendril-design-rollout`)
+
+Type: tech
+
+Moved from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 8 ("Tasks — what the patch could not carry"). That document's §§ 1–7 define the three-layer token model and the per-component diffs (§3 existing components, §4 new primitives, §5 the per-component checklist, §6 Storybook additions, §7 the CLAUDE.md block); its § 9 gives the suggested build order across this section and those component-by-component tasks. Original subsection numbers (8.1–8.9) are kept below as 22.1–22.9 for traceability back to that doc's own cross-references.
+
+`priori-patch/` contained complete file replacements for §§ 22.1–22.2 (since deleted — see § 22.9). Everything else here needs a call site the patch couldn't see, a decision, or a file outside `apps/web/src`.
+
+---
+
+### 22.1 Apply the patch (`tendril-tokens-apply`)
+
+Prerequisite for all the rest.
+
+**Strategy change:** the tree has since diverged from the patch's baseline with in-progress dark/light theme work (`useTheme`, `ThemeToggle`, per-slide dark tints). Treat `priori-patch/apps/web/src/**` as suggested diffs, not a blind copy — reconcile file-by-file, one component at a time, and only apply where there's no unresolved conflict. Discuss and resolve real conflicts before applying (e.g. `NavBar`'s existing theme-toggle wiring, which the patch's `NavBar` predates). Each slice: Storybook verification → commit → update this file before moving to the next.
+
+- [x] `tokens.css` foundation tokens reconciled and applied: spacing (`--space-5/6/7`), font sizes (`--font-size-body/meta/micro`), border radius rename + expansion (`--radius-xs/sm/md/lg/xl/full`, 6px/8px → 12px/16px), control heights, focus ring, motion, z-index, and the Layer-3 `--bottom-nav-*`/`--fab-*` groups. Dark slide tints (`--tendril-d-slide-*`) deliberately left as-is — deferred to § 22.7 where they're actually consumed; the color-story plan itself flags that design as unconfirmed (single tint vs. eight hues) and the patch offers a third, uncompared option.
+- [x] `DesignTokens.mdx` updated to match: Spacing/Border Radius sections now read values live via `useTokenValue` (previously hardcoded px labels, which had already gone stale on the radius rename) and list all the new tokens
+- [x] Reconcile and apply `NavBar.tsx`/`NavBar.module.css`/`NavBar.stories.tsx` and the two new icon assets (`Tendril.tsx`, `ListChecks.tsx`) — on inspection the patch's `NavBar` already carried the `ThemeToggle`/`useTheme` wiring forward (an earlier read of a stale diff wrongly suggested otherwise), so this landed close to verbatim. Bar is now `position: fixed` to the bottom using `--bottom-nav-*` tokens — will visually overlap page content until § 22.2 adds shell padding (expected, sequenced). Storybook stories brought in line with the `defaultArgs` convention (the previous file predated it). Approved in Storybook.
+- [x] Reconcile and apply `FAB.module.css` (additive only, no known conflicts). Approved in Storybook.
+- [x] `stylelint` flagged 11 formatting violations in the patch's CSS (blank-line/declaration-order rules, `max-width` media query) — the patch predates the `.stylelintrc.json` the color-story work added. Fixed with `--fix`, purely cosmetic. **Note for § 22.8**: the new-primitive patches will likely hit the same gap — run `stylelint --fix` on each as it lands.
+- [x] Confirm `--radius-sm` 6px → 12px and `--radius-md` 8px → 16px landed, then run the visual audit from `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 2 — the rename reaches roughly fifteen files beyond `Select`/`NavBar`/`ThemeToggle` (full list in that section). Visual audit covered `Select`, `ThemeToggle`, `TaskCard`, `EmptyState`, `EnergyPicker`, `InProgressBlock`, `LocationPicker`, `ResultsSlide`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `TaskTreeItem` — **all approved** in Storybook
+- [x] `npm run typecheck` (`apps/web` has no `typecheck` script — use `npx tsc -b`) — clean except the same two pre-existing, unrelated errors (`Carousel.tsx` argument count, `vite.config.ts` `test` property). One new error surfaced from the patch's `NavBar.stories.tsx` (`Cannot find namespace 'JSX'` on a bare `JSX.Element` type) — fixed by importing `ReactElement` from `react` instead.
+- [x] Confirm `test/tokenParity.test.ts` still passes with the Layer-3 block present (verified — the test only extracts the `:root[data-theme='dark']` and `@media (prefers-color-scheme: dark)` blocks by selector, so the block is never inspected)
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.2 App-shell bottom padding (`bottom-nav-inset`)
+
+Without this the fixed bar covers the last item of every scrollable route. Applies once on the shell rather than per page.
+
+**Finding:** "applies once on the shell" didn't fully hold as written. `AppShell` is a Fragment (no DOM node) and `NavBar`/`FAB` are `position: fixed`, so `#root` (`index.css`) already *is* the element wrapping `<Routes>` — no new wrapper needed. But only Rank and Tasks were `flex: 1; min-height: 0`-constrained against it; Task Detail, Task Creation, and In-Progress (not in this checklist's original route list — added after it was written, same bug) had no height constraint at all and relied on native document scroll, so a shell-level padding would never have reached them. Discussed three options (shell+per-route patch / unify scroll architecture / no-cascade symmetric fix) — chose **unify**: bring all routes onto the same `flex: 1; min-height: 0; overflow-y: auto` pattern `TasksPage` already used, so one shell padding genuinely covers everyone and any future route follows the same self-enforcing convention.
+
+- [x] Added `padding-bottom: calc(var(--bottom-nav-total-height) + var(--space-4))` to `#root` in `index.css`
+- [x] Unified `TaskDetailPage`, `TaskCreationPage`, and `InProgressPage` onto `flex: 1; min-height: 0; overflow-y: auto` (matching `TasksPage`); `RankingPage`/`Carousel` already used the constrained pattern via `.page` → `.wrapper` (`height: 100%`) → `.carouselContainer` (`flex: 1`) → `.slide` (`height: 100%; overflow-y: auto`)
+- [x] Confirmed the Carousel's dots and swipe hint clear the bar — no `Carousel.module.css` change needed, confirmed correct. Also found and removed a now-redundant `padding-bottom: env(safe-area-inset-bottom, 0)` on `RankingPage.module.css`'s `.page`, left over from before the bottom-nav redesign — it double-counted the safe-area inset now already folded into `--bottom-nav-total-height`
+- [x] Checked in Chrome DevTools mobile emulation and Storybook — nothing sits under the inset. **Not verified on a physical device with a home indicator** — flag for a follow-up check when one's available
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.3 Hide navigation on blocking routes (`bottom-nav-links-hidden`)
+
+§ 17 and § 21 above both want this; the `linksHidden` prop exists on `NavBar` but nothing passes it.
+
+- [x] Pass `linksHidden` to `NavBar` on `/in-progress` (`App.tsx`: `linksHidden={location.pathname === "/in-progress"}`) so the FAB and the theme toggle remain the only actions visible
+- [x] Decide whether the bar renders at all on that route, or renders with the theme control only — went with the patch's assumption (bar keeps its place, theme control only) since that was already built into `NavBar` in § 22.1; no further change needed here
+- [x] Confirm the FAB's `--fab-inset-bottom` still clears the bar in the links-hidden state — unaffected either way, since the bar's height (`--bottom-nav-total-height`) doesn't change based on `linksHidden`
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.4 Decide where the theme control lives (`theme-control-placement`)
+
+Kept in the bar's right slot so nothing else breaks, but a three-option segmented control inside a bottom nav is crowded at 360pt and has no icon language of its own.
+
+**Decision (superseded the three original options):** rather than keep a manual toggle anywhere right now, `auto` switches theme by time of day instead of OS preference (`timeOfDayTheme()` in `useTheme.ts` — see `documentation/ARCHITECTURE.md`). No UI at all for now; `window.switchTheme('light' | 'dark' | 'auto')` from the browser console is the only manual override until a real settings screen exists (tracked below, § 23, deferred/low priority).
+
+- [x] Decided: no manual control in the bar or anywhere else yet — see above
+- [x] Removed the `themeToggle` slot from `NavBar.module.css` and the `useTheme`/`ThemeToggle` imports from `NavBar.tsx` — the component now has no theme knowledge at all. `.nav`'s `justify-content` changed from `space-between` to `center` now that there's nothing to push to the right
+- [x] `useTheme()` still needs to run somewhere for its side effects (applying the theme, exposing `window.switchTheme`) even with no UI — mounted in `App.tsx`'s `AppShell` instead
+- [x] Fixed a flash-of-wrong-theme regression this introduced: `index.html`'s inline anti-flash script resolved `'auto'` via the CSS `prefers-color-scheme` fallback, which can now disagree with the JS-computed time-of-day value (e.g. OS set to dark mode at 3pm) — the script now duplicates the same hour split to resolve `'auto'` before first paint
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.5 Record the token architecture (`tendril-tokens-docs`)
+
+- [x] Renamed `documentation/Tendril - applying the design to components.md` to `documentation/DESIGN-TOKENS-BY-COMPONENT.md` (`git mv`, content unchanged) and updated the seven other references to the old filename elsewhere in this file
+- [x] Added that document's § 7 block to `CLAUDE.md` under a new `## Design tokens` heading, after the Storybook section
+- [x] Updated the `ARCHITECTURE.md` "Design tokens" entry from two layers to three: what was decided, the forces (per-component adjustability without a preprocessor or a build step), and the rejected alternatives (a single flat token layer; per-component CSS files owning their own values; a generated `tokens.ts`)
+- [x] Noted in the same entry that Layer 3 deliberately sits outside the light/dark split, and why
+
+---
+
+### 22.6 Storybook token surface (`storybook-component-tokens`)
+
+Makes the Layer-3 block self-documenting instead of a second thing to maintain.
+
+- [x] Built `<ComponentTokens prefix="--bottom-nav-" />` in `src/styles/ComponentTokens.tsx`, on the existing `useTokenValue`/`listTokens` — lists whatever is actually in `tokens.css`, resolved through the cascade, following the theme toolbar. Along the way, fixed an inconsistency the assertion below would otherwise have caught the reference implementation on: `NavBar`/`FAB` both referenced `--focus-ring`/`--focus-ring-offset` (Layer 2) directly in their `:focus-visible` rules — added `--bottom-nav-focus-ring` and `--fab-focus-ring-offset` (Layer 3, same resolved values, zero visual diff) so they route through Layer 3 like everything else
+- [x] Added it to the docs page of every migrated component — no per-component docs-page precedent existed yet (no `tags: ['autodocs']`, no component `.mdx` files), so added `NavBar.mdx`/`FAB.mdx` using `<Meta of={...Stories} />` to attach custom docs to the existing story files; this is the template future migrated components (§ 22.8) should follow
+- [x] Added a test assertion (`src/styles/layer3.test.ts`) that no `*.module.css` in a migrated component's directory references `--color-*`/`--radius-*`/`--shadow-*`/`--control-height-*`/`--focus-ring*` directly (the `--space-*`/font-family/`--motion-*` carve-out from CLAUDE.md stays allowed), failure message pointing at `documentation/DESIGN-TOKENS-BY-COMPONENT.md`
+- [x] Added a matching assertion in the same file that every `/* Label — components/Dir */` group Layer 3 declares has a matching `src/components/Dir` directory on disk, to catch tokens orphaned by a rename. Both assertions discover their component set from `tokens.css`'s own Layer-3 group comments (currently `NavBar`, `FAB`), so they self-scale as more components migrate rather than needing a maintained list
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.7 Carousel page tints (`carousel-page-tints`)
+
+The eight dark values are real now, so this is unblocked. Reconciled with § 14 above (context theming): the DB stores a `slide_index` per context, not a color value, and the frontend maps that index onto `--color-slide-{n}`, which is already theme-aware — one color system, not two.
+
+- [x] `background: var(--color-slide-{n})` per page, indexed from raw carousel-page position, was already wired (`RankingPage.tsx`'s `SLIDE_PALETTE`) — this is the § 14 fallback path itself, so nothing to add here; will automatically switch to `slide_index`-based indexing once § 14's DB column lands
+- [x] Gave the Carousel a Layer-3 group (`--carousel-*`, `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 3.7) and moved `.dot`/`.dotActive`/`.hint` onto it — `.dot` 8×8 → `--carousel-dot-size` (6px), `.dotActive` gains a `width` transition to `--carousel-dot-size-active` (16px, elongates rather than resizing), `border-radius: 50%` → `--radius-full`, hint `color`/`font-size` → `--carousel-hint-fg`/`--carousel-hint-size`
+- [x] Replaced the dark slide tints' placeholder (`#221F1C` × 7, `#2A2622` × 1, deferred from § 22.1) with the patch's eight hand-tuned hues, resolving the color-story plan's own flagged-but-unconfirmed design question — decided in conversation (see below)
+- [x] Investigated "cards read as cards in dark mode" with real contrast numbers rather than eyeballing it: **every** candidate dark slide-tint design (current placeholder, the patch's 8 hues, a hypothetical single shared tint) gives near-identical ~1.0–1.2:1 contrast against `TaskCard`'s actual background (`--color-bg-page`, not `--color-bg-surface` as this doc's § 3.7 assumes — that assumption doesn't match the current `TaskCard` implementation). The hairline border was equally weak (~1.14–1.17:1 against the patch's 8 hues) — including in the *untinted* baseline case (1.31:1 against plain `--color-bg-page`), so this isn't a tint-specific problem. Fixed by strengthening `--tendril-d-hairline` from `#332E29` to `#786E5D` (empirically verified ≥3:1 against canvas, surface, and all eight dark slide tints) — a general dark-mode `--color-border` fix, not scoped to tinted-carousel cards, since the existing value was already too weak everywhere in dark mode
+- [x] Also reduced the active-dot `onSlideChange` debounce from 100ms to 40ms (`Carousel.tsx`'s `handleScroll`) after review flagged it as laggy — improved but not fully resolved; tracked as § 10.3 rather than pursued further now
+- [x] Review in Storybook — **approved**
+
+---
+
+### 22.8 Add the new primitives to the task list (`new-primitives-tasks`)
+
+`documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 4 carries token blocks and target values only. Before any of it is built, each primitive needs its own TASKS.md entry — otherwise the specs sit in a document with nothing scheduling them.
+
+- [x] Wrote a TASKS.md entry per primitive (§ 24.1–24.10, in order: `Button`, `TextInput`, `Card`, then `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal`)
+- [x] Each entry gets the § 4 token block (or, for the seven table-only ones, the § 4.4 row plus a note to expand it into a full block as part of that task — not up front), a props note, a pointer at the shared § 5 checklist (stated once rather than repeated ten times), and a Storybook-states bullet
+- [x] Each entry depends on § 22.1 — noted as already satisfied, since § 22.1 completed earlier in this same session
+- [x] Sequenced `Button` (§ 24.1) first; § 24.2–24.10 each explicitly depend on it being reviewed and approved first
+- [x] Table-only components (§ 24.4–24.10) note to expand their § 4.4 row into a full token block as part of their own task, not up front
+
+---
+
+### 22.9 Delete `priori-patch/` (`tendril-patch-cleanup`)
+
+**Depends on:** every task in this section and every component in `documentation/DESIGN-TOKENS-BY-COMPONENT.md` § 9 being complete — `priori-patch/` is a reference for diffs until then.
+
+- [x] Confirm no remaining checklist item points at `priori-patch/`
+- [x] Delete the `priori-patch/` directory
+- [x] Review in Storybook — **approved**
+
+---
+
 ## 29. Delete action in the tasks list (`task-list-delete`)
 
 Adds delete for the plain task-browsing list (`TasksPage` → `TaskTreeItem`),

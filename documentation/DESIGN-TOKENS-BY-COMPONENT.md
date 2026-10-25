@@ -120,7 +120,7 @@ Add to the **light** `:root` block in `tokens.css`:
 
 The radius rename is the one global change here with a visible effect, and it is wider than it first looks. `--radius-sm` and `--radius-md` are already referenced well beyond the components this document migrates: `Select`, `NavBar`, `ThemeToggle` (since deleted), `TaskCard`, `EnergyPicker`, `LocationPicker`, `DurationPicker`, `PriorityPicker`, `TaskCreationForm`, `TaskCreationPage`, `InProgressBlock`, `ResultsSlide`, `TaskTreeItem`, `EmptyState` — roughly fifteen files, most of them outside this plan's scope this round. The rename still carries all of them automatically, no CSS edit required, but "check visually" needs to be a real step against that whole list, not an aside:
 
-- [ ] After TASKS.md § 22.1 lands, visually diff every file in the list above in both modes — the rename affects them whether or not they are otherwise being migrated this round
+- [ ] After TASKS-DONE.md § 22.1 lands, visually diff every file in the list above in both modes — the rename affects them whether or not they are otherwise being migrated this round
 
 Everything else in the block is additive and inert until referenced. `--motion-*`, `--focus-ring*`, `--control-height-*`, `--z-*` and the radius scale need no dark variants: they are mode-independent, and `--focus-ring-color` resolves through `--color-primary-tint`, which already flips.
 
@@ -459,8 +459,8 @@ One consequence worth knowing: in dark mode a tint sits only 1.02–1.05:1 from 
 
 Build these on the same three-layer model. Full token blocks; markup is straightforward from artboard 05.
 
-**These are specifications, not implementations.** Each one needs a TASKS.md entry
-of its own before any code is written — see TASKS.md § 22.8. Nothing in § 4 has a component
+**These are specifications, not implementations.** Each one needs a task entry
+of its own (now `TASKS-TECH.md` § 24) before any code is written — see TASKS-DONE.md § 22.8. Nothing in § 4 has a component
 file, a story, or a call site yet.
 
 ### 4.1 Button — `components/Button`
@@ -644,13 +644,13 @@ When building or restyling a component:
 Component-level design work follows `documentation/DESIGN-TOKENS-BY-COMPONENT.md`, which carries the per-component target values and migration order.
 ```
 
-Saving this document under that name and recording the three-layer decision in `documentation/ARCHITECTURE.md` are tracked as TASKS.md § 22.5.
+Saving this document under that name and recording the three-layer decision in `documentation/ARCHITECTURE.md` are tracked as TASKS-DONE.md § 22.5.
 
 ---
 
-## 8. Tasks — moved to TASKS.md
+## 8. Tasks — moved to the task files (§ 22, now in TASKS-DONE.md)
 
-The task list that used to live here (patch application, app-shell padding, nav-links-hidden, theme-control placement, docs recording, the Storybook token surface, Carousel tints, scheduling the new primitives, and the final `priori-patch/` cleanup) now lives in **TASKS.md § 22**, subsections 22.1–22.9 in the same order as the old 8.1–8.9. This document keeps §§ 1–7 (the token model, the per-component diffs, the checklist, Storybook additions, the CLAUDE.md block) and § 9 (suggested order); TASKS.md § 22 is where the actual checkboxes get ticked.
+The task list that used to live here (patch application, app-shell padding, nav-links-hidden, theme-control placement, docs recording, the Storybook token surface, Carousel tints, scheduling the new primitives, and the final `priori-patch/` cleanup) moved to **§ 22** of the task files (now archived in `TASKS-DONE.md`), subsections 22.1–22.9 in the same order as the old 8.1–8.9. This document keeps §§ 1–7 (the token model, the per-component diffs, the checklist, Storybook additions, the CLAUDE.md block) and § 9 (suggested order); § 22 is where the actual checkboxes were ticked.
 
 ---
 
@@ -658,12 +658,12 @@ The task list that used to live here (patch application, app-shell padding, nav-
 
 1. §2 global tokens — **done** (was delivered via a patch folder, since applied and deleted) (radius renamed, scales added).
 2. `NavBar` bottom bar — **done** (was delivered via a patch folder, since applied and deleted) (TASKS-DONE.md § 17).
-3. TASKS.md § 22.1 apply the patch, then § 22.2 app-shell padding — the bar is not usable without it. Includes the radius-rename visual audit called out in §2.
+3. TASKS-DONE.md § 22.1 apply the patch, then § 22.2 app-shell padding — the bar is not usable without it. Includes the radius-rename visual audit called out in §2.
 4. `Checkbox` — smallest remaining example of the pattern; use it to settle the layer-3 conventions before repeating them.
-5. TASKS.md § 22.8 add the new primitives to TASKS.md, then build `Button`, `TextInput`, `Card` — the three most screens need. `Button` first and reviewed before the rest.
+5. TASKS-DONE.md § 22.8 add the new primitives to the task list (now `TASKS-TECH.md` § 24), then build `Button`, `TextInput`, `Card` — the three most screens need. `Button` first and reviewed before the rest.
 6. The remaining seven primitives from § 22.8, in the order it sequences them: `Radio`, `Switch`, `Chip`, `ListRow`, `SplitGroup`, `InlineMessage`, `Sheet`/`Modal` — each expands its §4.4 table row into a full token block as part of its own task.
 7. `FAB` — **done** (was delivered via a patch folder, since applied and deleted); `Breadcrumbs`, `Select` — contained restyles.
 8. `ThemeToggle` — superseded: deleted (TASKS-TECH.md § 24.8); theme now follows time of day. A future theme control belongs to TASKS-FEATURES.md § 23.
-9. `Carousel` — TASKS.md § 22.7; the dark slide tints now have real values, and the index now comes from TASKS-DONE.md §14's `slide_index` once it lands.
-10. TASKS.md § 22.6 parity guard and token surface, once two or three components are on the model and the conventions have stopped moving.
-11. TASKS.md § 22.9 delete `priori-patch/` — done; the patch folder was applied and deleted.
+9. `Carousel` — TASKS-DONE.md § 22.7; the dark slide tints now have real values, and the index now comes from TASKS-DONE.md §14's `slide_index` once it lands.
+10. TASKS-DONE.md § 22.6 parity guard and token surface, once two or three components are on the model and the conventions have stopped moving.
+11. TASKS-DONE.md § 22.9 delete `priori-patch/` — done; the patch folder was applied and deleted.
