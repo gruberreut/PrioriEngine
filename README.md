@@ -1,5 +1,7 @@
 # Priori
 
+**▶ [Live component library (Storybook)](https://gruberreut.github.io/PrioriEngine/)** — every UI component, its variants and both themes, rebuilt on each merge to `main`.
+
 ## Why TempAppName exists
 
 Most of our time and energy goes to things we *have* to do: work, the commute, chores, admin, sleep, repeat. When you finally get home and want to do something for yourself, something that uses the other parts of who you are, your skills and your ambitions, you're often too drained to decide *what*. Choosing takes the last of your energy, so you give up and end up watching TV or scrolling.
@@ -17,8 +19,6 @@ You spend what energy you have on something you love, not on deciding. Even if i
 ## The repository
 
 Monorepo for the Priori task-ranking system: **`packages/engine`** (deterministic ranking + CLI), **`apps/api`** (HTTP API), and **`apps/web`** (React UI).
-
-**[Browse the component library (Storybook)](https://gruberreut.github.io/PrioriEngine/)** — rebuilt automatically on every merge to `main` that changes `apps/web`.
 
 ## Engine (`packages/engine`)
 

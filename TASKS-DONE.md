@@ -710,3 +710,18 @@ Type: feature
 Unnumbered. Items from the Open Issues list at the end of `TASKS-FEATURES.md`, moved here once resolved.
 
 - ~~**ResultsSlide idle/loading text**~~ — replaced "Swipe here to load results" and "Loading…" text with a shimmer skeleton of 3 placeholder task cards for both `idle` and `loading` states. ✓
+
+---
+
+## 57. Publish Storybook to GitHub Pages (`storybook-pages`)
+
+Type: tech
+
+Publish the `apps/web` Storybook at https://gruberreut.github.io/PrioriEngine/ so the component library can be viewed without running it locally, and rebuild it whenever `apps/web` changes on `main`. Decision and rejected alternatives in `documentation/ARCHITECTURE.md` § Frontend ("Published Storybook").
+
+- [x] Make the repo public (portfolio piece). History checked first: no secrets, no `.env` files
+- [x] Enable GitHub Pages with "GitHub Actions" as the source
+- [x] `.github/workflows/storybook-pages.yml`: on push to `main` touching `apps/web/**` or `package-lock.json` (and manual runs), `npm ci` → `build-storybook` → deploy with the official Pages actions
+- [x] Confirm the static build works under the `/PrioriEngine/` sub-path and that no story calls the API
+- [x] Record the decision in `documentation/ARCHITECTURE.md`; link the Storybook from `README.md`
+- [x] After merge: check the first workflow run succeeds and the site loads (stories render, theme toggle works). Run 44306914185 succeeded; checked in Chrome that Atomic/Button renders in light and dark with no console errors

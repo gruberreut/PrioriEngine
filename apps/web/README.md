@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# @priori/web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite web UI for TempAppName. It talks to `apps/api` over HTTP (`/api/*`) and never imports the Priori Engine directly; ranking happens on the server.
 
-Currently, two official plugins are available:
+**▶ [Live component library (Storybook)](https://gruberreut.github.io/PrioriEngine/)** — every component, its variants and both themes.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Running it
 
-## React Compiler
+From the repository root:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm ci                               # install all workspace dependencies
+npm run dev                          # API + web together (web on http://localhost:5173)
+npm run storybook -w @priori/web     # Storybook on http://localhost:6006
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+npm test -w @priori/web              # Vitest
+npm run lint -w @priori/web          # ESLint (zero warnings) + Stylelint
+npm run build -w @priori/web         # type-check + production build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The dev server proxies `/api` to the API on `localhost:3001`, which needs a local PostgreSQL (see `apps/api/README.md`). Storybook needs neither: every story renders from fixtures.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Layout (`src/`)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 ```
+components/   generic UI primitives with no domain knowledge (Button, Select, Carousel, Sheet, …)
+entity/       domain-aware components shared across features (TaskCard)
+features/     components that belong to one feature: ranking, tasks, loading, theme
+services/     API clients
+types/        shared TypeScript types
+styles/       design tokens (tokens.css), token tests and the token docs pages
+```
+
+## How it's built
+
+- **Presentational vs. container components.** Components take props in and report out through `on*` callbacks; pages and containers (explicit `…Page` suffix) own data and state. The two never mix. See [`guidelines/COMPONENT_BEST_PRACTICES.md`](../../guidelines/COMPONENT_BEST_PRACTICES.md).
+- **Three-layer design tokens.** A raw palette, semantic roles (with light and dark modes), and per-component tokens, all in `src/styles/tokens.css`; component CSS only references its own component's tokens. Rationale in [`documentation/ARCHITECTURE.md`](../../documentation/ARCHITECTURE.md) § Frontend.
+- **CSS Modules, mobile-first.** One module per component, no inline styles; base rules are the mobile layout and `@media (width >= …)` layers on larger screens.
+- **Storybook-first.** Every component has stories (with all callbacks wired to the actions panel) and is reviewed in Storybook before it's used in a page.
+
+Contributor conventions in full: [`CLAUDE.md`](CLAUDE.md).
