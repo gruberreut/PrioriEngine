@@ -62,6 +62,10 @@ Coding conventions for components (presentational vs page/container, props in an
 - **Why:** the PR, filled in from `.github/pull_request_template.md` (why, what changed, how it was verified, how AI was used), is the reviewable record linking plan → implementation → review.
 - **Rejected:** fast-forward merges pushed straight to `main`. That's less ceremony for a solo project, but it leaves no review record. Before this change, local commits accumulated on `main` and were pushed in batches, so one push could publish several older commits along with the intended change.
 
+**"How AI was used" describes prompts, it doesn't quote them.** The PR section names what was asked and what the user reviewed or decided, rather than pasting the prompts verbatim. Corrections the user made, including to the PR description itself, are listed separately from slips the agent caught and fixed on its own. Rule: `CLAUDE.md` § Branch Workflow, and the section's comment in `.github/pull_request_template.md`.
+- **Why:** prompts are written conversationally, with typos and shorthand. Quoted word for word in a public PR, they read as off-the-cuff rather than directed. What a reviewer needs from the section is the author's direction and judgement, which the quotes hide. Keeping the two kinds of correction apart stops the author's own corrections being lost behind "nothing needed correcting".
+- **Rejected:** verbatim prompts (the first version of PR #14's section). Exact, but noisy, and they don't show which decisions were the author's.
+
 **`/finish-pr` finalizes a PR.** The `/finish-pr` skill (`.claude/skills/finish-pr/SKILL.md`) checks an open PR for merge readiness, or runs the post-merge cleanup. It points to `CLAUDE.md` § Branch Workflow instead of copying its steps.
 - **Why:** finishing a PR was a manual, repeated sequence. Pointing to the steps rather than copying them keeps one source of truth.
 
