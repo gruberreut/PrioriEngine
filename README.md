@@ -18,6 +18,8 @@ You spend what energy you have on something you love, not on deciding. Even if i
 
 Monorepo for the Priori task-ranking system: **`packages/engine`** (deterministic ranking + CLI), **`apps/api`** (HTTP API), and **`apps/web`** (React UI).
 
+**[Browse the component library (Storybook)](https://gruberreut.github.io/PrioriEngine/)** — rebuilt automatically on every merge to `main` that changes `apps/web`.
+
 ## Engine (`packages/engine`)
 
 The engine evaluates leaf tasks from a nested JSON task tree and ranks them using weighted scoring based on:
