@@ -25,7 +25,7 @@ decisions came out of discussion:
    immediately, call the API in the background, and only if that call fails
    tell the user and resync from the server. This is a deliberately
    narrow, page-local version of a problem that's bigger than this task —
-   three follow-up backlog items (§29–§31; §29 is now in TASKS-DONE.md, §30–§31 in TASKS-TECH.md) capture the broader work
+   three follow-up backlog items (§29–§31; §29 is now in tasks/TASKS-DONE.md, §30–§31 in tasks/TASKS-TECH.md) capture the broader work
    (generalizing this pattern, applying it to `RankingPage`, and eventually
    observability) without pulling any of it into this change.
 
@@ -144,7 +144,7 @@ architectural decision for this page-local pattern).
 
 ### New task backlog items
 
-Added as §29–§31 (§29 is now in `TASKS-DONE.md`, §30–§31 in `TASKS-TECH.md`):
+Added as §29–§31 (§29 is now in `tasks/TASKS-DONE.md`, §30–§31 in `tasks/TASKS-TECH.md`):
 
 **§29 `RankingPage` optimistic updates (`ranking-optimistic-updates`)** —
 today `RankingPage.handleInProgressAction`/`handleStartTask`/
