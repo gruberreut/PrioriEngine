@@ -696,6 +696,7 @@ Nothing in the repo currently deploys anywhere — confirmed by inspection: no D
 - [ ] Wire the real CORS origin and gate `/docs`/`/openapi.yaml` per §16's now-triggered items
 - [ ] Basic smoke test against the deployed instance before sending out invites (sign up, rank a task, complete a task, at minimum)
 - [ ] Update `ARCHITECTURE.md` recording the hosting choice and the API-reachability decision
+- [ ] Link the live app at the top of `README.md`, ahead of the Storybook link on the same line (`**▶ [Try the app](…)** · **▶ [Component library (Storybook)](…)**`), and make it the repo's website in the GitHub About box (`gh repo edit --homepage <url>`), replacing the Storybook URL there. The README is a portfolio piece, so both links stay at the top
 
 ---
 
@@ -743,16 +744,3 @@ LLD: `documentation/techDesign/user-provisioning/lld.md`. The plan was written a
 - [ ] Real-DB tests in `apps/api/test/db/provisioning.test.ts`: a fresh user gets all four default contexts; calling it twice doesn't duplicate rows; another user's contexts are untouched
 - [ ] Manual check: `npm run db:seed` on a clean DB gives the same result as today
 - [ ] Update the design's Approach snippet to include `slideIndex`
-
----
-
-## 57. Publish Storybook to GitHub Pages (`storybook-pages`)
-
-Publish the `apps/web` Storybook at https://gruberreut.github.io/PrioriEngine/ so the component library can be viewed without running it locally, and rebuild it whenever `apps/web` changes on `main`. Decision and rejected alternatives in `documentation/ARCHITECTURE.md` § Frontend ("Published Storybook").
-
-- [x] Make the repo public (portfolio piece). History checked first: no secrets, no `.env` files
-- [x] Enable GitHub Pages with "GitHub Actions" as the source
-- [x] `.github/workflows/storybook-pages.yml`: on push to `main` touching `apps/web/**` or `package-lock.json` (and manual runs), `npm ci` → `build-storybook` → deploy with the official Pages actions
-- [x] Confirm the static build works under the `/PrioriEngine/` sub-path and that no story calls the API
-- [x] Record the decision in `documentation/ARCHITECTURE.md`; link the Storybook from `README.md`
-- [ ] After merge: check the first workflow run succeeds and the site loads (stories render, theme toggle works)
