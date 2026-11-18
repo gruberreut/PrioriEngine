@@ -60,7 +60,7 @@ Every change lands on `main` through a GitHub PR, even as a solo contributor —
 1. Update the task files (`tasks/TASKS-BUGS.md`, `tasks/TASKS-TECH.md`, `tasks/TASKS-FEATURES.md`, and `tasks/TASKS-DONE.md` when archiving) for the completed work as a commit on the branch (see § Task Tracking).
 2. `git fetch origin`, then check divergence in **both** directions before pushing: `git log HEAD..origin/main` (remote commits the branch lacks) and `git log origin/main..HEAD` (exactly the commits the PR will carry — flag anything unexpected).
 3. Push the branch: `git push -u origin <branch>`.
-4. Open the PR with `gh pr create`, filling every section of `.github/pull_request_template.md`.
+4. Open the PR with `gh pr create`, filling every section of `.github/pull_request_template.md`. In "How AI was used", describe prompts by what was asked and what the user reviewed or decided, not as verbatim quotes, and list the user's corrections separately from slips the agent caught itself.
 5. The user reviews and merges on GitHub. The agent never merges.
 6. Afterwards: `git checkout main`, `git pull --ff-only`, then delete the branch locally and on the remote. End on a clean `main` in sync with `origin/main`.
 
