@@ -25,7 +25,7 @@ type GateStep = () => Promise<GateStepResult>;
 
 /** No-op placeholder — ties into section 7's deferred "User provisioning"
  *  design work. Exists to give the sequence the right shape for when real
- *  auth lands (TASKS-FEATURES.md § 34), not to do anything today. */
+ *  auth lands (tasks/TASKS-FEATURES.md § 34), not to do anything today. */
 const authStep: GateStep = async () => "continue";
 
 /** No-op placeholder, same reasoning as authStep. */

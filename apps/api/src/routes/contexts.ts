@@ -36,7 +36,7 @@ export function createContextsHandler(db: Db, devUserId: string) {
         const body = JSON.parse(await readBody(req)) as Record<string, unknown>;
         const created = await db.transaction(async (tx) => {
           // Assigned from a monotonically increasing counter, never by reusing
-          // a freed index — see TASKS-DONE.md §14 for why (keeps hue-wheel order
+          // a freed index — see tasks/TASKS-DONE.md §14 for why (keeps hue-wheel order
           // matching creation order once contexts can be archived, §42).
           const [{ maxIndex }] = await tx
             .select({ maxIndex: max(contextsTable.slideIndex) })

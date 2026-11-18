@@ -18,7 +18,7 @@ Example: `queryTasks(db, userId)` is defined once in `queries.ts` and used by bo
 
 Test files live in `apps/api/test/`, mirroring the `src/` structure.
 
-**High-value areas use real DB integration tests** (connects to `priori_test`, runs migrations, seeds data per test). Use this approach when the logic is tightly coupled to DB queries, involves non-trivial mutations, or where a silent regression would be costly. Current high-value areas: `routes/tasks.ts` (including the split operation), `routes/rank.ts` (the DB→engine pipeline), and `routes/contexts.ts` (moved to real-DB tests once `POST /api/contexts` gained the `slide_index`-assignment invariant — see § 14 of `TASKS-DONE.md`).
+**High-value areas use real DB integration tests** (connects to `priori_test`, runs migrations, seeds data per test). Use this approach when the logic is tightly coupled to DB queries, involves non-trivial mutations, or where a silent regression would be costly. Current high-value areas: `routes/tasks.ts` (including the split operation), `routes/rank.ts` (the DB→engine pipeline), and `routes/contexts.ts` (moved to real-DB tests once `POST /api/contexts` gained the `slide_index`-assignment invariant — see § 14 of `tasks/TASKS-DONE.md`).
 
 **Lower-value areas use a mocked DB** to keep setup overhead low. Use this when the logic is simple CRUD with no complex invariants. No current example — revisit this section's wording once one exists again.
 

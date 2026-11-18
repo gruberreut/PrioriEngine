@@ -1,6 +1,6 @@
 ## Why
 
-<!-- The problem or goal. Link the task section (e.g. § 46) in TASKS-BUGS.md, TASKS-TECH.md or TASKS-FEATURES.md. -->
+<!-- The problem or goal. Link the task section (e.g. § 46) in tasks/TASKS-BUGS.md, tasks/TASKS-TECH.md or tasks/TASKS-FEATURES.md. -->
 
 ## What changed
 

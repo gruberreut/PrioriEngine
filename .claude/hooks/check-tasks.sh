@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse hook for `git push`: block the push if none of the outgoing
-# commits touch a task file (TASKS-BUGS.md, TASKS-TECH.md, TASKS-FEATURES.md),
+# commits touch a task file (tasks/TASKS-BUGS.md, tasks/TASKS-TECH.md, tasks/TASKS-FEATURES.md),
 # unless a commit message opts out with a line starting "Tasks: none".
 # Exit 2 blocks the tool call; stderr is the reason.
 
@@ -15,12 +15,12 @@ range="origin/main..HEAD"
 # Nothing outgoing (e.g. deleting a remote branch from main).
 [ -n "$(git rev-list "$range")" ] || exit 0
 
-[ -n "$(git log --format=%H "$range" -- TASKS-BUGS.md TASKS-TECH.md TASKS-FEATURES.md)" ] && exit 0
+[ -n "$(git log --format=%H "$range" -- tasks/TASKS-BUGS.md tasks/TASKS-TECH.md tasks/TASKS-FEATURES.md)" ] && exit 0
 git log --format=%B "$range" | grep -q '^Tasks: none' && exit 0
 
 cat >&2 <<'EOF'
 Push blocked: none of the outgoing commits (origin/main..HEAD) change a task
-file (TASKS-BUGS.md, TASKS-TECH.md or TASKS-FEATURES.md). Update the task
+file (tasks/TASKS-BUGS.md, tasks/TASKS-TECH.md or tasks/TASKS-FEATURES.md). Update the task
 files for the completed work, or, if there is genuinely nothing to track, add
 a line "Tasks: none — <reason>" to one of the commit messages.
 EOF

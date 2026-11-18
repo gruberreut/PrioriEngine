@@ -7,7 +7,7 @@
           {
             "type": "command",
             "if": "Bash(git commit*)",
-            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Before committing: check the task files (TASKS-BUGS.md, TASKS-TECH.md, TASKS-FEATURES.md) and update them to reflect completed work if needed.\"}}'",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"Before committing: check the task files (tasks/TASKS-BUGS.md, tasks/TASKS-TECH.md, tasks/TASKS-FEATURES.md) and update them to reflect completed work if needed.\"}}'",
             "statusMessage": "Checking task files..."
           },
           {

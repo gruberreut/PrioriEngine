@@ -19,7 +19,7 @@ function AppShell() {
   // hides its links via linksHidden below.
   const showFAB = location.pathname !== "/tasks/new" && !isInProgressBlock;
   const linksHidden = isInProgressBlock;
-  // No UI yet (see TASKS-FEATURES.md § 23 for the planned settings screen) - this just
+  // No UI yet (see tasks/TASKS-FEATURES.md § 23 for the planned settings screen) - this just
   // applies the light/dark theme (time-of-day by default) and exposes
   // window.switchTheme() as a dev-console escape hatch.
   useTheme();

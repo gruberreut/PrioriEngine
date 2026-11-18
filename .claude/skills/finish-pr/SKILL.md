@@ -28,7 +28,7 @@ Run `git fetch origin` first. If the PR's `headRefName` isn't the current branch
 **b. Commits vs description.** Run `git log origin/main..HEAD` (and `git diff --stat origin/main...HEAD`). Check the commits and changed files match what "What changed" describes: flag commits or files the description doesn't account for, and described changes with no matching commit. Also note if `git log HEAD..origin/main` is non-empty (the branch is behind main).
 
 **c. Task-file rule** (see `CLAUDE.md` § Task Tracking and the push hook `.claude/hooks/check-tasks.sh`). Met if either:
-- some commit in `origin/main..HEAD` changes a task file (`git log --format=%h origin/main..HEAD -- TASKS-BUGS.md TASKS-TECH.md TASKS-FEATURES.md`) and the change reflects this PR's work, or
+- some commit in `origin/main..HEAD` changes a task file (`git log --format=%h origin/main..HEAD -- tasks/TASKS-BUGS.md tasks/TASKS-TECH.md tasks/TASKS-FEATURES.md`) and the change reflects this PR's work, or
 - a commit message has a `Tasks: none — <reason>` line, and the reason is accurate (the change really has nothing to track).
 
 **d. Report.** End with either **Ready to merge** (and the PR URL) or a short list of what's missing. Merging is the user's step on GitHub.

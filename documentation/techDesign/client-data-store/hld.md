@@ -1,6 +1,6 @@
 # Client data store — HLD
 
-Tracked in `TASKS-TECH.md` § 56. This is the high-level design (approved). The low-level design (`lld.md`, next to this file) is written and approved before implementation starts.
+Tracked in `tasks/TASKS-TECH.md` § 56. This is the high-level design (approved). The low-level design (`lld.md`, next to this file) is written and approved before implementation starts.
 
 ## Context
 

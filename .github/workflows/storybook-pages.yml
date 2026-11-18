@@ -1,5 +1,5 @@
 # Builds the apps/web Storybook and publishes it to GitHub Pages
-# (https://gruberreut.github.io/PrioriEngine/). See TASKS-TECH.md § 57.
+# (https://gruberreut.github.io/PrioriEngine/). See tasks/TASKS-TECH.md § 57.
 name: Publish Storybook
 
 on:
