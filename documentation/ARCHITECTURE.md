@@ -246,6 +246,11 @@ Steps run sequentially, not in parallel, by deliberate choice: `authzStep` needs
 
 **Component development:** Storybook is used for building and reviewing components in isolation before they are wired into pages.
 
+**Published Storybook (TASKS-TECH.md § 57):** a GitHub Actions workflow (`.github/workflows/storybook-pages.yml`) builds the Storybook and publishes it to GitHub Pages at https://gruberreut.github.io/PrioriEngine/ on every push to `main` that touches `apps/web/**` or `package-lock.json` (plus a manual run). It is the repo's first CI workflow. Forces: the repo is public as a portfolio piece, and the component library should be viewable without cloning and running it; Storybook's static build uses relative paths and no story calls the API, so it hosts as plain static files under the `/PrioriEngine/` sub-path with no config change. Pages is deployed with the official Actions artifact flow (`upload-pages-artifact` + `deploy-pages`), so no build output lives in git. Rejected alternatives:
+- **A `gh-pages` branch** pushed by the workflow — the older pattern; it commits build output into the repo's history on every deploy and needs write access to contents, where the artifact flow needs only `pages: write`.
+- **Chromatic** (its addon is already installed) — adds per-PR previews and visual-review tooling, but needs a third-party account and token for what is today a single public showcase; revisit if visual regression review is wanted.
+- **Per-PR preview deploys** — Pages hosts one site per repo, so previews would need another host; local Storybook stays the review surface for PRs (`apps/web/CLAUDE.md`).
+
 ---
 
 ## Data Model
