@@ -22,6 +22,10 @@ assets/       — SVG icons and static files
 
 **Entity components** (`src/entity/`) are components that represent a domain entity (e.g. a Task) and are naturally reused across multiple features. They are domain-aware but not feature-specific. When a component shows signs of becoming an entity component — it is being imported from a second feature, or a future task explicitly plans to use it outside its origin feature — flag this and propose moving it to `src/entity/` before the second use is implemented.
 
+## Server data
+
+Server data (contexts now; tasks and ranking results later) goes through the client data store: the TanStack Query cache plus one `src/data/<entity>.ts` module per entity. Follow [`guidelines/STORE_BEST_PRACTICES.md`](../../guidelines/STORE_BEST_PRACTICES.md) for where data lives, how pages read and change it, and what components may not do. It's a draft until the § 56 LLD is approved, and `src/data/` doesn't exist yet.
+
 ## Storybook
 
 Every component must have a corresponding Storybook story file. This applies to all components — especially basic, atomic ones in `src/components/`. A component is not considered complete without stories.

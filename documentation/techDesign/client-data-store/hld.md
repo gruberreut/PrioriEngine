@@ -126,7 +126,7 @@ The architecture rule prefers no new dependency unless there's a reason. The rea
 
 **Generic or contexts-only.** The cache itself is generic, because it's TanStack's. The rules are per entity: we write `data/contexts.ts` now and add a module per entity when it moves in. There's no generic "entity store" abstraction on top. Each entity's optimistic rules differ too much: contexts have `slideIndex`, tasks have trees, and ranking results are derived data.
 
-**Revisit trigger.** § 15 (offline sync). If the client gets a local database (Dexie/IndexedDB) that pending writes are queued in and drained from, the local database becomes the client-side source and the cache's role changes. At that point, decide between TanStack on top of Dexie (with persisted, paused mutations) and Dexie's live queries replacing it. A smaller trigger: if `data/` ends up working around TanStack's model rather than using it (for example, hand-syncing two caches), stop and reconsider.
+**Revisit trigger.** § 15 (offline sync). If the client gets a local database (Dexie/IndexedDB) that pending writes are queued in and drained from, the local database becomes the client-side source and the cache's role changes. At that point, decide between TanStack on top of Dexie (with persisted, paused mutations) and Dexie's live queries replacing it. A smaller trigger: if `data/` ends up working around TanStack's model rather than using it (for example, hand-syncing two caches), stop and reconsider. Failed or offline mutations would also move to an outbox as part of § 15: actions queued in order, retried, and idempotent by client id.
 
 ## Data in the store
 
@@ -282,14 +282,14 @@ Page stories need a way to provide store data once pages read from the store ins
     - presentational components: import from `data/` at all
 11. **Adding an entity.** A checklist: keys, a read hook, mutation hooks, a freshness rule, invalidation-table entries, expected errors, and tests against a fresh `QueryClient` with `fetch` stubbed.
 
-## Decisions to confirm
+## Decisions
 
-1. **C (TanStack Query)** as the store, with B as the alternative if ranking results and tasks won't move in.
-2. **Client-generated permanent ids** for contexts, with the `POST /api/contexts` contract above (optional `id`, name validation, 200 for an idempotent retry, 409 with `code`).
-3. **Decided (user): stale times and cache removal** as in the table. Contexts are loaded once per session, never go stale, and every change to them updates the store in place. Tasks are shown stale and refetched in the background. Ranking results, and any task data on the ranking page, are never shown stale (1 min fresh window).
-6. **Decided (user): central error handling.** Every backend error goes through `apiFetch` and one `QueryCache`/`MutationCache` handler. Only rejections declared as expected are handled elsewhere.
-4. **Failure path:** a one-button `ConfirmDialog` then refresh for unexpected failures, a targeted removal for `name_taken`, no snapshot rollback.
-5. **Decided (user): the failure dialog is § 31's central mechanism,** mounted at the app root, built before § 56's store migration.
+1. **Store: C (TanStack Query).** B stays the alternative if ranking results and tasks won't move in.
+2. **Ids: client-generated permanent ids** for contexts, with the `POST /api/contexts` contract above (optional `id`, name validation, 200 for an idempotent retry, 409 with `code`).
+3. **Stale times and cache removal** are as in the table. Contexts are loaded once per session, never go stale, and every change to them updates the store in place. Tasks are shown stale and refetched in the background. Ranking results, and any task data on the ranking page, are never shown stale (1 min fresh window).
+4. **Central error handling.** Every backend error goes through `apiFetch` and one `QueryCache`/`MutationCache` handler. Only rejections declared as expected are handled elsewhere.
+5. **Failure path:** a one-button `ConfirmDialog` then refresh for unexpected failures, a targeted removal for `name_taken`, no snapshot rollback.
+6. **The failure dialog is § 31's central mechanism,** mounted at the app root, built before § 56's store migration.
 
 ## Out of this HLD (for the LLD)
 
