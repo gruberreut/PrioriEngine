@@ -50,7 +50,7 @@ When completing a task makes it the last non-completed direct child of its paren
 
 ## 15. Offline sync (`offline-sync`) — placeholder
 
-Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event.
+Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event. Failed or offline mutations from the client data store (§ 56) move to an outbox here: actions queued in order, retried, and idempotent by client id.
 
 ---
 

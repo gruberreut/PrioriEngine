@@ -32,7 +32,7 @@ Contexts are the first data to move. The task-creation form is today's only plac
 - [ ] Write the data-management rules: where data lives, how pages read it, how mutations go through the store, and what components may not do (e.g. keep their own copy of store data). The rules go in `apps/web/CLAUDE.md`, and the decision in `documentation/ARCHITECTURE.md`
 - [ ] Write `guidelines/STORE_BEST_PRACTICES.md`: the principles behind the HLD in general terms, so later store work (§ 30, § 42, new entities) applies them too (outline in the HLD § Data-management rules). This includes referring to data by key, not by string: ids rather than names in API calls and between entities, and query keys from a key factory rather than literals. `apps/web/CLAUDE.md` points to it
 - [ ] Study session on TanStack Query (the store chosen in the HLD), before the LLD: its principles and abilities, how it's structured, and what makes it the industry standard
-- [ ] Write the LLD and get it approved
+- [ ] Write the LLD in [`documentation/techDesign/client-data-store/lld.md`](documentation/techDesign/client-data-store/lld.md) and get it approved. A draft there collects notes from the study session
 - [ ] API: let `POST /api/contexts` accept a client-generated id if the HLD chooses that. Real-DB tests, and update `openapi.yaml` in the same commit
 - [ ] Build the store with tests, and move contexts into it (Depends on § 31: the central failure dialog). `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
 - [ ] `TaskCreationForm`: remove `addedContexts` and `mergeContexts.ts` (and its test). The form calls `onCreateContext` and renders the `contexts` it receives. Update its stories to pass created contexts back through `useArgs`
