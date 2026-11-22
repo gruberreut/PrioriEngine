@@ -4,6 +4,9 @@
 # fails. Lint runs with --max-warnings 0, so a warning fails it too.
 # Exit 2 blocks the tool call; stderr is the reason.
 
+source "$(dirname "$0")/lib/runs-git.sh"
+runs_git commit || exit 0
+
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 
 # Commit doesn't touch the web app: nothing to check.
