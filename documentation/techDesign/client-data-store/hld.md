@@ -214,7 +214,7 @@ An existing risk this change doesn't introduce but makes slightly more reachable
 - **Before sending.** The store runs the same check, so a duplicate never reaches the server even if a caller skips the form's check. If it's a duplicate, nothing is sent and the mutation returns a "duplicate" result.
 - The as-you-type check is only as current as the cached list. A name created from another device since the last fetch passes it, which is why the server's answer is still handled (next point).
 - The server's 409 `name_taken` is still handled. It means another device created the name since our last fetch. It's an expected answer, not a failure: remove that one optimistic row, add the existing context from the 409 body to the cached list (no refetch, per the loaded-once rule), and show the same inline message.
-- **Merged into the existing context (decided, user, in the LLD).** Same name means the same context, so a task create waiting on the rejected context is sent with the existing context's id instead of failing. This also covers a context created offline that's rejected after reconnect, when the form is gone. Details in `lld.md` note m. Rejected: renaming the new context (`garden-2`, "copy of garden"), which creates a context the user didn't ask for.
+- **Merged into the existing context (decided, user, in the LLD).** Same name means the same context, so a task create waiting on the rejected context is sent with the existing context's id instead of failing. This also covers a context created offline that's rejected after reconnect, when the form is gone. Details in `lld.md` § 6. Rejected: renaming the new context (`garden-2`, "copy of garden"), which creates a context the user didn't ask for.
 
 ## Failure path
 
