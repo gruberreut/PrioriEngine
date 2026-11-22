@@ -36,7 +36,8 @@ export async function apiFetch<T>(
 ```ts
 // src/data/core/queryClient.ts
 export function createQueryClient(options: { onTechnicalError: () => void }): QueryClient; // DataStoreContainer, stories and tests call this
-export function retryOnceOnNetworkError(failureCount: number, error: ApiError): boolean;
+export function retryOnceOnNetworkError(failureCount: number, error: ApiError): boolean;          // idempotent mutations
+export function retryOnceOnNetworkOrServerError(failureCount: number, error: ApiError): boolean;  // the query default
 ```
 
 - `DataStoreContainer` (§ 3) creates the client and provides it above `<BrowserRouter>`.
@@ -61,7 +62,7 @@ src/data/
   core/
     queryClient.ts          createQueryClient, retryOnceOnNetworkError, Register types (§ 2)
     scopes.ts               the shared create scope id (§ 5)
-    DataStoreContainer.tsx  the client, its provider, and the failure dialog
+    DataStoreContainer.tsx  the client, its provider, and the failure dialog (FailureDialog)
   contexts.ts               entity module: keys, hooks, rules, invalidation table (§ 6)
   tasks.ts                  task create (§ 9); the rest in § 30
   ranking.ts                (§ 30)
@@ -77,7 +78,7 @@ export function DataStoreContainer({ children }: { children: ReactNode }) {
     createQueryClient({ onTechnicalError: () => setFailed(true) }),
   );
   // renders <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  // and <ConfirmDialog open={failed} … onSelect={refresh} onCancel={refresh} />
+  // and <FailureDialog open={failed} onConfirm={refresh} />
 }
 // refresh: setFailed(false), then queryClient.invalidateQueries()
 ```
@@ -88,6 +89,7 @@ export function DataStoreContainer({ children }: { children: ReactNode }) {
 - **Logged to the console.** The central handler calls `console.error` for every technical error, including those arriving while the dialog is open. Each entry has the `ApiError` (`kind`, `status`, `code`, `body`) and the query key, or the mutation key and variables. § 32 can later send the same information to error tracking.
 - **OK and dismiss both refresh** with `invalidateQueries()` and no filter. Active queries refetch now. Inactive ones are marked stale and refetch when next read, since they may be wrong too. Contexts are included, which is why they use `staleTime: Infinity` (§ 6).
 - **Copy.** Title "Something went wrong", description "Your last change couldn't be saved. The page will refresh.", and one "OK" button. Load failures use the same text.
+- **`FailureDialog` (decided, user).** The dialog is a presentational component in `src/components/FailureDialog/`: `ConfirmDialog` with the copy above, and props `open` and `onConfirm`, which OK, a backdrop click and Escape all call. It has its own story, under `Atomic/Dialogs/` next to `ConfirmDialog`. Rejected: the copy inline in `DataStoreContainer` with a `ConfirmDialog` story repeating it (the two copies can drift), and a story of `DataStoreContainer` itself (it needs § 10's decorator, which waits for § 30, and repeats what the render tests check).
 - **No snapshot rollback** (HLD § Failure path). A rejected optimistic change is removed either by the targeted handling of a user-correctable error, or by this refresh.
 
 ## 4. Reading and changing data: how the guide's rules are applied

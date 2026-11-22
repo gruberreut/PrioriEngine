@@ -2,7 +2,7 @@
 
 Permanent reference for server data in `apps/web`. Applies to every entity the store holds, now and later (§ 30 tasks and ranking, § 42 context rename and archive, new entities). The reasoning behind these rules is in [`documentation/techDesign/client-data-store/hld.md`](../documentation/techDesign/client-data-store/hld.md).
 
-The concrete design these rules come from is the § 56 LLD, [`lld.md`](../documentation/techDesign/client-data-store/lld.md). `src/data/` and `src/domain/` don't exist yet; they're built in § 56 (`tasks/TASKS-TECH.md`).
+The concrete design these rules come from is the § 56 LLD, [`lld.md`](../documentation/techDesign/client-data-store/lld.md). `src/data/core/` is built. The entity modules and `src/domain/` are built from § 56 on (`tasks/TASKS-TECH.md`).
 
 The store is the TanStack Query cache, plus one `data/` module per entity that holds that entity's rules.
 
@@ -61,7 +61,7 @@ Write down when the entity's data is stale and what the user sees then. The rule
 - **The invalidation table is documented next to the code it describes.** For a small entity, that's one comment table at the top of its `data/<entity>.ts` module. For a larger entity, document each part next to the part of the module it belongs to (e.g. next to each mutation hook or key group) instead of one big table at the top.
 - **Invalidate after the last pending mutation of the entity settles.** The entity's mutations share a `mutationKey`, and `onSettled` invalidates only when `isMutating({ mutationKey }) === 1`. Mutations still run in parallel, except creates in a shared scope (below).
 - **New entities get client-generated ids** (`crypto.randomUUID()`).
-- **A mutation that references an entity still being created waits for that create** to reach the server. Creates that can depend on each other share one fixed `scope` id, defined once in `data/`, so TanStack sends them in order. (`scope` is set on the hook, not per `mutate` call.) Before sending, a dependent create resolves the id it references: if that create was merged into an existing entity (e.g. a context name already taken), the dependent uses the existing id. If the create failed for a technical reason, the dependent stops without sending.
+- **A mutation that references an entity still being created waits for that create** to reach the server. Creates that can depend on each other share one fixed `scope` id, defined once in `data/`, so TanStack sends them in order. (`scope` is set on the hook, not per `mutate` call.) Before sending, a dependent create resolves the id it references: if that create was merged into an existing entity (e.g. a context name already taken), the dependent uses the existing id. If the create failed for a technical reason, the dependent stops without sending. (Not built yet: until `tasks/TASKS-TECH.md` § 62, it's sent and fails too, adding nothing to the dialog already open.)
 - **Never block the user while offline.** A mutation made offline is paused, not failed, and sent on reconnect. Any UI that waits for a mutation (e.g. one context create at a time) waits only while it's actually being sent (`isPending && !isPaused`).
 - **Mutations don't retry by default.** A mutation whose endpoint is idempotent by client id retries at most once, on network errors only, never on an HTTP error response. A retried non-idempotent create can create the row twice. (Queries retry once; see section 9.)
 
