@@ -34,7 +34,8 @@ Contexts are the first data to move. The task-creation form is today's only plac
 - [x] Study session on TanStack Query (the store chosen in the HLD), before the LLD: its principles and abilities, how it's structured, and what makes it the industry standard (done by the user; its decisions are folded into the LLD's sections)
 - [x] Write the LLD in [`documentation/techDesign/client-data-store/lld.md`](documentation/techDesign/client-data-store/lld.md) and get it approved (approved by the user)
 - [ ] API: change `POST /api/contexts` to the HLD's contract (§ `POST /api/contexts` changes): optional client-generated `id`, name validation, 200 for an idempotent retry, and 409 with a `code` (`name_taken` with the existing row, `id_conflict`). Real-DB tests, and update `openapi.yaml` in the same commit
-- [ ] Build the store with tests, and move contexts into it (Depends on § 31: the central failure dialog, and § 59: React test setup). `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
+- [x] Build the store's core with tests (LLD § Rollout step 1): `apiFetch` and `ApiError` with every `services/` function on them, `createQueryClient` with its retry rules and central error handler, and `DataStoreContainer` with § 31's failure dialog, mounted in `main.tsx`
+- [ ] Move contexts into the store (`data/contexts.ts`, `src/domain/contexts.ts`), with tests. `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
 - [ ] Move task creation onto the store's minimal `useCreateTask` (LLD § 9), so it shares the context create's scope and resolves merged context ids. `TaskCreationPage` adds created tasks to its "Added this session" list straight away, and failed saves go to the central dialog
 - [ ] `TaskCreationForm`: remove `addedContexts` and `mergeContexts.ts` (and its test). The form calls `onCreateContext` and renders the `contexts` it receives. Update its stories to pass created contexts back through `useArgs`
 - [ ] Check § 30 and § 31 against the store, and update their wording where the store changes their premise (e.g. § 31's "each page owns its own fetch")
@@ -609,9 +610,9 @@ current page's data afterward.
 - [x] Design where this mechanism lives. **Decided (user, in `documentation/techDesign/client-data-store/hld.md` § Failure path):** one `ConfirmDialog` with a single OK button, mounted once at the app root. The § 56 data layer opens it when a mutation fails unexpectedly. Built before § 56 moves contexts into the store. Rejected: each page rendering its own dialog until this section lands
 - [x] Decide the notification UX. **Decided (user):** show the user an error message, and refresh the page after they confirm it (the current `TasksPage` MVP behaviour). This is the failure path for § 56's optimistic store updates. Rejected: a dismissible toast that refreshes in the background
 - [x] Decide what "refresh the current page" means generically. **Decided (user, same HLD):** refetch the active queries in the § 56 store, so pages don't register their own refetch functions. It's a data refetch, not a page reload, so form input survives
-- [ ] Build it: the root-mounted failure dialog and the way the § 56 data layer opens it, with tests and a Storybook story (Depends on § 59: React test setup). Designed in § 56's LLD, `documentation/techDesign/client-data-store/lld.md` § 3 (decided, user), with no LLD of its own
+- [x] Build it: the root-mounted failure dialog and the way the § 56 data layer opens it, with tests and a Storybook story (Depends on § 59: React test setup). Designed in § 56's LLD, `documentation/techDesign/client-data-store/lld.md` § 3 (decided, user), with no LLD of its own. Built as `DataStoreContainer` and a presentational `FailureDialog` (story under `Atomic/Dialogs/`)
 - [ ] Migrate `TasksPage`'s bespoke failure handling onto this mechanism once built, and revisit §30 (`RankingPage` optimistic updates) against it
-- [ ] Update `ARCHITECTURE.md` recording the decision
+- [x] Update `ARCHITECTURE.md` recording the decision (§ Frontend, "Failed backend calls")
 
 ---
 

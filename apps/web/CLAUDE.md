@@ -15,7 +15,8 @@ components/   — generic UI primitives with no domain knowledge (Select, Checkb
 entity/       — domain-aware components that represent a core entity and are shared across features (TaskCard)
 features/     — feature-specific components that live inside one feature and are not shared
 types/        — shared TypeScript interfaces (Task, etc.)
-services/     — API clients (rankingService, taskService)
+services/     — API clients (rankingService, taskService), all through apiFetch
+data/         — the client data store: core/ wiring, then one module per entity (see § Server data)
 styles/       — tokens.css (design tokens), token tests, and the token docs pages (DesignTokens.mdx, ColorStory.mdx, ComponentTokens)
 assets/       — SVG icons and static files
 ```
@@ -24,7 +25,7 @@ assets/       — SVG icons and static files
 
 ## Server data
 
-Server data (contexts now; tasks and ranking results later) goes through the client data store: the TanStack Query cache, `src/data/core/` for the shared wiring, and one `src/data/<entity>.ts` module per entity. `src/data/` doesn't exist yet; it's built in § 56 (`tasks/TASKS-TECH.md`). Hard rules:
+Server data (contexts now; tasks and ranking results later) goes through the client data store: the TanStack Query cache, `src/data/core/` for the shared wiring, and one `src/data/<entity>.ts` module per entity. `src/data/core/` is built (`apiFetch` lives in `services/`, the `QueryClient` and `DataStoreContainer` in `data/core/`). The entity modules come with § 56 (`tasks/TASKS-TECH.md`) and § 30. Hard rules:
 
 - Only Page/Container components call `data/` hooks. Presentational components get props and `on*` callbacks, and never import from `data/`.
 - Only `data/` calls `services/`. Only `data/`, the app root, the Storybook decorator and tests import `@tanstack/react-query`.
@@ -60,6 +61,7 @@ Every component must have a corresponding Storybook story file. This applies to 
 Story titles must follow this convention to keep the Storybook sidebar organized:
 
 - **`Atomic/<ComponentName>`** — generic UI primitives in `src/components/` (e.g. Select, Checkbox, Carousel)
+- **`Atomic/<Group>/<ComponentName>`** — a family of related primitives, grouped in the sidebar only; each keeps its own folder in `src/components/` (e.g. Atomic/Dialogs/ConfirmDialog and Atomic/Dialogs/FailureDialog). Each one's docs page names the others
 - **`Entity/<ComponentName>`** — domain-aware shared components in `src/entity/` (e.g. Entity/TaskCard)
 - **`Features/<Feature>/<ComponentName>`** — feature-specific components in `src/features/` (e.g. Features/Ranking/ParamsForm, Features/Tasks/DurationPicker)
 

@@ -1,0 +1,16 @@
+import { Meta, Canvas } from '@storybook/addon-docs/blocks';
+import * as FailureDialogStories from './FailureDialog.stories';
+
+<Meta of={FailureDialogStories} />
+
+# FailureDialog
+
+The app's one dialog for a backend call that failed for a technical reason: the network is down, a save failed, or the server answered with an error the user can't fix by changing their input. `DataStoreContainer` renders it once, at the app root, and opens it however many failures arrive (`tasks/TASKS-TECH.md` § 31, `documentation/techDesign/client-data-store/lld.md` § 3).
+
+It's `ConfirmDialog` (Atomic/Dialogs/ConfirmDialog) with fixed copy and a single OK button. OK, a backdrop click and `Escape` all call `onConfirm`, because each of them refreshes the data from the server.
+
+<Canvas of={FailureDialogStories.Default} />
+
+## Tokens
+
+No tokens of its own: it paints nothing beyond `ConfirmDialog`, whose `--confirm-dialog-*` tokens apply.

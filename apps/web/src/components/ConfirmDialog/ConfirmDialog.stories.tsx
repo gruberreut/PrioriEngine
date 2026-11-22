@@ -13,7 +13,7 @@ const defaultArgs = {
 };
 
 const meta: Meta<typeof ConfirmDialog> = {
-  title: "Atomic/ConfirmDialog",
+  title: "Atomic/Dialogs/ConfirmDialog",
   component: ConfirmDialog,
   argTypes: {
     onSelect: { action: "onSelect" },
