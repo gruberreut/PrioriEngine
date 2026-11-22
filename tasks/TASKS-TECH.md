@@ -747,3 +747,14 @@ LLD: `documentation/techDesign/user-provisioning/lld.md`. The plan was written a
 - [ ] Real-DB tests in `apps/api/test/db/provisioning.test.ts`: a fresh user gets all four default contexts; calling it twice doesn't duplicate rows; another user's contexts are untouched
 - [ ] Manual check: `npm run db:seed` on a clean DB gives the same result as today
 - [ ] Update the design's Approach snippet to include `slideIndex`
+
+---
+
+## 62. Don't send a create whose referenced context failed to save (`skip-orphan-creates`) — low priority
+
+Split out of § 56 (decided, user). `documentation/techDesign/client-data-store/lld.md` § 5 and § 9: a task create queued behind a context create in the shared scope is still sent after that context create fails. After `name_taken` it's redirected to the existing context (`resolveContextId`). After a technical failure, though, the queued task is sent with the failed context's id, so the server rejects it on the foreign key. The context's failure has already opened the central dialog, so the second failure adds nothing the user sees. It's a request that can't succeed. The cached list can't detect this: the optimistic row stays in it until the dialog's refresh lands, which is after the queued task has been sent.
+
+- [ ] Record the ids of context creates that failed with a technical error, in the same per-client map as the merges (LLD § 6), and have a dependent create's `mutationFn` stop without sending when its context id is one of them
+- [ ] Decide what the stopped create reports: an error through the central handler (one dialog, already open) or a silent cancel. The user's task input is lost either way, as it is for any failed save today
+- [ ] Tests: a task queued behind a context create that fails with a 5xx is never sent; one queued behind `name_taken` is sent to the existing context
+- [ ] Update LLD § 5 and § 9 to describe the built behaviour

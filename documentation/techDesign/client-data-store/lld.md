@@ -115,7 +115,7 @@ The general rules are in the guide (§5 Reading data, §6 Changing data). Here t
 **Creates that can depend on each other share one fixed `scope` (decided, user).** Every create that can reference another entity, or be referenced by one (context create and task create now), uses the same scope id, defined once in `data/core/scopes.ts`. TanStack then sends them one after another, so a task's request never reaches the server before its context exists. This settles the HLD's open question (`scope` vs awaiting the pending create).
 
 - **Why a fixed scope.** `scope` is a `useMutation` option, fixed per hook instance. `mutate(variables, options)` accepts only `onSuccess`, `onError` and `onSettled`. So a per-call scope such as `"context:<contextId>"` isn't possible with `useMutation`. The fixed scope needs no extra code and works with persisted mutations (§ 15). Since context creates already run one at a time (§ 6) and the UI is optimistic, sending creates in order costs the user nothing visible.
-- **A dependent whose parent failed.** A queued create is still sent after the one before it fails. So a dependent create first resolves the id it references: a task create calls `resolveContextId` (§ 6), which redirects it to the existing context after `name_taken`. If the context is gone for any other reason (a technical failure, which already opened the dialog), it stops without sending.
+- **A dependent whose parent failed.** A queued create is still sent after the one before it fails. So a dependent create first resolves the id it references: a task create calls `resolveContextId` (§ 6), which redirects it to the existing context after `name_taken`. If the context failed for any other reason (a technical failure, which already opened the dialog), the task is still sent in § 56, and the server rejects it on the foreign key. It joins the dialog that's already open. Not sending it is tracked in `tasks/TASKS-TECH.md` § 62 (low priority).
 - **Rejected:** awaiting the pending create through a map of promises in `data/contexts.ts` (code we'd maintain, and it doesn't survive § 15's persistence), and a `MutationObserver` per call (it bypasses `useMutation`'s state, and its callbacks can fire after the page unmounts).
 - **Revisit** if sending creates in order becomes a real problem.
 
@@ -140,7 +140,8 @@ type CreateContextResult =
   | { status: "created"; context: ContextItem }     // the optimistic row, final id
   | { status: "duplicate"; existing: ContextItem }; // caught before sending
 
-export function resolveContextId(id: string): string; // the merge map (below)
+export function resolveContextId(queryClient: QueryClient, id: string): string; // the merge map (below), for data/
+export function useResolveContextId(): (id: string) => string;                  // the same, bound to useQueryClient(), for pages
 ```
 
 - **Query:** `getContextItems(signal)`, `staleTime: Infinity`, `gcTime: Infinity`, sorted by `slideIndex`. Loaded once per session; every change goes through the store.
@@ -155,7 +156,9 @@ export function resolveContextId(id: string): string; // the merge map (below)
   - `onError` with `name_taken`: merge into the existing context (below). On a technical error it does nothing; the dialog's refresh removes the row.
 - **`name_taken` merges into the existing context (decided, user).** Same name means the same context. `onError`:
   1. removes the optimistic row, and adds the existing context from the 409 body if it isn't cached already;
-  2. records `optimisticId → existingId` in a session-lived map, read through `resolveContextId(id)`.
+  2. records `optimisticId → existingId` in the client's merge map, read through `resolveContextId`.
+
+- **One merge map per `QueryClient` (decided, user).** `data/contexts.ts` keeps a `WeakMap<QueryClient, Map<string, string>>`, so the map belongs to the client it was recorded on, like § 3's failure state. Every test and story gets a fresh client and so an empty map, with no reset code, and the map is discarded with its client. Pages read it through `useResolveContextId()`, which gets the client inside `data/`, so they don't import TanStack. No extra subscription is needed: the merge also removes the rejected row from `contextKeys.all`, so every `useContexts()` reader re-renders and its next `resolve(id)` already sees the new entry. Rejected: a module-level map with a test-only `resetContextMerges()` (code that exists only for tests, and every test file has to remember to call it), and keeping the map in the query cache with `setQueryData` (it isn't server data, and the dialog's `invalidateQueries()` would try to refetch it).
 
   A task queued behind the rejected context is sent to the existing one (§ 5). A page holding a selected context id (the task form) resolves it the same way, so the form shows the existing context selected. If the form is still showing that create, it also shows an inline "already exists, using it" message. If not (e.g. it was created offline and rejected after reconnect), the merge happens without a message. This is the one place an id is rewritten, and it's limited to creates still queued in the shared scope. The map lives only in memory, like paused mutations (§ 15). Rejected: renaming the new context (`garden-2`, "copy of garden"), which creates a context the user didn't ask for.
 - **Invalidation table** (a comment at the top of the module, guide §6): "create: appends to `contextKeys.all`, invalidates nothing".
@@ -214,13 +217,13 @@ export function useCreateTask(): {
 };
 ```
 
-- **Scope and context id.** The mutation uses the shared create scope (§ 5). Its `mutationFn` sends `resolveContextId(contextId)` (§ 6), and stops without sending if the context is gone after a technical failure. A subtask whose parent is still being created waits behind it in the same scope.
+- **Scope and context id.** The mutation uses the shared create scope (§ 5). Its `mutationFn` sends `resolveContextId(queryClient, contextId)` (§ 6), with the client from the hook's `useQueryClient()`. After a technical failure of its context it's still sent (§ 5; not sending it is § 62). A subtask whose parent is still being created waits behind it in the same scope.
 - **No retry.** `POST /api/tasks` isn't idempotent until § 30.
 - **No tasks cache yet.** `TasksPage`, `TaskDetailPage`, `InProgressPage` and `LoadingGate` keep fetching as today until § 30. That's a tracked gap: a task created here appears on those pages when they next fetch.
 - **Errors.** A failed save is a technical error and goes to the central dialog. `TaskCreationPage`'s own "Failed to save task" message is removed.
 
 **`TaskCreationPage`:**
-- It reads `useContexts()`, `useCreateContext()` and `useCreateTask()`.
+- It reads `useContexts()`, `useCreateContext()`, `useCreateTask()` and `useResolveContextId()`.
 - On submit it calls `createTask(...)` and adds the returned task to its "Added this session" list straight away. The id is final, so the task can be set as a parent at once, and the list doesn't depend on a success callback (so § 4's "latest call" caveat doesn't apply).
 - The form is reset, as today.
 
@@ -231,12 +234,13 @@ export function useCreateTask(): {
   - `nameTakenMessage`;
   - `addDisabled` (no list loaded yet, or a create being sent);
   - `submitDisabled` (a task create being sent; never while paused offline);
-  - `onNewContextNameChange`, which lets the page call `reset()` to clear a server message.
+  - `onNewContextNameChange`, which lets the page call `reset()` to clear a server message;
+  - `resolveContextId: (id) => string`, from the page's `useResolveContextId()`. Optional, defaulting to returning the id unchanged, so stories don't need it.
 - **As the user types a new name:** `isContextNameTaken(name, contexts)` (§ 7). A taken name shows the inline "already exists" message and disables Add. An empty name keeps Add disabled.
 - **On Add:**
   - `created`: the form selects the new context's id and closes the field.
   - `duplicate`: it selects the existing context and shows the message.
-  - After a merge (§ 6), the selected id resolves to the existing context through `resolveContextId`, so the form shows the existing one selected.
+  - After a merge (§ 6), the form passes its selected id through its `resolveContextId` prop when it renders and submits, so it shows the existing context selected.
 - **Removed:** `addedContexts`, `mergeContexts.ts` (and its test), and `contextLoading`. The stories pass created contexts back through `useArgs`.
 
 **`RankingPage`:** reads `useContexts()` to build its slides, instead of `getContextItems()` in an effect. Ranking results themselves stay as they are until § 30.
@@ -271,7 +275,7 @@ parameters: {
 - **Data layer.** Each `data/` module's query and mutation logic is tested through a fresh `QueryClient` with `fetch` stubbed:
   - the optimistic append and the upsert reconcile;
   - the `slideIndex` prediction;
-  - the `name_taken` merge and `resolveContextId`;
+  - the `name_taken` merge and `resolveContextId`, including that a fresh client starts with an empty merge map;
   - scope ordering;
   - retry only on network errors;
   - the central handler calling `onTechnicalError` only after retries are exhausted, and never for an expected error.
