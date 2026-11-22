@@ -34,6 +34,23 @@ Server data (contexts now; tasks and ranking results later) goes through the cli
 
 The full rules and their reasons are in [`guidelines/STORE_BEST_PRACTICES.md`](../../guidelines/STORE_BEST_PRACTICES.md), and the design in `documentation/techDesign/client-data-store/lld.md`.
 
+## Tests
+
+Tests sit next to the file they test, as `<name>.test.ts` or `<name>.test.tsx`. Vitest runs them in the `node` environment by default, which fits plain logic tests.
+
+A test that renders React opts into jsdom with this comment as its first line:
+
+```tsx
+// @vitest-environment jsdom
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+```
+
+- Query the way a user finds things: `getByRole` with an accessible name first, then `getByLabelText` or `getByText`. Avoid test ids and class names.
+- Drive interaction with `userEvent` (and `await` it), not `fireEvent`.
+- Import `describe`, `it`, `expect` and `vi` from `vitest`; there are no globals. `test/setup.ts` unmounts rendered trees after each test.
+- Example: `src/components/ConfirmDialog/ConfirmDialog.test.tsx`.
+
 ## Storybook
 
 Every component must have a corresponding Storybook story file. This applies to all components — especially basic, atomic ones in `src/components/`. A component is not considered complete without stories.
