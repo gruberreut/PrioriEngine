@@ -9,6 +9,8 @@ export default defineConfig({
     },
   },
   test: {
+    // React tests opt into jsdom per file with `// @vitest-environment jsdom`.
     environment: 'node',
+    setupFiles: ['./test/setup.ts'],
   },
 });

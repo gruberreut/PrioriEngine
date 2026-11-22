@@ -2,23 +2,11 @@
 
 Technical work: the goal is not a change users can see (refactors, infrastructure, tooling, docs, quality). Read this file when `TASKS-BUGS.md` has no open, unblocked items, and before `TASKS-FEATURES.md` (see `CLAUDE.md` § Task Tracking).
 
-**Priority order:** §56 (client data store) first, with its prerequisite §59 (React test setup) before it, then §48 (shared queries split by entity), then the rest of this file in order.
+**Priority order:** §56 (client data store) first (its prerequisite §59, React test setup, is done), then §48 (shared queries split by entity), then the rest of this file in order.
 
 **§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing sections in all the task files, including §38 (Deployment) and §39 (Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
 Section numbers are shared with `TASKS-BUGS.md`, `TASKS-FEATURES.md` and `TASKS-DONE.md`, and never reused. A number missing here is in one of those files.
-
----
-
-## 59. Web React test setup (`web-react-tests`) — high priority
-
-Filed above § 56 because § 56 and § 31 depend on it; the section number doesn't reflect that. Today web tests are plain logic tests: Vitest runs in the `node` environment, with no `@testing-library/react` or jsdom. The § 56 data hooks and § 31's failure dialog need React-rendering tests (decided, user, in `documentation/techDesign/client-data-store/lld.md` § 11). Its own PR, before § 31 and the store.
-
-- [ ] Add `@testing-library/react`, `@testing-library/user-event` and jsdom as dev dependencies of `@priori/web`
-- [ ] Keep Vitest's default environment `node`. React tests opt into jsdom (per-file `// @vitest-environment jsdom`, or a file-name pattern; pick one), so existing logic tests stay fast
-- [ ] A setup file with clean-up between tests
-- [ ] One real test proving the setup: `ConfirmDialog`'s option click and Escape behaviour
-- [ ] `apps/web/CLAUDE.md`: how to write a React test. `documentation/ARCHITECTURE.md` § Frontend: the decision, and the rejected alternative (testing the data layer only through a `QueryClient`, with no React)
 
 ---
 

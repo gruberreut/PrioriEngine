@@ -725,3 +725,17 @@ Publish the `apps/web` Storybook at https://gruberreut.github.io/PrioriEngine/ s
 - [x] Confirm the static build works under the `/PrioriEngine/` sub-path and that no story calls the API
 - [x] Record the decision in `documentation/ARCHITECTURE.md`; link the Storybook from `README.md`
 - [x] After merge: check the first workflow run succeeds and the site loads (stories render, theme toggle works). Run 44306914185 succeeded; checked in Chrome that Atomic/Button renders in light and dark with no console errors
+
+---
+
+## 59. Web React test setup (`web-react-tests`) — high priority
+
+Type: tech
+
+Filed above § 56 because § 56 and § 31 depend on it; the section number doesn't reflect that. Today web tests are plain logic tests: Vitest runs in the `node` environment, with no `@testing-library/react` or jsdom. The § 56 data hooks and § 31's failure dialog need React-rendering tests (decided, user, in `documentation/techDesign/client-data-store/lld.md` § 11). Its own PR, before § 31 and the store.
+
+- [x] Add `@testing-library/react`, `@testing-library/user-event` and jsdom as dev dependencies of `@priori/web` (plus `@testing-library/dom`, `@testing-library/react`'s peer dependency)
+- [x] Keep Vitest's default environment `node`. React tests opt into jsdom (per-file `// @vitest-environment jsdom`, or a file-name pattern; pick one), so existing logic tests stay fast. Picked the per-file comment
+- [x] A setup file with clean-up between tests (`apps/web/test/setup.ts`)
+- [x] One real test proving the setup: `ConfirmDialog`'s option click and Escape behaviour
+- [x] `apps/web/CLAUDE.md`: how to write a React test. `documentation/ARCHITECTURE.md` § Frontend: the decision, and the rejected alternative (testing the data layer only through a `QueryClient`, with no React)
