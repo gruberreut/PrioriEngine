@@ -1,4 +1,5 @@
 import type { Task } from "../types/task";
+import { apiFetch } from "./apiFetch";
 import type { RankParams } from "../features/ranking/ParamsForm/ParamsForm";
 import type { RankResultMode } from "../features/ranking/ResultsPanel/ResultsPanel";
 import type { ScoreBreakdownData } from "../features/ranking/ScoreBreakdown/ScoreBreakdown";
@@ -37,7 +38,11 @@ function toTask(t: Record<string, unknown>): Task {
   return task;
 }
 
-export async function rank(params: RankParams, context: string | undefined): Promise<RankResultMode> {
+export async function rank(
+  params: RankParams,
+  context: string | undefined,
+  signal?: AbortSignal
+): Promise<RankResultMode> {
   const body: Record<string, unknown> = {
     availableTime: params.availableTime,
     energyLevel: params.energy,
@@ -46,14 +51,7 @@ export async function rank(params: RankParams, context: string | undefined): Pro
   };
   if (context) body.context = context;
 
-  const res = await fetch("/api/rank", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error("Ranking request failed");
-
-  const data = await res.json() as ApiRankResult;
+  const data = await apiFetch<ApiRankResult>("/api/rank", { method: "POST", body, signal });
 
   if (data.mode === "in_progress_block") {
     return {

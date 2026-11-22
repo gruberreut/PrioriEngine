@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { rank } from "./rankingService";
+import { ApiError } from "./apiFetch";
 import type { RankParams } from "../features/ranking/ParamsForm/ParamsForm";
 
 const baseParams: RankParams = {
@@ -100,7 +101,7 @@ describe("error handling", () => {
   it("throws when the response is not ok", async () => {
     mockFetch({}, false);
 
-    await expect(rank(baseParams, undefined)).rejects.toThrow("Ranking request failed");
+    await expect(rank(baseParams, undefined)).rejects.toBeInstanceOf(ApiError);
   });
 });
 
