@@ -4,6 +4,9 @@
 # unless a commit message opts out with a line starting "Tasks: none".
 # Exit 2 blocks the tool call; stderr is the reason.
 
+source "$(dirname "$0")/lib/runs-git.sh"
+runs_git push || exit 0
+
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
 
 # No origin/main to compare against (fresh clone, offline): don't block.
