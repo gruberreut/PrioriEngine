@@ -1,15 +1,12 @@
 import type { Task } from "../types/task";
+import { apiFetch } from "./apiFetch";
 
-export async function getTasks(): Promise<Task[]> {
-  const res = await fetch("/api/tasks");
-  if (!res.ok) throw new Error("Failed to fetch tasks");
-  return res.json() as Promise<Task[]>;
+export function getTasks(signal?: AbortSignal): Promise<Task[]> {
+  return apiFetch<Task[]>("/api/tasks", { signal });
 }
 
-export async function getTasksByStatus(status: Task["status"]): Promise<Task[]> {
-  const res = await fetch(`/api/tasks?status=${status}`);
-  if (!res.ok) throw new Error("Failed to fetch tasks");
-  return res.json() as Promise<Task[]>;
+export function getTasksByStatus(status: Task["status"], signal?: AbortSignal): Promise<Task[]> {
+  return apiFetch<Task[]>(`/api/tasks?status=${status}`, { signal });
 }
 
 export interface TaskUpdateResult {
@@ -17,40 +14,38 @@ export interface TaskUpdateResult {
   autoCompletedAncestors: Task[];
 }
 
-export async function updateTask(
+export function updateTask(
   id: string,
-  updates: { status: Task["status"] }
+  updates: { status: Task["status"] },
+  signal?: AbortSignal
 ): Promise<TaskUpdateResult> {
-  const res = await fetch(`/api/tasks/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(updates),
-  });
-  if (!res.ok) throw new Error("Failed to update task");
-  return res.json() as Promise<TaskUpdateResult>;
+  return apiFetch<TaskUpdateResult>(`/api/tasks/${id}`, { method: "PUT", body: updates, signal });
 }
 
-export async function snoozeTask(id: string): Promise<Task> {
-  const res = await fetch(`/api/tasks/${id}/snooze`, { method: "POST" });
-  if (!res.ok) throw new Error("Failed to snooze task");
-  return res.json() as Promise<Task>;
+export function snoozeTask(id: string, signal?: AbortSignal): Promise<Task> {
+  return apiFetch<Task>(`/api/tasks/${id}/snooze`, { method: "POST", signal });
 }
 
-export async function deleteTask(id: string, childAction?: "delete" | "reparent"): Promise<void> {
-  const res = await fetch(`/api/tasks/${id}`, {
+export function deleteTask(
+  id: string,
+  childAction?: "delete" | "reparent",
+  signal?: AbortSignal
+): Promise<void> {
+  return apiFetch<void>(`/api/tasks/${id}`, {
     method: "DELETE",
-    headers: childAction ? { "Content-Type": "application/json" } : undefined,
-    body: childAction ? JSON.stringify({ childAction }) : undefined,
+    body: childAction ? { childAction } : undefined,
+    signal,
   });
-  if (!res.ok) throw new Error("Failed to delete task");
 }
 
-export async function splitTask(id: string, title: string): Promise<{ parent: Task; original: Task; sibling: Task }> {
-  const res = await fetch(`/api/tasks/${id}/split`, {
+export function splitTask(
+  id: string,
+  title: string,
+  signal?: AbortSignal
+): Promise<{ parent: Task; original: Task; sibling: Task }> {
+  return apiFetch<{ parent: Task; original: Task; sibling: Task }>(`/api/tasks/${id}/split`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title }),
+    body: { title },
+    signal,
   });
-  if (!res.ok) throw new Error("Failed to split task");
-  return res.json() as Promise<{ parent: Task; original: Task; sibling: Task }>;
 }
