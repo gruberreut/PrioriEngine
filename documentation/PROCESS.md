@@ -51,6 +51,12 @@ Coding conventions for components (presentational vs page/container, props in an
 - **Why (at the time):** `TASKS.md` kept growing, so moving finished work out kept it a manageable size. The stub kept section numbers and `§N` references working without opening the archive.
 - **Superseded by** the split task files (above). With active work spread over three files, a stub would sit in whichever file the section happened to leave, so finding a number means searching all the files anyway. The archive itself answers "where did § N go", and the shared-number command finds the next free number. Stubs also cost reading tokens in exactly the files read most often: 17 of them were removed in the split.
 
+**Every PR leaves the repo consistent, or the gap tracked.** A PR updates the task files so they describe the repository as it will be once the PR merges. It may leave an inconsistency between docs, or between docs and code, only when a task item records closing it, and it adds that item if none exists. Rule: `CLAUDE.md` § Task Tracking. Decided during the § 56 design PR, where the approved HLD contradicted itself and the architecture decision hadn't been recorded.
+- **Why:** `main` should always be either consistent or explicit about where it isn't. An untracked gap is found only by whoever happens to trip over it, while a task item is read when work is chosen. Updating the task files in the same PR keeps them a true picture of the repo at every merge, rather than catching up later.
+- **Rejected:**
+  - Requiring every inconsistency to be fixed in the PR that creates it. Designs and guidelines are legitimately written before the code they describe, so that would force design and implementation into one PR.
+  - Noting gaps only in the PR description. PR descriptions aren't read when choosing work, so the gap would be lost after merge.
+
 **The Known Bugs file always exists, and is read first.** `tasks/TASKS-BUGS.md` and its `## 10. Known Bugs` header stay even with no open bugs. Individual fixed bugs still move to `tasks/TASKS-DONE.md` § 10. Rule: `CLAUDE.md` § Task Tracking. Before the split, this was a section of `TASKS.md` that was never archived, with the bugs-first priority stated at the top of that file.
 - **Why:** bugs are fixed early so they don't compound, which makes them high priority. The file is the standing place new bugs are filed, so it has to exist and be findable even when empty.
 

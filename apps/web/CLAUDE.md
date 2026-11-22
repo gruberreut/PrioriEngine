@@ -24,7 +24,15 @@ assets/       — SVG icons and static files
 
 ## Server data
 
-Server data (contexts now; tasks and ranking results later) goes through the client data store: the TanStack Query cache plus one `src/data/<entity>.ts` module per entity. Follow [`guidelines/STORE_BEST_PRACTICES.md`](../../guidelines/STORE_BEST_PRACTICES.md) for where data lives, how pages read and change it, and what components may not do. It's a draft until the § 56 LLD is approved, and `src/data/` doesn't exist yet.
+Server data (contexts now; tasks and ranking results later) goes through the client data store: the TanStack Query cache, `src/data/core/` for the shared wiring, and one `src/data/<entity>.ts` module per entity. `src/data/` doesn't exist yet; it's built in § 56 (`tasks/TASKS-TECH.md`). Hard rules:
+
+- Only Page/Container components call `data/` hooks. Presentational components get props and `on*` callbacks, and never import from `data/`.
+- Only `data/` calls `services/`. Only `data/`, the app root, the Storybook decorator and tests import `@tanstack/react-query`.
+- No copy of store data in `useState`, no "plus what I created" lists, no deduping or merging server data in components, and no mirroring request status in state.
+- Components never catch backend errors and never use `mutateAsync`. User-correctable errors come from the hook's return value; technical errors go to the central dialog.
+- Pure domain rules (no React, no I/O) live in `src/domain/`.
+
+The full rules and their reasons are in [`guidelines/STORE_BEST_PRACTICES.md`](../../guidelines/STORE_BEST_PRACTICES.md), and the design in `documentation/techDesign/client-data-store/lld.md`.
 
 ## Storybook
 
