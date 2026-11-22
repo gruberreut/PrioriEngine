@@ -50,7 +50,7 @@ When completing a task makes it the last non-completed direct child of its paren
 
 ## 15. Offline sync (`offline-sync`) — placeholder
 
-Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event. Failed or offline mutations from the client data store (§ 56) move to an outbox here: actions queued in order, retried, and idempotent by client id.
+Deferred. Will cover: Dexie.js in `apps/web`; local IndexedDB schema mirroring the server schema; client-side UUID generation so the same id is used locally and in Postgres; a sync loop that drains `syncStatus: "pending"` writes to the API on the `online` event. Failed or offline mutations from the client data store (§ 56) move to an outbox here: actions queued in order, retried, and idempotent by client id. Until then, the store (`documentation/techDesign/client-data-store/lld.md` note m) pauses mutations made offline and sends them on reconnect, but they live only in memory and are lost on a reload, and so is the map of contexts merged after `name_taken`. Ranking results are computed on the server and never shown stale, so the ranking page doesn't work offline. This section decides how ranking works offline. § 60 (online and offline state) comes first: it shows the user the state and settles the store's behaviour by connectivity.
 
 ---
 
@@ -254,6 +254,7 @@ Not scoped yet beyond the rules above — this task starts with UX definition, t
 - [ ] Decide the rename flow (inline edit vs. a form/dialog) and the archive flow (one tap vs. a confirmation step, and what the confirmation says when it's disabled/explains why archiving is blocked)
 - [ ] Decide how a blocked archive attempt is communicated (a context with pending/in_progress tasks) — disabled action with an explanation, vs. an attempt-then-error
 - [ ] Decide whether an archived context is recoverable (unarchive) or one-way for now — deferred, not decided
+- [ ] Creating a context with an archived context's name is handled in § 58 (low priority, after this section)
 - [ ] Get the flow reviewed/approved before tech design starts
 
 ### 2. Tech design
@@ -384,6 +385,38 @@ HLD: `documentation/techDesign/ai-task-input/hld.md`. **Has an HLD: its LLD must
 - [ ] `src/ai/taskDrafting.ts` and `src/ai/draftResolution.ts`; `POST /api/ai/task-drafts`, `PATCH /api/ai/task-drafts/:eventId/outcome`; `openapi.yaml`
 - [ ] Evaluation set (see the HLD's Testing section), including injection cases
 - [ ] Web: `AiTaskInput`, `DraftReview`, `DraftActionBar`, `draftTree.ts`; `TaskCreationPage` gating states; Storybook stories
+
+---
+
+## 60. Online and offline state (`connectivity-state`)
+
+The client data store (§ 56) relies on TanStack's online detection: with `networkMode: "online"`, requests made while the browser is offline are paused and sent on reconnect (`documentation/techDesign/client-data-store/lld.md` note m). But the user isn't told when the app goes offline or comes back, and some store behaviour depends on connectivity and is still a default, not a decision. A step toward § 15 (offline sync).
+
+- [ ] Detect the change of state. `onlineManager` from `@tanstack/react-query` reports what the browser reports. Decide whether "online but the server is unreachable" (repeated network errors) also counts as offline
+- [ ] Show the user an indication of the current state and of the change (offline, back online, changes waiting to be sent)
+- [ ] Decide the store and services behaviour by state, including:
+  - a failed background refetch of data already on screen (until this lands, it opens the failure dialog like any technical error, LLD § Design 10); avoid a dialog loop when the server is down, where each refresh fails again
+  - mutations that fail with a network error after their retry: dialog and refresh, or pause and resend like an offline mutation
+  - reads with nothing cached while offline (they stay in loading)
+
+---
+
+## 61. Maintenance mode (`maintenance-mode`)
+
+Related to § 60 (online and offline state), but separate. While the server is in maintenance, the app behaves much as it does offline. The difference is that the state is started on purpose (by whoever runs the server) rather than imposed by the network. Builds on § 60's indication and its by-state store behaviour.
+
+- [ ] Decide how maintenance is started and how the client learns about it (e.g. a status the API returns, such as 503 with a `code`, or a status endpoint), and whether it's announced ahead of time
+- [ ] Decide what the user sees, and whether changes made during maintenance are queued and sent afterwards, as offline changes are (§ 60, § 15)
+- [ ] Make sure maintenance responses aren't treated as technical errors that open the failure dialog (`documentation/techDesign/client-data-store/lld.md` § Design 3)
+
+---
+
+## 58. New context with an archived context's name (`archived-context-name`) — low priority
+
+Depends on § 42 (archiving). The `(user_id, name)` unique constraint on `contexts` includes archived rows, but the client's duplicate check (`isContextNameTaken`, `documentation/techDesign/client-data-store/lld.md` § Design 5) only sees non-archived contexts, because `GET /api/contexts` excludes archived ones. So creating a context with an archived context's name passes the client check, gets `name_taken` from the server, and is merged into the archived context (LLD note m), which the user can't see.
+
+- [ ] Decide the behaviour: allow the name again (the unique constraint excludes archived rows), unarchive the matching context, or tell the user the name belongs to an archived context
+- [ ] Implement it in the API (real-DB tests, `openapi.yaml`) and in `data/contexts.ts`
 
 ---
 

@@ -2,11 +2,23 @@
 
 Technical work: the goal is not a change users can see (refactors, infrastructure, tooling, docs, quality). Read this file when `TASKS-BUGS.md` has no open, unblocked items, and before `TASKS-FEATURES.md` (see `CLAUDE.md` § Task Tracking).
 
-**Priority order:** §56 (client data store) first, then §48 (shared queries split by entity), then the rest of this file in order.
+**Priority order:** §56 (client data store) first, with its prerequisite §59 (React test setup) before it, then §48 (shared queries split by entity), then the rest of this file in order.
 
 **§37 (Alpha Readiness)** collects everything needed to deploy an Alpha to friends and family for feedback, cross-referencing sections in all the task files, including §38 (Deployment) and §39 (Alpha access control). Check there for the current shape of that effort rather than re-deriving it from the full section list.
 
 Section numbers are shared with `TASKS-BUGS.md`, `TASKS-FEATURES.md` and `TASKS-DONE.md`, and never reused. A number missing here is in one of those files.
+
+---
+
+## 59. Web React test setup (`web-react-tests`) — high priority
+
+Filed above § 56 because § 56 and § 31 depend on it; the section number doesn't reflect that. Today web tests are plain logic tests: Vitest runs in the `node` environment, with no `@testing-library/react` or jsdom. The § 56 data hooks and § 31's failure dialog need React-rendering tests (decided, user, in `documentation/techDesign/client-data-store/lld.md` § Design 9). Its own PR, before § 31 and the store.
+
+- [ ] Add `@testing-library/react`, `@testing-library/user-event` and jsdom as dev dependencies of `@priori/web`
+- [ ] Keep Vitest's default environment `node`. React tests opt into jsdom (per-file `// @vitest-environment jsdom`, or a file-name pattern; pick one), so existing logic tests stay fast
+- [ ] A setup file with clean-up between tests
+- [ ] One real test proving the setup: `ConfirmDialog`'s option click and Escape behaviour
+- [ ] `apps/web/CLAUDE.md`: how to write a React test. `documentation/ARCHITECTURE.md` § Frontend: the decision, and the rejected alternative (testing the data layer only through a `QueryClient`, with no React)
 
 ---
 
@@ -29,12 +41,13 @@ Contexts are the first data to move. The task-creation form is today's only plac
   - how optimistic creates get an id before the server responds. Tasks already use client-generated ids (`tasks.id` has no DB default), but `contexts.id` is DB-generated
   - for contexts, how `slideIndex` (the colour) is predicted client-side while the server stays authoritative (the invariant from § 14), and how a duplicate name (today a 409) is caught in the store first
   - how Storybook stories for pages provide the store
-- [ ] Write the data-management rules: where data lives, how pages read it, how mutations go through the store, and what components may not do (e.g. keep their own copy of store data). The rules go in `apps/web/CLAUDE.md`, and the decision in `documentation/ARCHITECTURE.md`
-- [ ] Write `guidelines/STORE_BEST_PRACTICES.md`: the principles behind the HLD in general terms, so later store work (§ 30, § 42, new entities) applies them too (outline in the HLD § Data-management rules). This includes referring to data by key, not by string: ids rather than names in API calls and between entities, and query keys from a key factory rather than literals. `apps/web/CLAUDE.md` points to it
-- [ ] Study session on TanStack Query (the store chosen in the HLD), before the LLD: its principles and abilities, how it's structured, and what makes it the industry standard
-- [ ] Write the LLD in [`documentation/techDesign/client-data-store/lld.md`](documentation/techDesign/client-data-store/lld.md) and get it approved. A draft there collects notes from the study session
-- [ ] API: let `POST /api/contexts` accept a client-generated id if the HLD chooses that. Real-DB tests, and update `openapi.yaml` in the same commit
-- [ ] Build the store with tests, and move contexts into it (Depends on § 31: the central failure dialog). `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
+- [x] Write the data-management rules: where data lives, how pages read it, how mutations go through the store, and what components may not do (e.g. keep their own copy of store data). The hard rules are in `apps/web/CLAUDE.md` § Server data, pointing to `guidelines/STORE_BEST_PRACTICES.md`, and `apps/api/CLAUDE.md` points to the guide's create contract (§ 8). The decision is recorded in `documentation/ARCHITECTURE.md` § Frontend
+- [x] Write `guidelines/STORE_BEST_PRACTICES.md`: the principles behind the HLD in general terms, so later store work (§ 30, § 42, new entities) applies them too (outline in the HLD § Data-management rules). This includes referring to data by key, not by string: ids rather than names in API calls and between entities, and query keys from a key factory rather than literals. `apps/web/CLAUDE.md` points to it
+- [x] Study session on TanStack Query (the store chosen in the HLD), before the LLD: its principles and abilities, how it's structured, and what makes it the industry standard (done by the user; its notes are the LLD's notes a–n)
+- [x] Write the LLD in [`documentation/techDesign/client-data-store/lld.md`](documentation/techDesign/client-data-store/lld.md) and get it approved (approved by the user)
+- [ ] API: change `POST /api/contexts` to the HLD's contract (§ `POST /api/contexts` changes): optional client-generated `id`, name validation, 200 for an idempotent retry, and 409 with a `code` (`name_taken` with the existing row, `id_conflict`). Real-DB tests, and update `openapi.yaml` in the same commit
+- [ ] Build the store with tests, and move contexts into it (Depends on § 31: the central failure dialog, and § 59: React test setup). `RankingPage` and `TaskCreationPage` read contexts from the store instead of fetching them on their own
+- [ ] Move task creation onto the store's minimal `useCreateTask` (LLD § Design 7), so it shares the context create's scope and resolves merged context ids. `TaskCreationPage` adds created tasks to its "Added this session" list straight away, and failed saves go to the central dialog
 - [ ] `TaskCreationForm`: remove `addedContexts` and `mergeContexts.ts` (and its test). The form calls `onCreateContext` and renders the `contexts` it receives. Update its stories to pass created contexts back through `useArgs`
 - [ ] Check § 30 and § 31 against the store, and update their wording where the store changes their premise (e.g. § 31's "each page owns its own fetch")
 
@@ -591,6 +604,8 @@ instead of the current reload-every-slide approach.
 - [ ] Apply the chosen pattern consistently to complete/snooze/delete/start, replacing `refreshAfterMutation()` per-action rather than leaving a mix
 - [ ] API: validate `POST /api/tasks` before tasks move into the client store (§ 56; see `documentation/techDesign/client-data-store/hld.md` § Later moves). Required fields and their types/values give a 400. `id` must be a UUID. A retry with the same `id` and the same data returns the existing row with 200, and the same `id` with different data, or an `id` owned by another user, is a 409 (never overwrite). `contextId` and `parentId`, when given, must belong to the user. Real-DB tests, and update `openapi.yaml` in the same commit
 - [ ] API: `/api/rank` filters by `contextId` instead of the context name, and ranked tasks carry context ids instead of names (`task.contexts`). The page resolves names from the contexts store and passes them to `TaskCard` as props, so a renamed context (§ 42) needs no ranking refetch. Update `rankingService.rank()` and `RankingPage` to send the id. Real-DB tests, and update `openapi.yaml` in the same commit
+- [ ] Build the Storybook `withDataStore` decorator (`documentation/techDesign/client-data-store/lld.md` § Design 8) with the first page story that reads the store, and replace the story-only `initialState` props on `TasksPage`, `TaskDetailPage` and `InProgressPage` with seeded stories
+- [ ] Decide when ranking results (and tasks) are refetched while a page stays open (`documentation/techDesign/client-data-store/lld.md` note b). A result that goes stale on screen isn't refetched by itself, because `staleTime` only marks it stale. Direction (user): no refetch while the user stays on the page; invalidate when the page regains focus after being away for a set time. TanStack's refetch-on-focus already refetches stale active queries, so decide whether the away threshold needs to differ from the 1-minute fresh window
 
 ---
 
@@ -606,7 +621,7 @@ current page's data afterward.
 - [x] Design where this mechanism lives. **Decided (user, in `documentation/techDesign/client-data-store/hld.md` § Failure path):** one `ConfirmDialog` with a single OK button, mounted once at the app root. The § 56 data layer opens it when a mutation fails unexpectedly. Built before § 56 moves contexts into the store. Rejected: each page rendering its own dialog until this section lands
 - [x] Decide the notification UX. **Decided (user):** show the user an error message, and refresh the page after they confirm it (the current `TasksPage` MVP behaviour). This is the failure path for § 56's optimistic store updates. Rejected: a dismissible toast that refreshes in the background
 - [x] Decide what "refresh the current page" means generically. **Decided (user, same HLD):** refetch the active queries in the § 56 store, so pages don't register their own refetch functions. It's a data refetch, not a page reload, so form input survives
-- [ ] Build it: the root-mounted failure dialog and the way the § 56 data layer opens it, with tests and a Storybook story. Its LLD is part of § 56's LLD or its own (decided in that LLD)
+- [ ] Build it: the root-mounted failure dialog and the way the § 56 data layer opens it, with tests and a Storybook story (Depends on § 59: React test setup). Designed in § 56's LLD, `documentation/techDesign/client-data-store/lld.md` § Design 3 (decided, user), with no LLD of its own
 - [ ] Migrate `TasksPage`'s bespoke failure handling onto this mechanism once built, and revisit §30 (`RankingPage` optimistic updates) against it
 - [ ] Update `ARCHITECTURE.md` recording the decision
 

@@ -147,7 +147,7 @@ The architecture rule prefers no new dependency unless there's a reason. The rea
 - **Ranking results: never shown stale (decided, user).** A ranking answers "what should I do now", so an old answer misleads in a way an old context list doesn't. A result is shown from the cache only while it's fresh (1 minute, so swiping back and forth between slides doesn't flash loading). Once it's older than that, or a mutation has invalidated it, the slide shows its loading state and fetches. The old list isn't shown meanwhile. The one exception is § 30's optimistic edit of the visible slide after the user acts on a task: that list already reflects the user's action, so it stays on screen while the slide refetches.
 - **Ranking params change:** that's a new key with no data, so the slide shows its loading state, as today. Showing the previous params' results while loading (`placeholderData`) is rejected, because results for "30 min, low energy" shown under a "10 min, high energy" header would be wrong, not just old.
 - Refetch on window focus and on reconnect, but only when the data is stale.
-- `retry`: 1 for queries, 0 for mutations (a retried mutation is the idempotency question below, handled explicitly instead).
+- `retry`: 1 for queries. Mutations retry at most once, on network errors only (never on an HTTP error response), and only when their endpoint is idempotent by client id: context create now (see `POST /api/contexts` changes below), task create once § 30 makes `POST /api/tasks` idempotent. Other mutations don't retry, because a retried non-idempotent create can create the row twice (decided, user).
 
 ## Cache behaviour
 
@@ -214,7 +214,7 @@ An existing risk this change doesn't introduce but makes slightly more reachable
 - **Before sending.** The store runs the same check, so a duplicate never reaches the server even if a caller skips the form's check. If it's a duplicate, nothing is sent and the mutation returns a "duplicate" result.
 - The as-you-type check is only as current as the cached list. A name created from another device since the last fetch passes it, which is why the server's answer is still handled (next point).
 - The server's 409 `name_taken` is still handled. It means another device created the name since our last fetch. It's an expected answer, not a failure: remove that one optimistic row, add the existing context from the 409 body to the cached list (no refetch, per the loaded-once rule), and show the same inline message.
-- Any task create waiting on that context fails with it (see the failure path).
+- **Merged into the existing context (decided, user, in the LLD).** Same name means the same context, so a task create waiting on the rejected context is sent with the existing context's id instead of failing. This also covers a context created offline that's rejected after reconnect, when the form is gone. Details in `lld.md` note m. Rejected: renaming the new context (`garden-2`, "copy of garden"), which creates a context the user didn't ask for.
 
 ## Failure path
 
@@ -232,7 +232,7 @@ The two ways to undo an optimistic change that the server rejected:
 
 **Decided (user):**
 - **Unexpected failures** (network error, 5xx, 400, `id_conflict`): a `ConfirmDialog` with one button ("OK"). Selecting it, or dismissing the dialog, refreshes. This is the pattern `TasksPage` already uses for a failed delete ("Something went wrong … The list will refresh."). **The dialog is central, and built now (decided, user).** It's § 31's mechanism. A single `ConfirmDialog` is mounted once at the app root, and the data layer opens it whenever a mutation fails unexpectedly. Its OK refetches the active queries, which is what "refresh the current page" means once data is in the store, so pages don't register refetch functions. Pages don't render their own failure dialogs. § 31 is built before § 56 moves contexts into the store, and `TasksPage`'s own failed-delete dialog then moves onto it. § 31's LLD can be part of this HLD's LLD or its own; the LLD decides.
-- **Expected, specific rejections** (`name_taken`): a targeted removal of that one optimistic row, a refetch of its list, and an inline message where the user acted. This is not a snapshot rollback. It removes exactly the row the server rejected, so it's safe however many other changes are pending.
+- **Expected, specific rejections** (`name_taken`), meaning errors the user can fix by changing their input. Technical errors the user can't fix go to the dialog above: a targeted removal of that one optimistic row, adding the existing context from the 409 body to the cached list (no refetch), and an inline message where the user acted. This is not a snapshot rollback. It removes exactly the row the server rejected, so it's safe however many other changes are pending.
 - **Snapshot rollback is not used**, for the reasons above.
 
 This closes the silent-failure gap in `TaskCreationForm` as part of the migration.
@@ -244,7 +244,7 @@ Every error from a backend call reaches one place and is handled the same way. P
 - **One way to call the API.** Every `services/` function goes through one `apiFetch` helper. It turns a network error or a non-OK response into an `ApiError` (`status`, the body's `code` if any, and the body). No service throws its own ad-hoc `Error("Failed to …")` as they do today.
 - **One handler.** The `QueryClient` is created with a `QueryCache` and a `MutationCache` whose `onError` callbacks are that one place, for reads and writes alike. The handler opens the central failure dialog (§ 31), and its OK refreshes.
 - **Expected rejections are declared, not caught.** A query or mutation that has a specific, expected rejection declares it on its definition in `data/` (e.g. `meta: { expectedErrors: ["name_taken"] }`). The central handler leaves those to the mutation's own logic (the targeted removal and inline message above) and handles everything else. That keeps one rule: if it isn't declared as expected, it goes to the dialog.
-- **Load failures use the same path.** A failed first load opens the same dialog, and OK refetches. Pages stop rendering their own "Could not load…" messages. Queries retry once before an error reaches the handler. Mutations don't retry.
+- **Load failures use the same path.** A failed first load opens the same dialog, and OK refetches. Pages stop rendering their own "Could not load…" messages. Queries retry once before an error reaches the handler. Mutations retry only as described in Loading and refetching (at most once, network errors only, idempotent endpoints only).
 - **One exception, unchanged:** `LoadingGate`'s in-progress check runs before the app renders and deliberately fails open (`documentation/ARCHITECTURE.md` § Frontend). It isn't a store read, so it stays as it is.
 - For the LLD: whether a failed *background* refetch of tasks already on screen opens the dialog too, or stays silent until the next refetch. The default here is the dialog, for consistency.
 

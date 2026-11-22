@@ -8,6 +8,8 @@ Route handlers live in `apps/api/src/routes/`, one file per entity (e.g. `tasks.
 
 Each route file exports a single factory function — `create<Entity>Handler(db, ...deps)` — that returns a `(req, res, pathname, method) => Promise<boolean>` handler. The handler returns `true` if it matched and responded, `false` to pass through. `server.ts` is responsible only for startup (DB init, env vars) and iterating the handler list; it never contains route logic itself.
 
+**Create endpoints the web client data store calls** (`POST /api/contexts` now, `POST /api/tasks` in § 30) follow the create contract in [`guidelines/STORE_BEST_PRACTICES.md`](../../guidelines/STORE_BEST_PRACTICES.md) § 8: a client-generated id, never overwriting a row, 200 for an idempotent retry, and 409 with a machine-readable `code`.
+
 ## Database Access Pattern
 
 When a DB table needs to be read or written from more than one file, extract the query into a shared function in `apps/api/src/db/queries.ts`. Route handlers and other modules import from there rather than inlining the same Drizzle query in multiple places.
