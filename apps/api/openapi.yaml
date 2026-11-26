@@ -345,7 +345,12 @@ paths:
     post:
       tags: [contexts]
       summary: Create a context
-      description: slideIndex is assigned server-side — see the Context schema.
+      description: >
+        Follows the create contract in guidelines/STORE_BEST_PRACTICES.md § 8.
+        The client may supply the id, so an optimistic row keeps it once
+        saved; an existing row is never overwritten. Sending the same id and
+        name again is an idempotent retry (200). The name is stored trimmed.
+        slideIndex is assigned server-side — see the Context schema.
       requestBody:
         required: true
         content:
@@ -354,23 +359,78 @@ paths:
               type: object
               required: [name]
               properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: Optional client-generated id. Omit it and the server generates one.
                 name:
                   type: string
+                  minLength: 1
+                  description: Must be non-empty after trimming. Stored trimmed.
             example:
+              id: 5c9d3b1a-1111-2222-3333-444455556666
               name: Deep Work
       responses:
+        '200':
+          description: >
+            Idempotent retry: this user already has a context with this id and
+            name. Returns it as stored (slideIndex isn't compared).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Context'
         '201':
           description: Created context
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Context'
-        '409':
-          description: A context with this name already exists for this user
+        '400':
+          description: >
+            Invalid body: not a JSON object, id present but not a UUID, or name
+            missing, not a string, or empty after trimming. Carries no code.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+              example:
+                error: Bad request
+        '409':
+          description: >
+            name_taken: this user already has a context with this name; the
+            existing context is returned so the client can use it.
+            id_conflict: the id belongs to another user's context, or to this
+            user's context with a different name. The same response in both
+            cases, so it reveals nothing about another user's row.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextConflict'
+              examples:
+                nameTaken:
+                  summary: Name already taken
+                  value:
+                    error: Context name already taken
+                    code: name_taken
+                    context:
+                      id: 5c9d3b1a-1111-2222-3333-444455556666
+                      userId: 5c9d3b1a-0000-0000-0000-000000000000
+                      name: Deep Work
+                      slideIndex: 2
+                      createdAt: '2024-01-01T00:00:00.000Z'
+                idConflict:
+                  summary: Id already used
+                  value:
+                    error: Conflict
+                    code: id_conflict
+        '500':
+          description: Database error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Database error
 
 components:
   parameters:
@@ -388,6 +448,9 @@ components:
       properties:
         error:
           type: string
+        code:
+          type: string
+          description: Machine-readable error code, on errors the client handles itself (e.g. a 409).
 
     EnergyLevel:
       type: string
@@ -595,6 +658,19 @@ components:
         name: Learning
         slideIndex: 0
         createdAt: '2024-01-01T00:00:00.000Z'
+
+    ContextConflict:
+      type: object
+      required: [error, code]
+      properties:
+        error:
+          type: string
+        code:
+          type: string
+          enum: [name_taken, id_conflict]
+        context:
+          $ref: '#/components/schemas/Context'
+          description: The existing context. Present only for name_taken.
 
     RankRequest:
       type: object
