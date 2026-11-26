@@ -171,6 +171,14 @@ No URL versioning (`/api/v1/...`) — paths are plain `/api/...`. If a breaking 
 
 Endpoints are documented in `apps/api/openapi.yaml` (OpenAPI 3.0), hand-authored and served interactively via Swagger UI at `/docs`. Migrated from a hand-maintained `apps/api/API.md` once the API crossed the 5-endpoint / docs-upgrade threshold in `CLAUDE.md`. This is docs-only — no request/response validation library or schema-driven code generation was introduced; the spec still has to be kept in sync by hand, same discipline `API.md` used, just machine-readable and with an interactive view. `API.md` is kept in place as a pointer rather than deleted.
 
+### Type checking
+
+**`apps/api` is type-checked, not compiled (tasks/TASKS-DONE.md § 63).** `npm run typecheck -w @priori/api` runs `tsc --noEmit` against `apps/api/tsconfig.json` (the engine's compiler settings: strict, NodeNext, ES2022), covering `src/`, `test/` and the config files. Nothing builds the API: `tsx` runs `src/` in dev and Vitest runs `test/`. Forces: both of those strip types without checking them, so until this nothing type-checked the API at all, unlike the engine (`npm run typecheck`) and the web app (`tsc -b` in its build), and a type error could only surface at runtime. `typescript` is the API's own dev dependency rather than one it borrowed through hoisting. `swagger-ui-dist` ships no types, and `@types/swagger-ui-dist` covers v3 only (the API uses v5), so `src/types/swagger-ui-dist.d.ts` declares just the `absolutePath()` that `routes/docs.ts` calls. Not run in CI: the only workflow today publishes Storybook. Rejected alternatives:
+- **Compiling the API to `dist/` with `tsc`** — a build step nothing needs yet, since `tsx` runs the source directly.
+- **Vitest's `typecheck` mode** — it checks test files and type tests, not the source as a whole.
+- **`@types/swagger-ui-dist`** — typed for swagger-ui-dist v3, so it would describe a different API than the one installed.
+- **Leaving it unchecked** — no setup, but type errors only show up at runtime.
+
 ### Authentication
 
 Not yet implemented. A single dev user (`dev@priori.local`) is seeded and looked up at startup. All routes operate on behalf of this user via a hardcoded `userId` passed into each handler factory.

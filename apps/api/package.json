@@ -9,7 +9,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx src/db/seed.ts",
     "db:migrate-tasks": "tsx src/db/migrateTasks.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p ."
   },
   "dependencies": {
     "@priori/engine": "*",
@@ -22,6 +23,7 @@
     "@types/pg": "^8.11.11",
     "drizzle-kit": "^0.31.1",
     "tsx": "^4.19.2",
+    "typescript": "^5.9.3",
     "vitest": "^3.2.4"
   }
 }

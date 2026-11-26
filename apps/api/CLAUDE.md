@@ -16,6 +16,10 @@ When a DB table needs to be read or written from more than one file, extract the
 
 Example: `queryTasks(db, userId)` is defined once in `queries.ts` and used by both `routes/tasks.ts` and `routes/rank.ts`.
 
+## Type Checking
+
+`npm run typecheck -w @priori/api` runs `tsc --noEmit` over `src/` and `test/` (`apps/api/tsconfig.json`). Run it before committing API changes: `tsx` and Vitest strip types without checking them, so a type error passes the tests and runs in dev unless this catches it. A dependency that ships no types gets a minimal `declare module` in `src/types/`, typed for what the code uses (not `any`). Why: `documentation/ARCHITECTURE.md` § API Layer › Type checking.
+
 ## API Testing Strategy
 
 Test files live in `apps/api/test/`, mirroring the `src/` structure.
