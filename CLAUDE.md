@@ -137,9 +137,10 @@ npm test -w @priori/api            # vitest run — real-DB tests need PostgreSQ
                                    # (default postgresql://localhost/priori_test); migrations run automatically
 npm run db:migrate -w @priori/api  # apply migrations to DATABASE_URL (default postgresql://localhost/priori_dev)
 npm run db:seed -w @priori/api     # seed the dev database
+npm run typecheck -w @priori/api   # tsc --noEmit over src/ and test/ (the API is never compiled)
 ```
 
-`apps/api` has no lint or type-check script.
+`apps/api` has no lint script.
 
 ## Architecture
 

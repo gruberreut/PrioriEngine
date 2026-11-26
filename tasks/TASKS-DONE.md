@@ -739,3 +739,15 @@ Filed above § 56 because § 56 and § 31 depend on it; the section number doesn
 - [x] A setup file with clean-up between tests (`apps/web/test/setup.ts`)
 - [x] One real test proving the setup: `ConfirmDialog`'s option click and Escape behaviour
 - [x] `apps/web/CLAUDE.md`: how to write a React test. `documentation/ARCHITECTURE.md` § Frontend: the decision, and the rejected alternative (testing the data layer only through a `QueryClient`, with no React)
+
+---
+
+## 63. Type-check the API (`api-typecheck`)
+
+Type: tech
+
+Nothing type-checked `apps/api`: `tsx` (dev) and Vitest (tests) both strip types without checking them, and the API had no tsconfig or `typecheck` script, unlike the engine and the web app. Found while working on § 56's `POST /api/contexts` change. A strict run over the whole API found one error: `swagger-ui-dist` ships no types.
+
+- [x] `apps/api/tsconfig.json` (the engine's settings, `noEmit`, covering `src/`, `test/` and the config files) and a `typecheck` script; `typescript` added as an API dev dependency
+- [x] Fix the one error: a minimal `declare module "swagger-ui-dist"` in `apps/api/src/types/` (`@types/swagger-ui-dist` covers v3 only)
+- [x] Docs: root `CLAUDE.md` § Commands, `apps/api/CLAUDE.md` § Type Checking, and the decision in `documentation/ARCHITECTURE.md` § API Layer › Type checking
